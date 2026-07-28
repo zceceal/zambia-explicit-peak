@@ -1,0 +1,22 @@
+diff --git a/onsset/onsset.py b/onsset/onsset.py
+index e88a561..426aeeb 100644
+--- a/onsset/onsset.py
++++ b/onsset/onsset.py
+@@ -298,7 +298,7 @@ class Technology:
+         td_om_cost = td_investment_cost * self.om_of_td_lines * penalty
+         installed_capacity = peak_load / capacity_factor
+ 
+-        cap_cost = td_investment_cost * 0
++        cap_cost = (td_investment_cost * 0).astype(float)  # float to accept non-integer capex values
+         cost_dict_list = self.capital_cost.keys()
+         cost_dict_list = sorted(cost_dict_list)
+         for key in cost_dict_list:
+@@ -2588,7 +2588,7 @@ class SettlementProcessor:
+                                 num_people_per_hh=self.df[SET_NUM_PEOPLE_PER_HH],
+                                 grid_cell_area=self.df[SET_GRID_CELL_AREA],
+                                 capacity_factor=self.df[SET_GHI] / HOURS_PER_YEAR,
+-                                base_to_peak_load_ratio=sa_pv_calc.base_to_peak_load_ratio)
++                                base_to_peak_load_ratio=self.df[SET_AVERAGE_TO_PEAK])
+ 
+         self.df.loc[(self.df[SET_ELEC_FINAL_CODE + "{}".format(year - time_step)] != 3) &
+                     (self.df[SET_ELEC_FINAL_CODE + "{}".format(year - time_step)] != 99),

@@ -1,0 +1,96 @@
+# ============================================================
+# Zambia explicit-peak experiment — run configuration
+#
+# Every contested value is a dial here rather than in code, so a run can be
+# reconfigured without editing the pipeline. Sources are given inline.
+# These are the values behind the published results.
+# ============================================================
+
+# ── Input / output paths ──────────────────────────────────────
+paths:
+  spine_r0: "data/processed/zambia_grid3_spine_pe_n20.csv"   # control arm: standard demand columns
+  spine_r1: "data/processed/zambia_grid3_spine_pe_n20.csv"   # treatment arm: adds PE_ratio, which
+                                                             # overrides the scalar base-to-peak ratio
+  specs_calib: "data/onsset_inputs/specs_zambia_calibrated_distgate_2026-06-20.xlsx"
+  mv_lines_geojson: "data/raw/zambia/grid/mv/zambia_mv_lines.geojson"
+  pv_hybrid_path: "data/raw/zambia/resource/pv_hybrid_lut"
+  wind_hybrid_path: "data/raw/zambia/resource/wind_hybrid_lut"
+  results_dir: "results"
+  run_label: "grid3_central"
+
+# ── Finance ───────────────────────────────────────────────────
+discount_rates:
+  # 8% real flat. OnSSET/CCG convention; IRENA LCOE methodology gives 7.5-10% for sub-Saharan Africa.
+  # Sensitivities: 10% flat (Mapulanga 2024); Egli et al. 2023 technology-differentiated Zambia rates
+  # (grid 0.102, mini-grid 0.234, stand-alone 0.174).
+  grid: 0.08
+  mini_grid: 0.08
+  standalone: 0.08
+
+battery_capex_usd_per_kwh: 300
+# NREL ATB 2025, Li-ion BESS (334 in 2024 falling to 247 by 2035). Swept [247, 300, 334].
+
+diesel_price_usd_per_l: 1.9
+# Zambia Energy Regulation Board pump-price bulletin, May 2026. Swept +/-20%.
+
+# ── Demand ────────────────────────────────────────────────────
+demand_tiers:
+  urban_tier: 5              # Imasiku et al. 2025 (urban Zambia)
+  rural_tier_large: 3        # Imasiku et al. 2025 (rural Zambia); Tier 2 run as a sensitivity
+  rural_tier_small: 3        # held equal to rural_tier_large; the source does not distinguish
+  rural_cutoff_size: 500     # households; OnSSET convention
+  # kWh/HH/yr per tier are set by OnSSET from Bhatia & Angelou (2015) ESMAP Multi-Tier Framework.
+
+household_size:
+  # ZamStats 2022 Census of Population and Housing, Section 4.3. The same values derive N in the
+  # peak sub-model below, so demand and connection count stay consistent.
+  urban: 4.6
+  rural: 5.0
+
+# ── Peak-to-energy sub-model (treatment arm only) ─────────────
+pe_model:
+  n_mid: 20           # connection count at which load matches the Step-peak archetype.
+                      # The one assumed quantity in the model. Swept [10, 20, 50].
+  p_1: 3.98           # Lorenzoni et al. 2020, Table 2, "Peak" archetype
+  p_inf: 1.45         # Lorenzoni et al. 2020, Table 2, "Flat" archetype
+  p_step: 2.43        # Lorenzoni et al. 2020, Table 2, "Step-peak" archetype
+  hh_size_urban: 4.6  # ZamStats 2022 Census
+  hh_size_rural: 5.0  # ZamStats 2022 Census
+
+# ── Grid ──────────────────────────────────────────────────────
+grid:
+  losses: 0.15                             # Egli et al. 2023, Table S8 (Zambia)
+  capacity_investment_cost_usd_kw: 1441.1  # Egli et al. 2023, Table S8 (Zambia)
+  generation_cost_usd_kwh: 0.013           # Egli et al. 2023, Table S8 (Zambia)
+  existing_ratio: 0.1
+  max_extension_dist_km: 10.0              # OnSSET/GEP convention. Swept [5, 20].
+  annual_capacity_limit_mw: 9999           # unconstrained build rate (see docs/03_assumptions.md)
+  annual_connections_limit_k: 9999         # unconstrained build rate
+  base_to_peak_r0: 0.8
+  # Inert for the cost calculation: OnSSET's tier table assigns 0.5 for Tiers 3-5 in
+  # calculate_demand(), and the per-settlement column overrides both before any cost function
+  # reads them. Retained so the control arm matches the distributed OnSSET configuration.
+
+# ── Scenario ──────────────────────────────────────────────────
+scenario:
+  start_year: 2020
+  end_year: 2035
+  years_of_analysis: [2030, 2035]   # report costs on the 2030 columns; see docs/01_pipeline.md
+  pop_end_year: 28266892            # UN World Population Prospects 2024, medium variant
+  urban_ratio_end_year: 0.538       # UN World Population Prospects 2024
+  elec_target: 1.0                  # universal access by the end year
+
+# ── Arms ──────────────────────────────────────────────────────
+arms:
+  R0:
+    label: "R0_energy_only"
+    description: >
+      Energy-only baseline. Standard OnSSET demand representation: the peak is recovered from annual
+      energy by a single tier-based average-to-peak ratio applied to every settlement.
+    pe_override: false
+  R1:
+    label: "R1_explicit_peak"
+    description: >
+      Explicit peak. The PE_ratio column from the demand pre-processor replaces the scalar
+      average-to-peak ratio, so each settlement's peak reflects its own connection count.
+    pe_override: true

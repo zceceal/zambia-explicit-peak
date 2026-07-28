@@ -1,0 +1,22 @@
+# Conda environment for the Zambia explicit-peak OnSSET experiment.
+#   conda env create -f environment.yml
+#   conda activate zambia-peak
+name: zambia-peak
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - numpy>=1.24
+  - pandas>=2.0
+  - scipy>=1.10
+  - pyyaml>=6.0
+  - openpyxl>=3.1
+  - matplotlib>=3.7
+  - rasterio>=1.3
+  - pyogrio>=0.7
+  - shapely>=2.0
+  - geopandas>=0.14
+  - pip
+  - pip:
+      - onsset>=1.1
+      - SALib>=1.4

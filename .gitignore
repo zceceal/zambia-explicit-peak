@@ -1,0 +1,26 @@
+# ── Data (large; not distributed — see docs/04_data_sources.md) ──────────
+data/
+results/*
+!results/README.md
+!results/summary/
+figures/*.png
+figures/*.pdf
+
+# ── Python ───────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# ── OS / editor ──────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# ── Logs and scratch ─────────────────────────────────────────────────────
+*.log
+notes/
+drafts/
