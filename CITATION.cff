@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+title: >-
+  Explicit peak demand representation in least-cost electrification
+  modelling: evidence from Zambia
+message: If you use this model or its results, please cite the paper.
+type: software
+authors:
+  - given-names: Eladia
+    family-names: Alcoverro Gea
+    affiliation: Department of Chemical Engineering, Imperial College London
+repository-code: https://github.com/zceceal/zambia-explicit-peak
+abstract: >-
+  A controlled two-configuration OnSSET experiment testing whether replacing
+  the uniform load-factor convention with an explicit, settlement-specific
+  peak power changes least-cost electrification outcomes across 270,526
+  Zambian settlements.
+keywords:
+  - electrification
+  - OnSSET
+  - peak demand
+  - least-cost planning
+  - Zambia
+license: MIT
+date-released: '2026-09-01'
