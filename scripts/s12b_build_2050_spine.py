@@ -16,13 +16,14 @@ Confirmed inputs (WPP-2024 medium variant; see SOURCES_WPP2050.md):
   Pop 2050 = 38,083,385   urban share 2050 = 0.672
   (2035 was 28,266,892 / 0.538; 2020 is 0.437 — all match the specs, validating the series.)
 
-Run from the repo root (adjust PROC if needed):
+Run from anywhere; paths resolve relative to the repository root:
   python build_r1_spine_2050.py
 Outputs: zambia_grid3_spine_pe_2050_n20.csv  (+ _n10 / _n50 for the sweep)
 """
 import pandas as pd, numpy as np, sys, os
+from pathlib import Path
 
-PROC = "data/processed"                      # folder with the spines
+PROC = str(Path(__file__).resolve().parent.parent / "data" / "processed")
 CALIB = os.path.join(PROC, "zambia_grid3_calib_distgate.csv")
 
 # --- confirmed WPP-2024 2050 targets ---

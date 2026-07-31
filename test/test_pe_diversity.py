@@ -82,7 +82,7 @@ def test_n_mid_le_1_raises():
 
 # ── 7. Approaches P_INF at large N ──────────────────────────────────────────
 def test_approaches_p_inf_large_n():
-    # With beta≈0.316, N must be very large to converge; N=1e10 gives pe≈1.452
+    # With beta≈0.317, N must be very large to converge; N=1e10 gives pe≈1.452
     v = pe_from_n(1e10)
     assert abs(v - P_INF) < 0.005, (
         f"At N=1e10 expected ~P_INF={P_INF}, got {v:.6f}"

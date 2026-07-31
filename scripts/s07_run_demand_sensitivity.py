@@ -54,7 +54,7 @@ WIND_PROFILE  = (REPO / "data" / "raw" / "zambia" / "renewables_hourly" /
 # Stage-4 Tier-3 reference values (from 2026-07-01_grid3_lcoe_run.md)
 T3_LCOE_PCT  = {10: 34.6,  20: 36.9,  50: 38.8}   # ΔLCOE% energy-weighted 2030
 T3_CAPEX_PCT = {10: -14.3, 20: -9.8,  50: -3.6}    # ΔCAPEX% 2030
-T3_SWITCHES  = {10: 17413, 20: 17783, 50: 18682}    # SA_PV→Grid at 2030 (from tech split)
+T3_SWITCHES  = {10: 16999, 20: 17787, 50: 18260}    # SA_PV→Grid at 2030 (from tech split)
 
 np.random.seed(42)
 
