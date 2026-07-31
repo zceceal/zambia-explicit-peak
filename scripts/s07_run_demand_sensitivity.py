@@ -1,5 +1,5 @@
 """
-GRID3 Stage 4b — Demand sensitivity: rural Tier 2 (219 kWh/HH/yr).
+s07_run_demand_sensitivity.py — demand sensitivity: rural Tier 2 (219 kWh/HH/yr).
 
 ONE change vs Stage 4: rural_tier_large = rural_tier_small = 2 (was 3).
 Everything else — spine, PE sub-model, cost params, seeds — is identical.
@@ -27,7 +27,7 @@ import pandas as pd
 warnings.filterwarnings("ignore")
 
 HERE = Path(__file__).resolve().parent
-REPO = HERE.parents[1]
+REPO = HERE.parent
 
 sys.path.insert(0, str(REPO / "data" / "onsset_repo"))
 sys.path.insert(0, str(HERE))
@@ -120,7 +120,6 @@ def main():
             f"Stage-4 file present and WOULD be overwritten: {protected}"
     print("\n  Guard: Stage-4 output names differ from Stage-4b names — OK.")
 
-    # Load profiles
     print(f"\nLoading solar profile …")
     ghi_profile, temp_profile = load_solar_profile(SOLAR_PROFILE)
     print(f"  Annual GHI: {ghi_profile.sum()/1000:.0f} kWh/m²/yr  |  "
@@ -139,7 +138,7 @@ def main():
 
     years = cfg["scenario"]["years_of_analysis"]
 
-    # ── Load GRID3 PE spines (same as Stage 4) ─────────────────────────────────
+    # ── Load GRID3 PE spines (same as s06) ─────────────────────────────────
     print("\nLoading GRID3 PE spines …")
     df_base = pd.read_csv(PE_N20)
     df_base = df_base.rename(columns={"PE_ratio": "PE_ratio_n20"})

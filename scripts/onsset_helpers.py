@@ -1,5 +1,5 @@
 """
-Full R0/R1 OnSSET LCOE run — COMPLETE technology menu including hybrids.
+onsset_helpers.py — shared loaders (solar and wind profiles, config) for stages 06 onward.
 Clean run 2026-06-23: applies F1 (byte-identical spine), F5 (GHI bins re-centred),
 and F4 (per-connection reporting guard).
 
@@ -51,7 +51,7 @@ import yaml
 warnings.filterwarnings("ignore")
 
 HERE = Path(__file__).resolve().parent
-REPO = HERE.parents[1]
+REPO = HERE.parent
 
 sys.path.insert(0, str(REPO / "data" / "onsset_repo"))
 
@@ -67,9 +67,7 @@ from onsset import (
 )
 
 # ── paths ─────────────────────────────────────────────────────────────────────
-SPINE_R0   = REPO / "data" / "processed" / "zambia_settlements.csv"
-SPINE_R1   = REPO / "data" / "processed" / "zambia_settlements_PE.csv"
-CONFIG     = HERE / "config.yaml"
+CONFIG     = REPO / "config" / "config.yaml"
 OUTDIR     = REPO / "data" / "onsset_outputs"
 TX_SHP     = (REPO / "data" / "raw" / "zambia" / "grid" /
               "transmission_network_wb" / "zambia-electricity-transmission-network" /
@@ -80,7 +78,6 @@ SOLAR_PROFILE = (REPO / "data" / "raw" / "zambia" / "renewables_hourly" /
 WIND_PROFILE  = (REPO / "data" / "raw" / "zambia" / "renewables_hourly" /
                  "wind" / "wind_lusaka.csv")
 
-RUN_LABEL  = "2026-06-23_clean_lcoe"
 
 # ── scenario constants (from runner.py defaults) ───────────────────────────────
 HV_LINE_TYPE        = 69
@@ -932,115 +929,3 @@ def compare_arms(proc_r0, proc_r1, years, cfg, out_dir, label, hybrid_status,
                 print(f"    {fl} → {tl}: {n:,}")
 
     return comp_df
-
-
-# ── Main ──────────────────────────────────────────────────────────────────────
-
-def main():
-    print("=" * 65)
-    print("run_lcoe_full.py — Zambia R0/R1 LCOE run (clean, full technology menu)")
-    print("Hybrids ENABLED: MG_PVHybrid (lookup), MG_Wind (attempted)")
-    print("Fixes applied: F1 (byte-identical spine), F5 (GHI bins), F4 (reporting)")
-    print("=" * 65)
-
-    cfg = load_config()
-    OUTDIR.mkdir(parents=True, exist_ok=True)
-
-    # Load hourly profiles
-    print(f"\nLoading solar profile: {SOLAR_PROFILE.name}")
-    ghi_profile, temp_profile = load_solar_profile(SOLAR_PROFILE)
-    print(f"  Annual GHI: {ghi_profile.sum()/1000:.0f} kWh/m²/year  |  "
-          f"Mean temp: {temp_profile.mean():.1f}°C")
-
-    print(f"Loading wind profile:  {WIND_PROFILE.name}")
-    wind_profile = load_wind_profile(WIND_PROFILE)
-    print(f"  Mean wind speed (corrected to 20 m): {wind_profile.mean():.2f} m/s  "
-          f"(80 m raw × 0.820 correction factor)")
-
-    # Load transmission network
-    print(f"\nLoading transmission network: {TX_SHP.name}")
-    try:
-        x_tx, y_tx = SettlementProcessor.start_extension_points(str(TX_SHP))
-        print(f"  Grid extension starting points: {len(x_tx):,}")
-    except Exception as e:
-        print(f"  ERROR loading transmission network: {e}")
-        x_tx = np.array([])
-        y_tx = np.array([])
-
-    years = cfg["scenario"]["years_of_analysis"]
-
-    # ── F1: Load R0 spine ONCE; build R1 spine in memory ──────────────────────
-    print("\n" + "=" * 65)
-    print("F1: Loading spines — single source of truth")
-    print("=" * 65)
-
-    print(f"  Loading R0 spine: {SPINE_R0.name}")
-    df_r0_raw = pd.read_csv(SPINE_R0)
-    print(f"  R0 spine: {len(df_r0_raw):,} settlements × {len(df_r0_raw.columns)} columns")
-
-    print(f"  Loading R1 spine for PE columns: {SPINE_R1.name}")
-    df_r1_pe  = pd.read_csv(SPINE_R1)
-
-    # Identify columns present only in R1 (the PE columns)
-    pe_only_cols = [c for c in df_r1_pe.columns if c not in df_r0_raw.columns]
-    print(f"  PE-only columns to merge: {pe_only_cols}")
-
-    # Align by settlement id and merge PE columns onto the R0 base
-    if "id" in df_r0_raw.columns and "id" in df_r1_pe.columns:
-        assert (df_r0_raw["id"].values == df_r1_pe["id"].values).all(), \
-            "Settlement IDs are not aligned between R0 and R1 spines — cannot merge."
-    else:
-        assert len(df_r0_raw) == len(df_r1_pe), \
-            "Spine row counts differ and no 'id' column to align on."
-
-    df_r1_raw = df_r0_raw.copy()
-    for col in pe_only_cols:
-        df_r1_raw[col] = df_r1_pe[col].values
-
-    # Pre-run byte-identity assertion: every shared column must be identical
-    shared_cols = [c for c in df_r0_raw.columns if c not in set(pe_only_cols)]
-    diffs_pre   = [c for c in shared_cols if not df_r0_raw[c].equals(df_r1_raw[c])]
-    if diffs_pre:
-        print(f"  *** PRE-RUN ASSERT FAIL: shared columns differ: {diffs_pre} ***")
-        raise AssertionError(f"F1 pre-run: shared columns differ: {diffs_pre}")
-    else:
-        print(f"  ASSERT PASS (pre-run): {len(shared_cols)} shared columns are "
-              f"byte-identical between R0 and R1 spines.")
-
-    # Run R0
-    proc_r0, sum_r0, hs_r0 = run_arm("R0", SPINE_R0, cfg, x_tx, y_tx,
-                                      ghi_profile, temp_profile, wind_profile,
-                                      spine_df=df_r0_raw)
-    r0_out = OUTDIR / f"{RUN_LABEL}_R0.csv"
-    proc_r0.df.to_csv(r0_out, index=False)
-    print(f"\n  R0 output → {r0_out.relative_to(REPO)}")
-
-    # Run R1
-    proc_r1, sum_r1, hs_r1 = run_arm("R1", SPINE_R1, cfg, x_tx, y_tx,
-                                      ghi_profile, temp_profile, wind_profile,
-                                      spine_df=df_r1_raw)
-    r1_out = OUTDIR / f"{RUN_LABEL}_R1.csv"
-    proc_r1.df.to_csv(r1_out, index=False)
-    print(f"\n  R1 output → {r1_out.relative_to(REPO)}")
-
-    hybrid_status = {
-        "pv_ok":   hs_r0["pv_ok"] and hs_r1["pv_ok"],
-        "wind_ok": hs_r0["wind_ok"] and hs_r1["wind_ok"],
-    }
-
-    comp_df = compare_arms(proc_r0, proc_r1, years, cfg, OUTDIR, RUN_LABEL,
-                           hybrid_status, pe_cols=pe_only_cols)
-
-    print(f"\n{'='*65}")
-    print("HYBRID STATUS:")
-    print(f"  MG_PVHybrid: {'ENABLED — lookup table applied' if hybrid_status['pv_ok'] else 'DISABLED'}")
-    print(f"  MG_Wind:     {'ENABLED — lookup table applied' if hybrid_status['wind_ok'] else 'DISABLED (optimization error in hybrids_wind.py)'}")
-    print("  PlannedMVLineDist = CurrentMVLineDist (pending REA planned-network data)")
-    print("  PlannedHVLineDist = CurrentHVLineDist")
-    print(f"\nOutputs in: {OUTDIR.relative_to(REPO)}")
-
-    return proc_r0, proc_r1, comp_df
-
-
-if __name__ == "__main__":
-    main()

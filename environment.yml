@@ -19,4 +19,3 @@ dependencies:
   - pip
   - pip:
       - onsset>=1.1
-      - SALib>=1.4

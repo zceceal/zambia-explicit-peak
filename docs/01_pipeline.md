@@ -11,7 +11,6 @@ itself numbers only its notebooks and leaves its package modules unnumbered.
 
 | Stage | Script | What it does | Key output |
 |---|---|---|---|
-| 00 | `s00_validate_inputs.py` | Pre-run gate. Checks the spine, calibration and parameters are internally consistent before anything expensive runs. Produces a pass/fail table | validation report |
 | 01 | `s01_build_spine_clusters.py` | Builds settlement polygons from GRID3: geometry, WorldPop population, urban/rural class, admin-1 | cluster spine |
 | 02 | `s02_build_spine_dispersed.py` | Recovers the ~18% of population living outside any GRID3 polygon by aggregating residual pixels to ~2.8 km cells, so the spine reconciles to the national total | **combined spine, 270,526 settlements** |
 | 03 | `s03_build_spine_attributes.py` | Computes every OnSSET spatial column: solar and wind resource, travel time, road and grid distances (ZESCO MV lines, NEP planned extensions, transformers) | spine with attributes |
@@ -27,8 +26,7 @@ itself numbers only its notebooks and leaves its package modules unnumbered.
 | 13 | `s13_generate_figures.py` | Regenerates every figure in the paper from current outputs | figures |
 
 Two supporting modules sit alongside them: `scripts/onsset_helpers.py` holds shared loaders (solar and
-wind profiles, config) used from stage 06 onward, and `scripts/plot_pe_distribution.py` is a small
-figure helper.
+wind profiles, config) used from stage 06 onward.
 
 ## The intervention, in detail (stage 05)
 
@@ -37,8 +35,7 @@ figure helper.
 - **`pe_diversity.py`** — the peak-to-energy model itself. Two functions: `compute_beta()` derives the
   curve's exponent from the measured anchors, and `pe_from_n()` returns the ratio for a given
   connection count.
-- **`compute_settlement_pe.py`** — applies that curve across the spine and writes the `PE_ratio`
-  column.
+Stage 05 applies that curve across the spine and writes the `PE_ratio` column.
 
 OnSSET then reads that column as a per-settlement `base_to_peak_load_ratio` (= 1 / `PE_ratio`) in
 place of the single scalar it would otherwise use. **The allocation engine itself is unmodified.**

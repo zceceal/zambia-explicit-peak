@@ -1,5 +1,6 @@
 import pandas as pd, numpy as np, sys
-BASE="../../data/processed/"
+from pathlib import Path
+BASE = str(Path(__file__).resolve().parent.parent / "data" / "processed") + "/"
 pe_df=pd.read_csv(BASE+"zambia_grid3_spine_pe_n20.csv")
 cal=pd.read_csv(BASE+"zambia_grid3_calib_distgate.csv")[['id','IsUrban']].rename(columns={'IsUrban':'IsUrbanCal'})
 df=pe_df.merge(cal,on='id',how='left')

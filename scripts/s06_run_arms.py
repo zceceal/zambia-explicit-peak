@@ -1,5 +1,5 @@
 """
-GRID3 Stage 4 — Full R0/R1 LCOE run on GRID3-calibrated spine.
+s06_run_arms.py — the controlled comparison: R0 and R1 least-cost solves.
 
 Inputs:
   R0/R1 base: data/processed/zambia_grid3_spine_pe_n20.csv  (pre-processed by
@@ -35,12 +35,12 @@ import pandas as pd
 warnings.filterwarnings("ignore")
 
 HERE = Path(__file__).resolve().parent
-REPO = HERE.parents[1]
+REPO = HERE.parent
 
 sys.path.insert(0, str(REPO / "data" / "onsset_repo"))
 sys.path.insert(0, str(HERE))
 
-# Import helper functions from the existing runner
+# Shared helpers (profile loaders, technology builders, config)
 from onsset_helpers import (
     load_solar_profile, load_wind_profile,
     build_pv_hybrid_lookup, apply_pv_hybrid_lookup,
@@ -385,7 +385,6 @@ def main():
     cfg = load_config()
     OUTDIR.mkdir(parents=True, exist_ok=True)
 
-    # Load profiles
     print(f"\nLoading solar profile: {SOLAR_PROFILE.name}")
     ghi_profile, temp_profile = load_solar_profile(SOLAR_PROFILE)
     print(f"  Annual GHI: {ghi_profile.sum()/1000:.0f} kWh/m²/yr  |  "
@@ -394,7 +393,6 @@ def main():
     wind_profile = load_wind_profile(WIND_PROFILE)
     print(f"  Mean wind (corrected to 20m): {wind_profile.mean():.2f} m/s")
 
-    # Load transmission network
     print(f"\nLoading transmission network …")
     try:
         x_tx, y_tx = SettlementProcessor.start_extension_points(str(TX_SHP))

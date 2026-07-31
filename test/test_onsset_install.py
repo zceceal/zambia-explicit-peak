@@ -1,7 +1,7 @@
 """
-Djibouti end-to-end sanity check for OnSSET install.
+test_onsset_install.py — end-to-end sanity check that the OnSSET install works.
 
-Gate criteria (CLAUDE_CODE_KICKOFF.md — Sanity-check gate):
+Gate criteria:
   1. onsset.SettlementProcessor loads and processes the Djibouti test CSV without error
   2. Calibration step runs to completion (population, urban ratio, electrification calibrated)
   3. Calibrated output CSV contains expected pipeline columns:
@@ -16,7 +16,7 @@ deferred to the R0 baseline gate (vs Imasiku 2025 + Mentis 2017).  This check
 validates that calibration runs cleanly and the spatial pipeline is intact.
 
 Run from the project root:
-    .venv/bin/python _claude_workspace/scripts/dj_sanity_check.py
+    python test/test_onsset_install.py
 """
 
 import os
@@ -33,7 +33,7 @@ import matplotlib.pyplot as plt
 from onsset import SettlementProcessor
 from onsset.runner import calibration
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REPO        = os.path.join(PROJECT_ROOT, "data", "onsset_repo")
 SPECS       = os.path.join(REPO, "test", "test_data", "dj-specs-test.xlsx")
 CSV_IN      = os.path.join(REPO, "test", "test_data", "dj-test.csv")
@@ -59,9 +59,7 @@ def main():
 
     os.makedirs(FIGURES_DIR, exist_ok=True)
 
-    # ------------------------------------------------------------------ #
-    # Step 1 — Run calibration
-    # ------------------------------------------------------------------ #
+    # ── Run calibration ──────────────────────────────────────────────────────
     print("Step 1: Running calibration ...")
     with tempfile.TemporaryDirectory() as tmpdir:
         specs_calib = os.path.join(tmpdir, "dj-specs-calib.xlsx")
@@ -77,9 +75,7 @@ def main():
             _report(t0)
             sys.exit(1)
 
-        # ---------------------------------------------------------------- #
-        # Step 2 — Row-count and calibrated-column checks
-        # ---------------------------------------------------------------- #
+        # ── Row-count and calibrated-column checks ───────────────────────────
         print("\nStep 2: Structural checks on calibrated output ...")
         df = pd.read_csv(csv_calib)
         n_in = len(pd.read_csv(CSV_IN))
@@ -106,9 +102,7 @@ def main():
             n_nan = df[elec_pop_col].isna().sum()
             check(f"No NaN in '{elec_pop_col}'", n_nan == 0, f"{n_nan} NaN found")
 
-        # ---------------------------------------------------------------- #
-        # Step 3 — Settlement map (GHI choropleth + electrification status)
-        # ---------------------------------------------------------------- #
+        # ── Settlement map (GHI choropleth + electrification status) ─────────
         print("\nStep 3: Producing settlement map ...")
         try:
             fig, axes = plt.subplots(1, 2, figsize=(14, 6))

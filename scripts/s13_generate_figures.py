@@ -1,5 +1,5 @@
 """
-Regenerate all figures from current model outputs.
+s13_generate_figures.py — regenerate all figures from current model outputs.
 
 All figures sourced from the GRID3 model (270,526-settlement spine).
 Filenames are stable across runs.
@@ -33,7 +33,7 @@ import matplotlib.patches as mpatches
 from matplotlib.lines import Line2D
 
 HERE    = Path(__file__).resolve().parent
-REPO    = HERE.parents[1]
+REPO    = HERE.parent
 FIGDIR  = REPO / "figures"
 OUTDIR  = REPO / "data" / "onsset_outputs"
 PROCDIR = REPO / "data" / "processed"
@@ -184,10 +184,7 @@ def fig0_workflow():
     save_fig(fig, "fig_methods_onsset_workflow.png")
 
 
-# ════════════════════════════════════════════════════════════════════════════
-# Figure 3.2 — coincidence curve (spine-independent)
-# ════════════════════════════════════════════════════════════════════════════
-
+# ── Figure 3.2 — coincidence curve (spine-independent) ───────────────────────
 def fig_curve():
     N = np.logspace(0, np.log10(3000), 300)
     lo = pe_from_n(N, N_mid=20, P_1=P_1_DEFAULT-2*SD_P_1, P_inf=max(1.0, P_INF_DEFAULT-2*SD_P_INF), P_step=P_STEP_DEFAULT-2*SD_P_STEP)
@@ -209,10 +206,7 @@ def fig_curve():
     save_fig(fig, "fig_methods_pe_coincidence_curve.png")
 
 
-# ════════════════════════════════════════════════════════════════════════════
-# Figure 3.3 — empirical validation (three measured anchors)
-# ════════════════════════════════════════════════════════════════════════════
-
+# ── Figure 3.3 — empirical validation (three measured anchors) ───────────────
 def fig_validation():
     N = np.logspace(0, np.log10(3e6), 400)
     lo = pe_from_n(N, N_mid=20, P_1=P_1_DEFAULT-SD_P_1, P_inf=max(1.0, P_INF_DEFAULT-SD_P_INF), P_step=P_STEP_DEFAULT-SD_P_STEP)
@@ -240,10 +234,7 @@ def fig_validation():
     save_fig(fig, "fig_methods_pe_empirical_validation.png")
 
 
-# ════════════════════════════════════════════════════════════════════════════
-# Figure 3.4 — realised P/E distribution on the GRID3 spine
-# ════════════════════════════════════════════════════════════════════════════
-
+# ── Figure 3.4 — realised P/E distribution on the GRID3 spine ────────────────
 def fig_distribution():
     spine_path = PROCDIR / "zambia_grid3_spine_pe_n20.csv"
     df = pd.read_csv(spine_path, usecols=["PE_ratio", "Pop", "IsUrban"])
@@ -269,10 +260,7 @@ def fig_distribution():
     save_fig(fig, "fig_methods_pe_realised_distribution.png")
 
 
-# ════════════════════════════════════════════════════════════════════════════
-# Figure 4.1 — technology split R0 vs R1 (Pop2030-weighted)
-# ════════════════════════════════════════════════════════════════════════════
-
+# ── Figure 4.1 — technology split R0 vs R1 (Pop2030-weighted) ────────────────
 def fig_techsplit():
     use = ["Pop2030", "MinimumOverall2030"]
     r0 = pd.read_csv(OUTDIR / "2026-07-01_grid3_lcoe_R0.csv", usecols=use)
@@ -299,12 +287,9 @@ def fig_techsplit():
     save_fig(fig, "fig_results_tech_split_R0_R1.png")
 
 
-# ════════════════════════════════════════════════════════════════════════════
-# Figure 4.2 — N_mid sweep x demand tier (verified full-country solves)
-# ════════════════════════════════════════════════════════════════════════════
-
+# ── Figure 4.2 — N_mid sweep x demand tier (verified full-country solves) ────
 def fig_nmid_sweep():
-    # Verified full-country solves (Stage 4 / 4b): delta-LCOE % and SA_PV->Grid switches at 2030.
+    # Full-country solves from s06 and s07: delta-LCOE % and SA_PV->Grid switches at 2030.
     nm = [10, 20, 50]
     t3_d, t2_d = [34.6, 36.9, 38.8], [28.5, 32.3, 35.5]
     t3_s, t2_s = [16999, 17787, 18260], [322, 946, 2146]
@@ -336,10 +321,7 @@ def fig_nmid_sweep():
     save_fig(fig, "fig_methods_pe_nmid_sweep.png")
 
 
-# ════════════════════════════════════════════════════════════════════════════
-# Figure 4.3 — Morris screen (ranking only)
-# ════════════════════════════════════════════════════════════════════════════
-
+# ── Figure 4.3 — Morris screen (ranking only) ────────────────────────────────
 def fig_morris():
     bc = pd.read_csv(OUTDIR / "2026-07-02_grid3_morris_delta_lcoe_corrected.csv").sort_values("mu_star")
     sw = pd.read_csv(OUTDIR / "2026-07-02_grid3_morris_switch_count.csv").sort_values("mu_star")
@@ -366,10 +348,7 @@ def fig_morris():
     save_fig(fig, "fig_sensitivity_morris.png")
 
 
-# ════════════════════════════════════════════════════════════════════════════
-# Figure 4.4 — LHS uncertainty band + full-country anchors
-# ════════════════════════════════════════════════════════════════════════════
-
+# ── Figure 4.4 — LHS uncertainty band + full-country anchors ─────────────────
 def fig_uncertainty():
     lhs = pd.read_csv(OUTDIR / "2026-07-02_grid3_lhs_uncertainty.csv")
     corr = lhs["delta_lcoe_pct_corrected"].values
@@ -395,10 +374,7 @@ def fig_uncertainty():
     save_fig(fig, "fig_headline_uncertainty.png")
 
 
-# ════════════════════════════════════════════════════════════════════════════
-# Figure 4.5 — Switching-settlement map (SA_PV→Grid at 2030, R0 vs R1 n20)
-# ════════════════════════════════════════════════════════════════════════════
-
+# ── Figure 4.5 — Switching-settlement map (SA_PV→Grid at 2030, R0 vs R1 n20) ───
 def _read_shp_polylines(path):
     """Minimal ESRI shapefile reader: returns list of (n,2) arrays for PolyLine
     records (shape types 3/13/23). Pure Python + numpy; no GDAL dependency."""

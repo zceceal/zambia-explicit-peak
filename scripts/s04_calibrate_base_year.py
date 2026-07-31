@@ -1,5 +1,5 @@
 """
-Stage 3 / 3.5 — GRID3 spine base-year (2020) electrification calibration.
+s04_calibrate_base_year.py — base-year (2020) electrification calibration.
 
 Inputs  : data/processed/zambia_grid3_spine_stage2.csv  (270,526 settlements)
           data/onsset_inputs/specs_zambia.xlsx           (pop/urban targets)
@@ -48,7 +48,7 @@ import numpy as np
 import shutil
 
 HERE = Path(__file__).resolve().parent
-REPO = HERE.parents[1]
+REPO = HERE.parent
 
 sys.path.insert(0, str(REPO / "data" / "onsset_repo"))
 from onsset import SettlementProcessor, SET_GRID_PENALTY, SET_WINDVEL, SET_WINDCF

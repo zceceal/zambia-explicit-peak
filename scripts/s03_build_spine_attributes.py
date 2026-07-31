@@ -1,5 +1,5 @@
 """
-build_grid3_spine_stage2.py
+s03_build_spine_attributes.py — settlement spine, stage 3 of 3.
 Stage 2: compute all OnSSET spatial columns on the 270,526-row GRID3 combined spine.
 
 Inputs (from Stage 1b):
@@ -42,12 +42,12 @@ from scipy.spatial import cKDTree
 import pyogrio
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
-ROOT     = Path("/Users/eladiaalcoverrogea/Desktop/IMPERIAL/research project")
+ROOT     = Path(__file__).resolve().parent.parent
 RAW      = ROOT / "data/raw/zambia"
 PROC     = ROOT / "data/processed"
 GRID_DIR = RAW / "grid"
 
-# Stage 1b input
+# Input: combined spine from s02
 SPINE_IN = PROC / "zambia_grid3_spine_combined.csv"
 
 # Rasters (all pre-existing)
@@ -75,7 +75,7 @@ ROADS_PBF    = RAW / "transport/roads/zambia-latest.osm.pbf"
 HYDRO_CSV    = RAW / "resource/hydro/zambia_hydro_plants.csv"
 ADM1_VEC     = RAW / "admin/geoboundaries/geoBoundaries-ZMB-ADM1.geojson"
 
-# Stage 2 outputs
+# Outputs consumed by s04
 OUT_CSV  = PROC / "zambia_grid3_spine_stage2.csv"
 OUT_GPKG = PROC / "zambia_grid3_spine_stage2.gpkg"
 
@@ -152,9 +152,7 @@ def dist_stats(arr, name):
           f"<10 km: {stats['n_lt_10km']:,}")
     return stats
 
-# ══════════════════════════════════════════════════════════════════════════════
-# S0 — Load Stage 1b spine
-# ══════════════════════════════════════════════════════════════════════════════
+# ── Load the combined spine from s02 ──────────────────────────────────────────────────────
 print("\n── S0: Load Stage 1b combined spine ──")
 spine = pd.read_csv(SPINE_IN)
 print(f"  Rows: {len(spine):,}   Columns: {list(spine.columns)}")
@@ -173,9 +171,7 @@ sett_xy = np.column_stack([sett_gdf.geometry.x, sett_gdf.geometry.y])
 print(f"  UTM 35S extent: X {sett_xy[:,0].min():.0f}–{sett_xy[:,0].max():.0f}  "
       f"Y {sett_xy[:,1].min():.0f}–{sett_xy[:,1].max():.0f}")
 
-# ══════════════════════════════════════════════════════════════════════════════
-# S1 — SRTM merged DEM + slope (regenerate if missing)
-# ══════════════════════════════════════════════════════════════════════════════
+# ── SRTM merged DEM + slope (regenerate if missing) ──────────────────────────
 print("\n── S1: SRTM merged DEM + slope ──")
 
 if not DEM_MRG.exists():
@@ -226,9 +222,7 @@ if not SLP_TIF.exists():
 else:
     print(f"  Already exists: {SLP_TIF.name}")
 
-# ══════════════════════════════════════════════════════════════════════════════
-# S2 — Raster sampling at centroids
-# ══════════════════════════════════════════════════════════════════════════════
+# ── Raster sampling at centroids ─────────────────────────────────────────────
 print("\n── S2: Raster sampling ──")
 
 # GHI (daily kWh/m²/day × 365 → annual kWh/m²/yr)
@@ -276,7 +270,7 @@ slope_s = sample_raster(SLP_TIF, xs, ys, nodata_val=0.0)
 slope_s = np.where(slope_s < 0, 0.0, slope_s)
 print(f"  Slope: {slope_s.min():.2f}–{slope_s.max():.2f}°  mean={slope_s.mean():.2f}")
 
-# LandCover — Copernicus not acquired; set to 0 (acquire for Stage 3)
+# LandCover: no Copernicus layer available for Zambia; set to 0 and shared across arms
 land_cover = np.zeros(len(xs))
 print("  LandCover: set to 0 [Copernicus LC not acquired]")
 
@@ -284,9 +278,7 @@ print("  LandCover: set to 0 [Copernicus LC not acquired]")
 grid_penalty = np.ones(len(xs))
 print("  GridPenalty: set to 1 (no penalty layer — standard default)")
 
-# ══════════════════════════════════════════════════════════════════════════════
-# S3 — Grid distances (UTM 35S)
-# ══════════════════════════════════════════════════════════════════════════════
+# ── Grid distances (UTM 35S) ─────────────────────────────────────────────────
 print("\n── S3: Grid distances (all in EPSG:32735, output km) ──")
 
 # ── S3.1: CurrentHVLineDist — World Bank transmission network ─────────────
@@ -445,9 +437,7 @@ print(f"    Distribution: {len(sub_dist_gdf):,}  HVMV: {len(sub_hvmv_gdf):,}  "
 sub_dist  = nn_dist_km(sett_xy, sub_xy)
 sub_stats = dist_stats(sub_dist, "SubstationDist")
 
-# ══════════════════════════════════════════════════════════════════════════════
-# S4 — Vector distances: roads and hydropower
-# ══════════════════════════════════════════════════════════════════════════════
+# ── Vector distances: roads and hydropower ───────────────────────────────────
 print("\n── S4: Roads and hydropower distances ──")
 
 # ── S4.1: RoadDist — OSM primary/secondary/tertiary/unclassified ──────────
@@ -478,16 +468,14 @@ print(f"    HydropowerDist: {hydro_dist.min():.1f}–{hydro_dist.max():.1f} km  
       f"mean={hydro_dist.mean():.1f}")
 print(f"    Hydropower: {hydro_cap.min():.0f}–{hydro_cap.max():.0f} kW")
 
-# ══════════════════════════════════════════════════════════════════════════════
-# S5 — Assemble Stage 2 output CSV (OnSSET schema + Stage-1b columns)
-# ══════════════════════════════════════════════════════════════════════════════
+# ── Assemble the output CSV (OnSSET schema + spine columns) ───────────
 print("\n── S5: Assembling Stage 2 CSV ──")
 
 n = len(spine)
 ZERO = np.zeros(n)
 
 df = pd.DataFrame({
-    # ── Spatial identity (from Stage 1b) ──────────────────────────────────
+    # ── Spatial identity (from s02) ──────────────────────────────────
     "X_deg":        xs,
     "Y_deg":        ys,
     "Pop":          spine["Pop"].values,
@@ -503,7 +491,7 @@ df = pd.DataFrame({
     "grid3_type":     spine["grid3_type"].values,
     "pop_density":    spine["pop_density"].values,
     "source":         spine["source"].values,
-    # ── Calibration placeholders (filled in Stage 3) ──────────────────────
+    # ── Calibration placeholders (filled by s04) ──────────────────────
     "ElecPop":      ZERO,
     "ElecPopCalib": ZERO,
     "ElecStart":    ZERO,
@@ -539,7 +527,7 @@ df = pd.DataFrame({
     "MGDist":       9999.0,
     # ── Conflict (no conflict layer acquired) ─────────────────────────────
     "Conflict":     ZERO,
-    # ── Demand placeholders (filled in Stage 3) ───────────────────────────
+    # ── Demand placeholders (filled by s04) ───────────────────────────
     "ElectrificationOrder":       ZERO,
     "ResidentialDemandTierCustom": ZERO,
     "PerCapitaDemand":            ZERO,
@@ -580,7 +568,6 @@ df = df[COL_ORDER]
 df.to_csv(OUT_CSV, index=False)
 print(f"  Written: {OUT_CSV.name}   ({len(df):,} rows × {len(df.columns)} cols)")
 
-# Write .gpkg
 print("  Writing GeoPackage...")
 gdf_out = gpd.GeoDataFrame(
     df,
@@ -590,24 +577,22 @@ gdf_out = gpd.GeoDataFrame(
 gdf_out.to_file(str(OUT_GPKG), driver="GPKG", layer="stage2")
 print(f"  Written: {OUT_GPKG.name}")
 
-# ══════════════════════════════════════════════════════════════════════════════
-# S6 — Verification gate
-# ══════════════════════════════════════════════════════════════════════════════
+# ── Verification gate ────────────────────────────────────────────────────────
 print("\n── S6: Verification gate ──")
 
-REF_1KM = pd.read_csv(
-    ROOT / "data/processed/zambia_settlements.csv", nrows=0
-)
+# Optional cross-check against the earlier 1 km spine, if one is present.
+REF_1KM_PATH = ROOT / "data/processed/zambia_settlements.csv"
 
 print(f"\n(a) Row count: {len(df):,}   (expected 270,526)")
 
-print(f"\n(b) Column set vs 1 km spine:")
-ref_cols   = set(REF_1KM.columns)
-stage2_cols = set(df.columns)
-in_1km_not_s2 = sorted(ref_cols - stage2_cols)
-in_s2_not_1km = sorted(stage2_cols - ref_cols)
-print(f"    In 1km spine but not Stage 2: {in_1km_not_s2 or 'none'}")
-print(f"    In Stage 2 but not 1km spine: {in_s2_not_1km or 'none'}")
+if REF_1KM_PATH.exists():
+    ref_cols    = set(pd.read_csv(REF_1KM_PATH, nrows=0).columns)
+    stage2_cols = set(df.columns)
+    print(f"\n(b) Column set vs 1 km spine:")
+    print(f"    In 1km spine but not Stage 2: {sorted(ref_cols - stage2_cols) or 'none'}")
+    print(f"    In Stage 2 but not 1km spine: {sorted(stage2_cols - ref_cols) or 'none'}")
+else:
+    print(f"\n(b) Column set vs 1 km spine: skipped (no 1 km spine present)")
 
 print(f"\n(c) NaN / inf check in spatial columns:")
 crit = ["GHI", "WindVel", "TravelHours", "Elevation", "Slope",

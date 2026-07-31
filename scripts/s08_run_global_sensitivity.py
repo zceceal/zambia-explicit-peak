@@ -1,5 +1,5 @@
 """
-GRID3 Stage 5 — Morris GSA + LHS Uncertainty Propagation (GRID3 spine).
+s08_run_global_sensitivity.py — Morris screen and Latin-hypercube propagation.
 
 Supersedes the old 1km-spine §3.6.3 analysis; re-runs on the GRID3-calibrated spine.
 
@@ -40,7 +40,7 @@ from scipy.stats.qmc import LatinHypercube
 warnings.filterwarnings("ignore")
 
 HERE    = Path(__file__).resolve().parent
-REPO    = HERE.parents[1]
+REPO    = HERE.parent
 OUTDIR  = REPO / "data" / "onsset_outputs"
 NOTEDIR = REPO / "notes"
 OUTDIR.mkdir(parents=True, exist_ok=True)
@@ -97,7 +97,7 @@ EMUL_RMSE_THRESHOLD  = 5.0      # pp; use emulator only if RMSE ≤ this
 ANALYSIS_YEAR = 2030   # primary metric year; 2030 cols used throughout
 
 # ── Stage-4 baseline headline (sanity gate) ──────────────────────────────────
-STAGE4_DELTA_LCOE_CENTRAL = 36.9   # +36.9% at N_mid=20, Tier 3 (2026-07-01 notes)
+STAGE4_DELTA_LCOE_CENTRAL = 36.9   # +36.9% at N_mid=20, Tier 3 (full-spine central case from s06)
 
 # ── Paths ────────────────────────────────────────────────────────────────────
 PE_N20 = REPO / "data" / "processed" / "zambia_grid3_spine_pe_n20.csv"
@@ -157,10 +157,7 @@ def _crf(r: float, n: int) -> float:
     return r * (1 + r) ** n / ((1 + r) ** n - 1)
 
 
-# ════════════════════════════════════════════════════════════════════════════════
-# §1  STRATIFIED SUBSAMPLE
-# ════════════════════════════════════════════════════════════════════════════════
-
+# ── §1  STRATIFIED SUBSAMPLE ─────────────────────────────────────────────────
 def build_stratified_subsample(df_full: pd.DataFrame,
                                 n_target: int = SUBSAMPLE_N,
                                 seed: int = SEED_SUBSAMPLE) -> pd.DataFrame:
@@ -217,10 +214,7 @@ def build_stratified_subsample(df_full: pd.DataFrame,
     return sub
 
 
-# ════════════════════════════════════════════════════════════════════════════════
-# §2  SINGLE-ARM RUNNER  (parameters passed through cfg and explicit args)
-# ════════════════════════════════════════════════════════════════════════════════
-
+# ── §2  SINGLE-ARM RUNNER  (parameters passed through cfg and explicit args) ───
 def run_arm_subsample(
     arm_label: str,
     spine_df: pd.DataFrame,
@@ -422,10 +416,7 @@ def run_arm_subsample(
     return onsseter.df
 
 
-# ════════════════════════════════════════════════════════════════════════════════
-# §3  RESPONSE METRICS
-# ════════════════════════════════════════════════════════════════════════════════
-
+# ── §3  RESPONSE METRICS ─────────────────────────────────────────────────────
 def compute_delta_lcoe_pct(df_r0: pd.DataFrame, df_r1: pd.DataFrame,
                             year: int = ANALYSIS_YEAR) -> float:
     """Energy-weighted ΔLCOE% = (cost_R1 − cost_R0) / cost_R0 × 100 at 2030."""
@@ -444,10 +435,7 @@ def count_sapv_to_grid(df_r0: pd.DataFrame, df_r1: pd.DataFrame,
     return int(((fc0 == 3) & (fc1 == 1)).sum())
 
 
-# ════════════════════════════════════════════════════════════════════════════════
-# §4  CFG OVERRIDE  (all parameters passed through cfg dict and function args)
-# ════════════════════════════════════════════════════════════════════════════════
-
+# ── §4  CFG OVERRIDE  (all parameters passed through cfg dict and function args) ───
 # Valid discrete N_mid values (standard PE sub-model sweep)
 _N_MID_OPTIONS  = np.array([10, 15, 20, 30, 50])
 _TIER_OPTIONS   = np.array([2, 3, 4])
@@ -561,10 +549,7 @@ def run_pair(
     return delta_pct, n_switch
 
 
-# ════════════════════════════════════════════════════════════════════════════════
-# §5  PARAMETER TOOK-EFFECT CHECKS
-# ════════════════════════════════════════════════════════════════════════════════
-
+# ── §5  PARAMETER TOOK-EFFECT CHECKS ─────────────────────────────────────────
 def parameter_took_effect_checks(
     sub_full: pd.DataFrame, base_cfg: dict,
     x_tx, y_tx, ghi_profile, temp_profile, wind_profile,
@@ -652,10 +637,7 @@ def parameter_took_effect_checks(
     return df
 
 
-# ════════════════════════════════════════════════════════════════════════════════
-# §6  MORRIS DESIGN + ELEMENTARY EFFECTS
-# ════════════════════════════════════════════════════════════════════════════════
-
+# ── §6  MORRIS DESIGN + ELEMENTARY EFFECTS ───────────────────────────────────
 def morris_design(k: int, r: int, p: int, seed: int) -> tuple:
     """
     Radial OAT Morris trajectories in [0,1]^k.
@@ -722,10 +704,7 @@ def morris_ranking(EE: np.ndarray, names: list) -> pd.DataFrame:
     })
 
 
-# ════════════════════════════════════════════════════════════════════════════════
-# §7  LHS EMULATOR  (analytical, then validated against full OnSSET re-runs)
-# ════════════════════════════════════════════════════════════════════════════════
-
+# ── §7  LHS EMULATOR  (analytical, then validated against full OnSSET re-runs) ───
 def lhs_emulator_predict(
     p1: float, p_inf: float, p_step: float,
     discount_rate: float, diesel_price: float, n_mid_raw: float,
@@ -819,10 +798,7 @@ def lhs_emulator_predict(
     return delta_pct, est_sw
 
 
-# ════════════════════════════════════════════════════════════════════════════════
-# §8  MAIN
-# ════════════════════════════════════════════════════════════════════════════════
-
+# ── §8  MAIN ─────────────────────────────────────────────────────────────────
 def main():
     t_total = time.time()
     print("=" * 72)
@@ -1041,9 +1017,16 @@ def main():
           f"{'YES: ' + ', '.join(sign_flip) if sign_flip else 'NO — positive sign robust across all 56 trajectory evaluations.'}")
     print(f"  All f(θ) > 0: {all_f_delta_positive}  (bias-corrected values also all > 0 since correction factor > 0)")
 
-    # Save Morris outputs
     morris_df_delta.to_csv(OUTDIR / "2026-07-02_grid3_morris_delta_lcoe.csv", index=False)
     morris_df_switch.to_csv(OUTDIR / "2026-07-02_grid3_morris_switch_count.csv", index=False)
+
+    # Bias-corrected table: the subsample understates effect sizes by a constant
+    # factor, so mu*, mu and sigma are scaled uniformly. Ranking is unchanged.
+    morris_df_delta_corrected = morris_df_delta.copy()
+    for _col in ("mu_star", "mu", "sigma"):
+        morris_df_delta_corrected[_col] = morris_df_delta_corrected[_col] * BIAS_CORRECTION_FACTOR
+    morris_df_delta_corrected.to_csv(
+        OUTDIR / "2026-07-02_grid3_morris_delta_lcoe_corrected.csv", index=False)
     ee_raw_rows = []
     for t_idx in range(MORRIS_R):
         for i, name in enumerate(PARAM_NAMES):
@@ -1248,7 +1231,6 @@ def main():
     print(f"    ΔLCOE% bias-corrected (×{bc:.3f}): {p5_d*bc:+.1f}% … {p50_d*bc:+.1f}% … {p95_d*bc:+.1f}%")
     print(f"    SA_PV→Grid switches:             {p5_sw:,.0f} … {p50_sw:,.0f} … {p95_sw:,.0f}")
 
-    # Save LHS outputs
     lhs_df = pd.DataFrame({
         "sample":       range(1, LHS_N_SAMPLES + 1),
         "P1":           lhs_scaled[:, 0], "Pinf": lhs_scaled[:, 1],
@@ -1275,7 +1257,6 @@ def main():
     })
     val_df.to_csv(OUTDIR / "2026-07-02_grid3_lhs_emulator_validation.csv", index=False)
 
-    # Save took-effect checks
     tookeff_df.to_csv(OUTDIR / "2026-07-02_grid3_took_effect_checks.csv", index=False)
 
     # ── [8/8] Write notes file ─────────────────────────────────────────────
