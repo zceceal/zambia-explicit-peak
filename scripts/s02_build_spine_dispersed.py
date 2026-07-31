@@ -42,7 +42,7 @@ UTM = "EPSG:32735"
 URBAN_SHARE_TARGET = 0.437
 
 # Dispersed-cell resolution (degrees).
-# 0.025° ≈ 2.78 km; yields ~56,421 dispersed cells → combined ≈ 270,619  (target 250–300k)
+# 0.025° ≈ 2.78 km; yields 56,328 dispersed cells → combined 270,526  (target 250–300k)
 COARSE_RES = 0.025
 
 # ID offset for dispersed rows (ensures no collision with cluster IDs 1–214,198)

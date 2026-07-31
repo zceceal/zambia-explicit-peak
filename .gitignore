@@ -24,3 +24,26 @@ Thumbs.db
 *.log
 notes/
 drafts/
+
+# ── Notebooks ────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ── Environments and secrets ─────────────────────────────────────────────
+.env
+.env.*
+env/
+ENV/
+.conda/
+
+# ── Tooling caches ───────────────────────────────────────────────────────
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ── Editor scratch ───────────────────────────────────────────────────────
+*.swp
+*.swo
+*~
+.spyproject/

@@ -1,5 +1,5 @@
 import pandas as pd, numpy as np, sys
-# usage: python headline_from_outputs.py R0.csv R1.csv YEAR
+# usage: python s12c_summarise_2050.py R0.csv R1.csv YEAR
 r0=pd.read_csv(sys.argv[1]); r1=pd.read_csv(sys.argv[2]); yr=sys.argv[3] if len(sys.argv)>3 else '2030'
 def ew(d):
     lc=d[f'MinimumOverallLCOE{yr}'].values; e=d[f'EnergyPerSettlement{yr}'].values
