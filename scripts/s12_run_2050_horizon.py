@@ -1,5 +1,5 @@
 """
-2050 horizon — two-arm (R0/R1_n20) driver.
+s12_run_2050_horizon.py — 2050 endpoint, two-arm (R0 / R1) driver.
 
 Reuses run_arm() from run_grid3_lcoe_stage4.py (the harness that produced the published
 2026-07-01_grid3 outputs) unchanged. Two modes:
@@ -23,9 +23,9 @@ Reuses run_arm() from run_grid3_lcoe_stage4.py (the harness that produced the pu
   python run_2050_arms.py 2050only_ruralT2  # rural Tier-2 in the single-year [2050] convention
 
 Everything else (costs, tiers, discount rates, calibration, seed 42) comes byte-identical from
-_claude_workspace/scripts/config.yaml — never edited here.
+config/config.yaml — never edited here.
 
-Outputs go to _claude_workspace/2050_horizon/outputs/ (2035 originals untouched):
+Outputs go to results/ (2035 originals untouched):
   validate2035: revalidate_2035_R0.csv, revalidate_2035_R1_n20.csv
   2050:         2050_grid3_lcoe_R0.csv, 2050_grid3_lcoe_R1_n20.csv
 """
@@ -38,8 +38,8 @@ import numpy as np
 import pandas as pd
 
 HERE = Path(__file__).resolve().parent
-REPO = HERE.parents[1]
-SCRIPTS = REPO / "_claude_workspace" / "scripts"
+REPO = HERE.parent
+SCRIPTS = REPO / "scripts"
 
 sys.path.insert(0, str(REPO / "data" / "onsset_repo"))
 sys.path.insert(0, str(SCRIPTS))

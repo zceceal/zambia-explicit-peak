@@ -1,5 +1,5 @@
 """
-GRID3 Stage 4 — P/E pre-processor.
+s05_compute_peak_ratios.py — the demand pre-processor: per-settlement P/E.
 
 Reads  : data/processed/zambia_grid3_calib_distgate.csv  (270,526 rows)
 Writes : data/processed/zambia_grid3_spine_pe_n10.csv
@@ -23,7 +23,7 @@ import numpy as np
 import pandas as pd
 
 HERE = Path(__file__).resolve().parent
-REPO = HERE.parents[1]
+REPO = HERE.parent
 
 sys.path.insert(0, str(ROOT / "peak_preprocessor"))
 from pe_diversity import pe_from_n, compute_beta

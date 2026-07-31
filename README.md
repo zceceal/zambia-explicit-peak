@@ -84,7 +84,6 @@ results/                 model outputs (gitignored; summaries only)
 Scripts run in numeric order. Each writes files the next one reads.
 
 ```bash
-python scripts/s00_validate_inputs.py        # pre-run gate: fails loudly if inputs are wrong
 python scripts/s01_build_spine_clusters.py   # … through to …
 python scripts/s13_generate_figures.py
 ```

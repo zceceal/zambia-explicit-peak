@@ -1,5 +1,5 @@
 """
-Post-GSA Post-Processing: Task 2 (sizing-convention f-band) + Task 5 (per-connection accounting)
+s10_run_sizing_decomposition.py — sizing-convention f-band and per-connection accounting.
 
 Task 2: On EXISTING Stage-4 outputs, recompute energy-weighted ΔLCOE% with only a
 fraction f of SA_PV capex peak-scaled (remainder energy-scaled). f ∈ {0.4, 0.6, 1.0}.
@@ -19,7 +19,7 @@ import pandas as pd
 warnings.filterwarnings("ignore")
 
 HERE   = Path(__file__).resolve().parent
-REPO   = HERE.parents[1]
+REPO   = HERE.parent
 OUTDIR = REPO / "data" / "onsset_outputs"
 
 R0_PATH  = OUTDIR / "2026-07-01_grid3_lcoe_R0.csv"
@@ -255,7 +255,6 @@ VERDICT (Task 5):
     """
     print(verdict)
 
-    # Save summary
     summary_df = pd.DataFrame([{
         "r0_total_inv_B": total_inv_r0 / 1e9,
         "r0_total_hh":    total_conn_r0,

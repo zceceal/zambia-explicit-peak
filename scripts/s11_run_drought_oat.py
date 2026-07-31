@@ -1,5 +1,5 @@
 """
-Drought-price OAT — grid generation cost at 2024 drought import/emergency prices.
+s11_run_drought_oat.py — grid generation cost at 2024 drought import prices.
 
 Closes the extrapolation gap flagged in methodology §3.5/§3.8: the 2026-07-03 OAT
 tested the grid generation cost only up to 0.05 USD/kWh, while the draft cites

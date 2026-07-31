@@ -18,11 +18,15 @@ The allocation engine is OnSSET at upstream commit `c154ece`, with the two-line 
 applied. **The results do not reproduce without it** — see `patches/README.md` for what it changes and
 why.
 
+Clone it into `data/onsset_repo`, which is where `test/test_onsset_install.py` looks for its
+test fixtures:
+
 ```bash
-git clone https://github.com/onsset/OnSSET.git
-cd OnSSET && git checkout c154ece
-git apply ../patches/onsset-explicit-peak.patch
-pip install -e . && cd ..
+mkdir -p data
+git clone https://github.com/onsset/OnSSET.git data/onsset_repo
+cd data/onsset_repo && git checkout c154ece
+git apply ../../patches/onsset-explicit-peak.patch
+pip install -e . && cd ../..
 ```
 
 ## 3. Data
@@ -35,7 +39,6 @@ lists every source, its licence, and the directory layout the scripts expect und
 Scripts run in numeric order; each writes what the next reads.
 
 ```bash
-python scripts/s00_validate_inputs.py          # pre-run gate; stop if it fails
 python scripts/s01_build_spine_clusters.py
 python scripts/s02_build_spine_dispersed.py
 python scripts/s03_build_spine_attributes.py

@@ -1,5 +1,5 @@
 """
-Post-GSA Compute: Task 0-addendum (LHS full-spine validation) + Task 1 (Grid-side OAT)
+s09_run_oat_checks.py — grid-side one-at-a-time checks and full-spine validation.
 
 Task 0 addendum §3: Re-run 3 LHS samples on the FULL spine (270,526 settlements) and
 compare against their ×1.439-corrected subsample values. This validates whether the
@@ -28,7 +28,7 @@ import pandas as pd
 warnings.filterwarnings("ignore")
 
 HERE    = Path(__file__).resolve().parent
-REPO    = HERE.parents[1]
+REPO    = HERE.parent
 OUTDIR  = REPO / "data" / "onsset_outputs"
 NOTEDIR = REPO / "notes"
 
@@ -60,7 +60,7 @@ from onsset import (
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 ANALYSIS_YEAR   = 2030
-STAGE4_DELTA    = 36.9      # Central case +36.9% (Stage 4, N_mid=20, Tier 3)
+STAGE4_DELTA    = 36.9      # Central case +36.9% (s06, N_mid=20, Tier 3)
 STAGE4_SWITCHES = 17787     # SA_PV→Grid at 2030, N_mid=20 (corrected series)
 BIAS_FACTOR     = 1.4390    # = 36.9 / 25.64  (Stage-5 documented factor)
 OAT_TOL_PP      = 1.0       # pp tolerance for gate check (allow rounding in re-run)
@@ -91,10 +91,7 @@ PROTECTED = [
 ]
 
 
-# ════════════════════════════════════════════════════════════════════════════════
-# §1  FULL-SPINE ARM RUNNER  (adapted from run_grid3_gsa_stage5.py run_arm_subsample)
-# ════════════════════════════════════════════════════════════════════════════════
-
+# ── §1  FULL-SPINE ARM RUNNER  (adapted from run_grid3_gsa_stage5.py run_arm_subsample) ───
 def run_arm_full(
     arm_label: str,
     spine_df: pd.DataFrame,
@@ -329,10 +326,7 @@ def make_full_pair(spine_n20: pd.DataFrame, n_mid: int,
     return spine_r0, spine_r1
 
 
-# ════════════════════════════════════════════════════════════════════════════════
-# §2  TASK 0 ADDENDUM — LHS VALIDATION ON FULL SPINE
-# ════════════════════════════════════════════════════════════════════════════════
-
+# ── §2  TASK 0 ADDENDUM — LHS VALIDATION ON FULL SPINE ───────────────────────
 def task0_lhs_validation(spine_n20, cfg_base, x_tx, y_tx,
                           ghi_profile, temp_profile, wind_profile, pv_lut_cache):
     """
@@ -427,10 +421,7 @@ def task0_lhs_validation(spine_n20, cfg_base, x_tx, y_tx,
     return df_out
 
 
-# ════════════════════════════════════════════════════════════════════════════════
-# §3  TASK 1 — GRID-SIDE OAT (option 1b)
-# ════════════════════════════════════════════════════════════════════════════════
-
+# ── §3  TASK 1 — GRID-SIDE OAT (option 1b) ───────────────────────────────────
 def task1_grid_oat(spine_n20, cfg_base, x_tx, y_tx,
                     ghi_profile, temp_profile, wind_profile, pv_lut_cache):
     """
@@ -502,7 +493,7 @@ def task1_grid_oat(spine_n20, cfg_base, x_tx, y_tx,
             "note":           note,
         })
 
-        # Save per-variant outputs (new filenames only)
+        # Per-variant outputs are written under new filenames; existing outputs are not overwritten
         if variant != "central":
             tag = variant.replace("+", "plus").replace("-", "minus")
             out_r0 = OUTDIR / f"2026-07-03_grid3_oat_{tag}_R0.csv"
@@ -522,10 +513,7 @@ def task1_grid_oat(spine_n20, cfg_base, x_tx, y_tx,
     return df_out, gate_passed
 
 
-# ════════════════════════════════════════════════════════════════════════════════
-# §4  MAIN
-# ════════════════════════════════════════════════════════════════════════════════
-
+# ── §4  MAIN ─────────────────────────────────────────────────────────────────
 def main():
     t_total = time.time()
     print("="*70)
@@ -538,7 +526,6 @@ def main():
         if f.exists():
             print(f"  Guard OK (not overwriting): {f.name}")
 
-    # Load profiles
     print("\n[1/5] Loading profiles and transmission network …")
     ghi_profile, temp_profile = load_solar_profile(SOLAR_PROFILE)
     wind_profile               = load_wind_profile(WIND_PROFILE)

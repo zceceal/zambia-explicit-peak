@@ -27,19 +27,52 @@ repository is ever made public alongside derived data.
 
 ## Expected local layout
 
-Scripts expect a `data/` directory at the repository root:
+Scripts resolve every path relative to the repository root, so the tree below is exact. Paths are
+taken from the code, not from memory; a missing file fails at the stage that needs it.
 
 ```
 data/
-  raw/zambia/        downloaded source datasets, unmodified
-  processed/         the settlement spine at each build stage
-  onsset_inputs/     the OnSSET specs workbook
-  onsset_outputs/    model results
+  raw/zambia/
+    grid3_settlements/grid3_zmb_settlement_extents_v3_0/
+        GRID3_ZMB_settlement_extents_v3_0.gpkg      settlement polygons          s01, s02
+    population/worldpop/
+        zmb_ppp_2020_UNadj_constrained.tif          population raster            s01, s02
+    resource/ghi/GHI.tif                            solar resource               s03
+    resource/wind/ZMB_wind-speed_100m.tif           wind speed                   s03
+    resource/nightlights/
+        zmb_viirs_ntl_2020_avg_masked.tif           night lights                 s03, s04
+    resource/hydro/zambia_hydro_plants.csv          hydro sites                  s03
+    terrain/dem/unzipped/                           SRTM tiles (merged by s03)   s03
+    transport/travel_time/
+        zambia_travel_time_to_cities.tif            travel time surface          s03
+    transport/roads/zambia-latest.osm.pbf           road network                 s03
+    admin/geoboundaries/
+        geoBoundaries-ZMB-ADM1.geojson              admin-1 boundaries           s03
+    grid/
+      mv_distribution_2023/distribution_medium_voltage_overhead_line_network/
+        Distribution_Medium_Voltage_Overhead_Line_Network.shp   ZESCO MV lines   s03
+      nep_mv_extension_2023/mv-lines-extensions.geojson         NEP planned MV   s03
+      mv_predictive_fb/electrical_grid_zambia_15.csv            predictive MV    s03
+      transmission_network_wb/zambia-electricity-transmission-network/
+        Zambia Electricity Transmission Network.shp             HV network       s06+
+      transformers_substations/                                 transformers     s03, s04
+    renewables_hourly/solar/solar_lusaka.csv        hourly GHI + temperature     s06+
+    renewables_hourly/wind/wind_lusaka.csv          hourly wind speed            s06+
+
+  onsset_inputs/
+    specs_zambia.xlsx                               copy from resources/         s04
+  onsset_repo/                                      patched OnSSET clone         test/
+  processed/                                        written by s01-s05
+  onsset_outputs/                                   written by s06-s12
 ```
 
-`data/` is gitignored. In the thesis working tree the same directory is named `5. data/`; paths in
-this repository have been normalised to `data/` so the repo is internally consistent. The working
-copy in the thesis tree is unchanged.
+`figures/` and `notes/` are created at the repository root by s13 and by s01/s02 respectively. All
+four generated directories are gitignored.
+
+Two of these are derived rather than downloaded: `terrain/dem/unzipped/` holds the raw SRTM tiles,
+which s03 merges into `data/processed/zmb_srtm_merged.tif` and `zmb_slope_degrees.tif`; and
+`transformers_substations/` holds the MV, MVLV and substation shapefiles that s03 combines into a
+single transformer-distance column.
 
 ## Data that does not exist
 

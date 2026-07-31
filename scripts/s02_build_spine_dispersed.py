@@ -1,5 +1,5 @@
 """
-build_grid3_spine_stage1b.py
+s02_build_spine_dispersed.py — settlement spine, stage 2 of 3.
 Stage 1b — population conservation: add dispersed-rural settlements.
 
 Stage-1 cluster spine captures 81.83% of WorldPop (settlement-polygon pixels).
@@ -8,7 +8,7 @@ by aggregating them to 0.025° coarse cells (~2.8 km), producing a combined
 spine that reconciles to the national WorldPop total.
 
 Run with the project venv:
-  .venv/bin/python _claude_workspace/scripts/build_grid3_spine_stage1b.py
+  python scripts/s02_build_spine_dispersed.py
 """
 
 import warnings
@@ -25,7 +25,7 @@ import rasterio.features
 t0 = time.time()
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-ROOT  = Path("/Users/eladiaalcoverrogea/Desktop/IMPERIAL/research project")
+ROOT  = Path(__file__).resolve().parent.parent
 RAW   = ROOT / "data/raw/zambia"
 PROC  = ROOT / "data/processed"
 
@@ -48,9 +48,7 @@ COARSE_RES = 0.025
 # ID offset for dispersed rows (ensures no collision with cluster IDs 1–214,198)
 DISP_ID_OFFSET = 1_000_000
 
-# ══════════════════════════════════════════════════════════════════════════════
-# S1 — Load WorldPop raster
-# ══════════════════════════════════════════════════════════════════════════════
+# ── Load WorldPop raster ─────────────────────────────────────────────────────
 print("\n── S1: Load WorldPop raster ──")
 with rasterio.open(WP_TIF) as src:
     wp_data   = src.read(1).astype(np.float64)
@@ -65,9 +63,7 @@ wp_data[wp_data < 0] = 0.0
 wp_total = wp_data.sum()
 print(f"  WorldPop national total: {wp_total:,.0f}")
 
-# ══════════════════════════════════════════════════════════════════════════════
-# S2 — Coverage mask: rasterise all GRID3 polygons (uint8, one call)
-# ══════════════════════════════════════════════════════════════════════════════
+# ── Coverage mask: rasterise all GRID3 polygons (uint8, one call) ────────────
 print("\n── S2: Build GRID3 coverage mask ──")
 print("  Loading GRID3 polygons...")
 gdf_raw = gpd.read_file(str(GRID3_GPKG))
@@ -96,9 +92,7 @@ print(f"  Residual population:          {res_pop:,.0f}  ({100*res_pop/wp_total:.
 print(f"  Polygon-covered population:   {stage1_pop:,.0f}  ({100*stage1_pop/wp_total:.2f}% of national)")
 print(f"  Stage-1 gate check — matches 3.34 M?: {'YES' if abs(res_pop-3_340_098)<5000 else 'WARN — check'}")
 
-# ══════════════════════════════════════════════════════════════════════════════
-# S3 — Aggregate residual pixels to coarse cells
-# ══════════════════════════════════════════════════════════════════════════════
+# ── Aggregate residual pixels to coarse cells ────────────────────────────────
 print(f"\n── S3: Aggregate residual to {COARSE_RES}° coarse cells ──")
 
 # Get (row, col) indices of residual pixels
@@ -168,9 +162,7 @@ df_disp = pd.DataFrame({
 
 df_disp['id'] = np.arange(1, n_disp + 1) + DISP_ID_OFFSET
 
-# ══════════════════════════════════════════════════════════════════════════════
-# S4 — Admin-1 join for dispersed cells
-# ══════════════════════════════════════════════════════════════════════════════
+# ── Admin-1 join for dispersed cells ─────────────────────────────────────────
 print("\n── S4: Admin-1 join (dispersed) ──")
 
 adm1 = gpd.read_file(str(ADM1_VEC))
@@ -195,17 +187,13 @@ print(f"  Admin_1 distribution (dispersed):")
 for prov, cnt in df_disp['Admin_1'].value_counts().items():
     print(f"    {prov}: {cnt:,}")
 
-# ══════════════════════════════════════════════════════════════════════════════
-# S5 — Load Stage-1 cluster spine and tag source
-# ══════════════════════════════════════════════════════════════════════════════
+# ── Load Stage-1 cluster spine and tag source ────────────────────────────────
 print("\n── S5: Load Stage-1 cluster spine ──")
 df_clusters = pd.read_csv(STAGE1_CSV)
 df_clusters['source'] = 'cluster'
 print(f"  Cluster rows: {len(df_clusters):,}  Pop: {df_clusters['Pop'].sum():,.0f}")
 
-# ══════════════════════════════════════════════════════════════════════════════
-# S6 — Combine and re-derive IsUrban on combined spine
-# ══════════════════════════════════════════════════════════════════════════════
+# ── Combine and re-derive IsUrban on combined spine ──────────────────────────
 print("\n── S6: Combine and re-derive IsUrban ──")
 
 # Align columns
@@ -257,9 +245,7 @@ if n_disp_urban > 0:
 else:
     print(f"  All dispersed rows are IsUrban=0 ✓")
 
-# ══════════════════════════════════════════════════════════════════════════════
-# S7 — Output
-# ══════════════════════════════════════════════════════════════════════════════
+# ── Output ───────────────────────────────────────────────────────────────────
 print("\n── S7: Writing outputs ──")
 
 # Final column order (matches Stage-1 plus source)
@@ -278,9 +264,7 @@ gdf_out = gpd.GeoDataFrame(
 gdf_out.to_file(str(OUT_GPKG), driver='GPKG', layer='grid3_combined')
 print(f"  GPKG: {OUT_GPKG.name}")
 
-# ══════════════════════════════════════════════════════════════════════════════
-# S8 — Verification gate
-# ══════════════════════════════════════════════════════════════════════════════
+# ── Verification gate ────────────────────────────────────────────────────────
 print("\n══════════════════════════════════════════════════════")
 print("  VERIFICATION GATE — Stage 1b")
 print("══════════════════════════════════════════════════════")
@@ -331,16 +315,14 @@ for col in ['X_deg','Y_deg','Pop','GridCellArea','IsUrban','Admin_1']:
 elapsed = time.time() - t0
 print(f"\n── Done in {elapsed:.0f} s ──")
 
-# ══════════════════════════════════════════════════════════════════════════════
-# S9 — Write notes
-# ══════════════════════════════════════════════════════════════════════════════
+# ── Write notes ──────────────────────────────────────────────────────────────
 notes_dir = ROOT / "notes"
 notes_dir.mkdir(parents=True, exist_ok=True)
 
 notes = f"""# GRID3 Spine Stage 1b — Run Notes
 
 **Date:** 2026-06-28
-**Script:** `_claude_workspace/scripts/build_grid3_spine_stage1b.py`
+**Script:** `scripts/s02_build_spine_dispersed.py`
 **Outputs:**
 - `data/processed/zambia_grid3_spine_combined.csv` — combined spine (clusters + dispersed)
 - `data/processed/zambia_grid3_spine_combined.gpkg` — same with geometry
