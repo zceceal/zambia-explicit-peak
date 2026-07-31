@@ -39,7 +39,7 @@ OUTDIR  = REPO / "data" / "onsset_outputs"
 PROCDIR = REPO / "data" / "processed"
 RAWDIR  = REPO / "data" / "raw"
 
-sys.path.insert(0, str(ROOT / "peak_preprocessor"))
+sys.path.insert(0, str(REPO / "peak_preprocessor"))
 from pe_diversity import (
     pe_from_n, compute_beta,
     P_1_DEFAULT, P_INF_DEFAULT, P_STEP_DEFAULT,
@@ -55,7 +55,6 @@ ORANGE = "#f46d43"
 GREEN  = "#1a9641"
 PURPLE = "#762a83"
 GREY   = "#999999"
-PROV_LABEL = ""
 
 log_entries = []
 

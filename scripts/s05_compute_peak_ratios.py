@@ -25,7 +25,7 @@ import pandas as pd
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent
 
-sys.path.insert(0, str(ROOT / "peak_preprocessor"))
+sys.path.insert(0, str(REPO / "peak_preprocessor"))
 from pe_diversity import pe_from_n, compute_beta
 
 SPINE_IN   = REPO / "data" / "processed" / "zambia_grid3_calib_distgate.csv"
@@ -74,7 +74,7 @@ def reassign_border_slivers(df: pd.DataFrame) -> pd.DataFrame:
 
 def main():
     print("=" * 65)
-    print("  GRID3 Stage 4 — P/E pre-processor")
+    print("  s05 — demand pre-processor (per-settlement P/E)")
     print("=" * 65)
 
     print(f"\nReading spine: {SPINE_IN.name}")
