@@ -32,7 +32,7 @@ beta is derived analytically by requiring P/E(N_mid) == P_step:
 
 N_mid is a *stated assumption*, not a measured quantity.  Lorenzoni reports
 archetypes, not connection counts, so N_mid cannot be read from the data.
-Central case: N_mid = 20 (beta ≈ 0.316).  Sensitivity sweep: {10, 20, 50}.
+Central case: N_mid = 20 (beta ≈ 0.317).  Sensitivity sweep: {10, 20, 50}.
 
 References
 ----------

@@ -830,6 +830,7 @@ def compare_arms(proc_r0, proc_r1, years, cfg, out_dir, label, hybrid_status,
     df1 = proc_r1.df.copy()
 
     print("\n" + "=" * 65)
+    print("R0 vs R1 comparison")
     print(f"PV-hybrid: {'enabled' if hybrid_status.get('pv_ok') else 'DISABLED'}")
     print(f"Wind-hybrid: {'enabled' if hybrid_status.get('wind_ok') else 'DISABLED'}")
     print("=" * 65)
