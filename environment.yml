@@ -5,7 +5,7 @@ name: zambia-peak
 channels:
   - conda-forge
 dependencies:
-  - python=3.11
+  - python=3.13
   - numpy>=1.24
   - pandas>=2.0
   - scipy>=1.10
@@ -17,5 +17,7 @@ dependencies:
   - shapely>=2.0
   - geopandas>=0.14
   - pip
-  - pip:
-      - onsset>=1.1
+
+# OnSSET is not installed from PyPI. Build it from upstream commit c154ece with the
+# patch in patches/ applied — see REPRODUCING.md. An unpatched engine does not
+# reproduce the published results.

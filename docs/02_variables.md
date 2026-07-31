@@ -56,11 +56,11 @@ same source, so the two are consistent.
 |---|---|---|
 | Maximum grid-extension distance | 10 km | OnSSET/GEP convention. Swept [5, 20] km |
 | Reliability target | 0.963 | OnSSET default; cost of non-served energy = 0 |
-| Annual grid build rate | unconstrained | See `ASSUMPTIONS.md` |
+| Annual grid build rate | unconstrained | See `03_assumptions.md` |
 | Start year | 2020 | — |
-| Analysis years | 2030, 2035 | **Use the 2030 columns.** See README |
+| Analysis years | 2030, 2035 | **Use the 2030 columns.** See `01_pipeline.md` |
 | Electrification target | 100% by end year | Universal-access scenario |
-| 2050 variant | single-year endpoint, `time_step = 30` | `2050_horizon/` |
+| 2050 variant | single-year endpoint, `time_step = 30` | `scripts/s12_run_2050_horizon.py` |
 
 ## 5. Spatial inputs
 
