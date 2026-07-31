@@ -23,10 +23,12 @@ to float. This affects both arms identically and does not influence the treatmen
 
 ## Applying it
 
+Clone into `data/onsset_repo`, where `test/test_onsset_install.py` looks for its fixtures:
+
 ```bash
-git clone https://github.com/onsset/OnSSET.git
-cd OnSSET
-git checkout c154ece
-git apply /path/to/patches/onsset-explicit-peak.patch
-pip install -e .
+mkdir -p data
+git clone https://github.com/onsset/OnSSET.git data/onsset_repo
+cd data/onsset_repo && git checkout c154ece
+git apply ../../patches/onsset-explicit-peak.patch
+pip install -e . && cd ../..
 ```

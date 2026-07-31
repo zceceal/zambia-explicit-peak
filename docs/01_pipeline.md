@@ -25,12 +25,12 @@ itself numbers only its notebooks and leaves its package modules unnumbered.
 | 12 | `s12_run_2050_horizon.py` | Re-solves both arms at the projected 2050 population. Helpers: `s12a` builds the 2050 peak ratios, `s12b` the 2050 spine, `s12c` summarises | 2050 outputs |
 | 13 | `s13_generate_figures.py` | Regenerates every figure in the paper from current outputs | figures |
 
-Two supporting modules sit alongside them: `scripts/onsset_helpers.py` holds shared loaders (solar and
-wind profiles, config) used from stage 06 onward.
+One supporting module sits alongside them: `scripts/onsset_helpers.py` holds the shared loaders (solar
+and wind profiles, config) used from stage 06 onward.
 
 ## The intervention, in detail (stage 05)
 
-`peak_preprocessor/` is the only thing this study adds to OnSSET. It contains two modules:
+`peak_preprocessor/` is the only thing this study adds to OnSSET. It contains one module:
 
 - **`pe_diversity.py`** — the peak-to-energy model itself. Two functions: `compute_beta()` derives the
   curve's exponent from the measured anchors, and `pe_from_n()` returns the ratio for a given
