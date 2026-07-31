@@ -1,8 +1,10 @@
 # Pinned to the versions used for the published results (Python 3.13).
+# Captured from the project virtual environment, which also carries the patched
+# engine as onsset 2.1.dev24+gc154ece12 — not from a base conda install.
 
 numpy==2.4.6
 pandas==3.0.3
-scipy==1.18.0
+scipy==1.17.1
 PyYAML==6.0.3
 openpyxl==3.1.5
 matplotlib==3.11.0
