@@ -8,8 +8,8 @@
 
 # ── Input / output paths ──────────────────────────────────────
 paths:
-  spine_r0: "data/processed/zambia_grid3_spine_pe_n20.csv"   # control arm: standard demand columns
-  spine_r1: "data/processed/zambia_grid3_spine_pe_n20.csv"   # treatment arm: adds PE_ratio, which
+  spine_r0: "data/processed/zambia_grid3_spine_pe_n20.csv"   # reference case: standard demand columns
+  spine_r1: "data/processed/zambia_grid3_spine_pe_n20.csv"   # explicit-peak case: adds PE_ratio, which
                                                              # overrides the scalar base-to-peak ratio
   specs_calib: "data/onsset_inputs/specs_zambia_calibrated_distgate_2026-06-20.xlsx"
   mv_lines_geojson: "data/raw/zambia/grid/mv/zambia_mv_lines.geojson"
@@ -29,6 +29,7 @@ discount_rates:
 
 battery_capex_usd_per_kwh: 300
 # NREL ATB 2025, Li-ion BESS (334 in 2024 falling to 247 by 2035). Swept [247, 300, 334].
+# Table 1 of the paper quotes the same trajectory; the 2035 mid-point is 247.
 
 diesel_price_usd_per_l: 1.9
 # Zambia Energy Regulation Board pump-price bulletin, May 2026. Swept +/-20%.
@@ -69,7 +70,25 @@ grid:
   base_to_peak_r0: 0.8
   # Inert for the cost calculation: OnSSET's tier table assigns 0.5 for Tiers 3-5 in
   # calculate_demand(), and the per-settlement column overrides both before any cost function
-  # reads them. Retained so the control arm matches the distributed OnSSET configuration.
+  # reads them. Retained so the reference case matches the distributed OnSSET configuration.
+
+# ── Technology options ────────────────────────────────────────
+technology_options:
+  min_mg_size: 100
+  # Minimum settlement size, in HOUSEHOLDS, for any mini-grid option (PV hybrid, wind, hydro)
+  # to be costed at all; below it OnSSET sets their LCOE to the 99 sentinel
+  # (onsset.py, calculate_off_grid_lcoes). Previously hard-coded in s06_run_arms.py and
+  # onsset_helpers.py; surfaced here 2026-08-16 because it decides which technologies exist.
+  #
+  # It binds hard on this settlement dataset: the median settlement is 2.7 households and the
+  # 99th percentile is 101.8, so 100 excludes 98.97% of settlements — though those hold only
+  # 37.8% of the 2030 population. Relaxing it is NOT advisable without first extending explicit
+  # peak representation to the mini-grid module: hybrids.py sizes generation from a fixed
+  # per-tier load archetype (calc_load_curve) that does not vary with the settlement's
+  # coincidence factor, so mini-grid LCOE is measurably invariant to the peak treatment
+  # (0.00% change R0 -> R1 at every percentile). Lowering the threshold would therefore move
+  # small, high-rho settlements into the one technology the model holds peak-insensitive.
+  # See docs/01_pipeline.md, "Which technologies actually compete".
 
 # ── Scenario ──────────────────────────────────────────────────
 scenario:

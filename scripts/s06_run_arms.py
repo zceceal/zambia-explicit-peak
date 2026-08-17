@@ -83,7 +83,7 @@ SOLAR_PROFILE = (REPO / "data" / "raw" / "zambia" / "renewables_hourly" /
 WIND_PROFILE  = (REPO / "data" / "raw" / "zambia" / "renewables_hourly" /
                  "wind" / "wind_lusaka.csv")
 
-RUN_LABEL = "2026-07-01_grid3_lcoe"
+RUN_LABEL = "2026-08_final_lcoe"   # index-alignment fix; 2026-07-01 archive preserved
 
 # Fix all seeds for reproducibility
 np.random.seed(42)
@@ -129,7 +129,10 @@ def run_arm(arm_label: str, spine_df: pd.DataFrame, cfg: dict,
     mg_diesel_cost = {"diesel_price": diesel_price, "efficiency": 0.33,
                       "diesel_truck_consumption": 33.7, "diesel_truck_volume": 15000}
 
-    min_mg_size = 100
+    # Mini-grid size threshold, in households. Read from config so that a parameter which
+    # decides which technologies exist is visible and auditable; default preserves the
+    # published value exactly.
+    min_mg_size = int(cfg.get("technology_options", {}).get("min_mg_size", 100))
     techs       = ["Grid", "SA_PV", "MG_PVHybrid", "MG_Wind", "MG_Hydro"]
     tech_codes  = [1, 3, 5, 6, 7]
     all_off_grid = ["SA_PV", "MG_PVHybrid", "MG_Wind", "MG_Hydro"]
@@ -191,6 +194,13 @@ def run_arm(arm_label: str, spine_df: pd.DataFrame, cfg: dict,
             print(f"    R1 AverageToPeakLoadRatio: "
                   f"mean={onsseter.df[SET_AVERAGE_TO_PEAK].mean():.4f}  "
                   f"median={onsseter.df[SET_AVERAGE_TO_PEAK].median():.4f}")
+            # GUARD (2026-08-16): the override above MUST run after calculate_demand,
+            # which unconditionally resets AverageToPeakLoadRatio to the tier table.
+            # If a refactor ever moves it earlier, R1 silently collapses onto R0 and the
+            # experiment measures nothing. Fail loudly instead.
+            assert onsseter.df[SET_AVERAGE_TO_PEAK].nunique() > 100, (
+                "R1 arm but AverageToPeakLoadRatio is (near-)uniform - the P/E override "
+                "was applied before calculate_demand overwrote it, or not at all.")
 
         onsseter.calculate_unmet_demand(year, reliability=0.963)
         onsseter.diesel_cost_columns(sa_diesel_cost, mg_diesel_cost, year)
@@ -456,6 +466,7 @@ def main():
                                      ghi_profile, temp_profile, wind_profile,
                                      n_mid=None)
     r0_path = OUTDIR / f"{RUN_LABEL}_R0.csv"
+    proc_r0.df.sort_values("id", inplace=True)   # labels are now lat/lon order; restore id order on disk
     proc_r0.df.to_csv(r0_path, index=False)
     print(f"  R0 output → {r0_path.name}")
 
@@ -479,6 +490,7 @@ def main():
                                           ghi_profile, temp_profile, wind_profile,
                                           n_mid=n_mid)
         r1_path = OUTDIR / f"{RUN_LABEL}_{label}.csv"
+        proc_r1.df.sort_values("id", inplace=True)
         proc_r1.df.to_csv(r1_path, index=False)
         print(f"  {label} output → {r1_path.name}")
 

@@ -25,8 +25,16 @@ schedule with it. Physically, for a battery-based stand-alone system only the ba
 balance-of-system should scale with peak; the solar panels scale with energy.
 
 - **Effect:** the headline is an **upper bound**. Scaling only a fraction `f` of stand-alone capital
-  with peak gives +14.1% at `f = 0.4` and +21.7% at `f = 0.6`, against +36.9% at `f = 1.0`. Measured
-  African solar-home-system cost structures suggest `f ≈ 0.4–0.45`.
+  with peak gives **+21.0% at `f = 0.4` and +30.6% at `f = 0.6`, against +49.9% at `f = 1.0`**
+  (`s10`, run of 2026-08-16). Measured African solar-home-system cost structures suggest
+  `f ≈ 0.4–0.45`.
+- **A second, related convention.** OnSSET prices stand-alone PV from a five-step schedule keyed on
+  system size per household, and that schedule is non-monotonic: \$4,470/kW between 100 W and 1 kW,
+  rising to \$6,950/kW above 1 kW. Explicit peaks lift the median household system from 0.80 kW to
+  1.24 kW, so about 200,000 settlements cross that step. Holding the band fixed at its R0 value puts
+  the headline at +22.8% rather than +49.9% — more than half the effect is the discontinuity rather
+  than the smooth capacity response. `scripts/s15_run_capex_curve_sensitivity.py` re-solves the
+  central case against a continuous curve to measure this directly.
 - **Why it is kept:** it is unmodified OnSSET behaviour, shared with the GEP and Imasiku benchmarks.
   Changing it would break comparability.
 - **Consequence:** the *direction* is convention-independent; the *magnitude* is not, and is reported

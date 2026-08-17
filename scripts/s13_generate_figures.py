@@ -32,6 +32,10 @@ import matplotlib.ticker as mticker
 import matplotlib.patches as mpatches
 from matplotlib.lines import Line2D
 
+# Headline switch count of the current canonical run (s06, N_mid=20, 2030).
+# Used as a gate so a figure can never be drawn from a stale arm output.
+EXPECTED_SWITCHES = 34_461   # was 17,787 before the index-alignment fix
+
 HERE    = Path(__file__).resolve().parent
 REPO    = HERE.parent
 FIGDIR  = REPO / "figures"
@@ -150,7 +154,7 @@ def fig0_workflow():
     box(c2x + 0.048, 0.390, c2w - 0.048, 0.185,
         "R0  —  energy-only\nuniform peak factor\n(unmodified OnSSET)", REUSED)
     box(c2x, 0.130, c2w, 0.185,
-        "R1  —  explicit peak\ndemand pre-processor:\ncoincidence curve P/E(N)\n(built)", BUILT)
+        r"R1  —  explicit peak" "\n" r"demand pre-processor:" "\n" r"coincidence curve $\rho(N)$" "\n" r"(built)", BUILT)
 
     # ── Column 3: engine (spans both arm levels; arrows meet its left edge) ──
     box(c3x, 0.170, c3w, 0.500,
@@ -161,7 +165,7 @@ def fig0_workflow():
     box(c4x, 0.520, c4w, 0.240,
         "Outputs (per arm)\ntechnology allocation,\nLCOE, investment,\ncapacity", REUSED)
     box(c4x, 0.200, c4w, 0.210,
-        "R1 − R0\n= treatment effect\nof the explicit peak", REUSED, bold=False)
+        "R1 − R0\n= effect of explicit\npeak representation", REUSED, bold=False)
 
     # ── Connectors (straight / orthogonal only) ──────────────────────────
     harrow(c1x + c1w + 0.008, c2x - 0.006, 0.760)          # inputs -> demand assignment
@@ -188,19 +192,22 @@ def fig_curve():
     N = np.logspace(0, np.log10(3000), 300)
     lo = pe_from_n(N, N_mid=20, P_1=P_1_DEFAULT-2*SD_P_1, P_inf=max(1.0, P_INF_DEFAULT-2*SD_P_INF), P_step=P_STEP_DEFAULT-2*SD_P_STEP)
     hi = pe_from_n(N, N_mid=20, P_1=P_1_DEFAULT+2*SD_P_1, P_inf=P_INF_DEFAULT+2*SD_P_INF, P_step=P_STEP_DEFAULT+2*SD_P_STEP)
-    fig, ax = plt.subplots(figsize=(6.3, 4.0))
-    ax.fill_between(N, lo, hi, alpha=0.15, color=BLUE, label=r"Model envelope, $\pm$2 SD (Lorenzoni et al.)")
-    ax.plot(N, pe_from_n(N, N_mid=10), color=BLUE, lw=1.2, ls="--", label=r"$N_\mathrm{mid}$ = 10")
-    ax.plot(N, pe_from_n(N, N_mid=20), color=BLUE, lw=2.0,          label=r"$N_\mathrm{mid}$ = 20 (central)")
-    ax.plot(N, pe_from_n(N, N_mid=50), color=BLUE, lw=1.2, ls=":",  label=r"$N_\mathrm{mid}$ = 50")
-    ax.axhline(P_INF_DEFAULT, color="k", ls="--", lw=0.8, alpha=0.6, label=r"$P_\infty$ = 1.45 (community archetype)")
-    ax.axhline(P_1_DEFAULT,   color="k", ls=":",  lw=0.8, alpha=0.6, label=r"$P_1$ = 3.98 (single-household archetype)")
+    # Drawn at the printed width (0.98 x column width = 3.08 in) so LaTeX applies no
+    # downscaling: at 6.3 in the 0.49x shrink rendered the legend at 4.2 pt.
+    fig, ax = plt.subplots(figsize=(3.08, 2.45))
+    ax.fill_between(N, lo, hi, alpha=0.15, color=BLUE, label=r"Model envelope, $\pm$2 SD")
+    ax.plot(N, pe_from_n(N, N_mid=10), color=BLUE, lw=1.0, ls="--", label=r"$N_\mathrm{mid}$ = 10")
+    ax.plot(N, pe_from_n(N, N_mid=20), color=BLUE, lw=1.6,          label=r"$N_\mathrm{mid}$ = 20 (central)")
+    ax.plot(N, pe_from_n(N, N_mid=50), color=BLUE, lw=1.0, ls=":",  label=r"$N_\mathrm{mid}$ = 50")
+    ax.axhline(P_INF_DEFAULT, color="k", ls="--", lw=0.7, alpha=0.6)
+    ax.axhline(P_1_DEFAULT,   color="k", ls=":",  lw=0.7, alpha=0.6)
     ax.set_xscale("log")
-    ax.set_xlabel("Number of connected households, $N$")
-    ax.set_ylabel("Peak-to-energy ratio $P/E$")
+    ax.set_xlabel("Number of connected households, $N$", fontsize=8.5)
+    ax.set_ylabel(r"Peak-to-mean ratio $\rho$", fontsize=8.5)
+    ax.tick_params(labelsize=7.5)
     ax.set_ylim(1.0, 4.6)
     ax.grid(ls="--", alpha=0.35)
-    ax.legend(frameon=False, loc="upper right", fontsize=8.5)
+    ax.legend(frameon=False, loc="upper right", fontsize=7.5)
     fig.tight_layout()
     save_fig(fig, "fig_methods_pe_coincidence_curve.png")
 
@@ -225,7 +232,7 @@ def fig_validation():
     ax.axhline(P_1_DEFAULT,   color="k", ls=":",  lw=0.8, alpha=0.5)
     ax.set_xscale("log")
     ax.set_xlabel("Number of connected households, $N$")
-    ax.set_ylabel("Peak-to-energy ratio $P/E$")
+    ax.set_ylabel(r"Peak-to-mean ratio $\rho$")
     ax.set_ylim(1.0, 4.6)
     ax.grid(ls="--", alpha=0.35)
     ax.legend(frameon=False, loc="upper right", fontsize=8.2)
@@ -247,7 +254,7 @@ def fig_distribution():
                 label=f"Urban (n = {np.sum(is_u):,})" if w is None else f"Urban ({pop[is_u].sum()/1e6:.2f} M)")
         ax.axvline(P_INF_DEFAULT, color="k", ls="--", lw=0.8)
         ax.axvline(P_1_DEFAULT,   color="k", ls=":",  lw=0.8)
-        ax.set_xlabel("$P/E$ ratio")
+        ax.set_xlabel(r"Peak-to-mean ratio $\rho$")
         ax.legend(frameon=False, fontsize=8)
         ax.grid(axis="y", ls="--", alpha=0.35)
     ax1.set_ylabel("Number of settlements")
@@ -262,8 +269,8 @@ def fig_distribution():
 # ── Figure 4.1 — technology split R0 vs R1 (Pop2030-weighted) ────────────────
 def fig_techsplit():
     use = ["Pop2030", "MinimumOverall2030"]
-    r0 = pd.read_csv(OUTDIR / "2026-07-01_grid3_lcoe_R0.csv", usecols=use)
-    r1 = pd.read_csv(OUTDIR / "2026-07-01_grid3_lcoe_R1_n20.csv", usecols=use)
+    r0 = pd.read_csv(OUTDIR / "2026-08_final_lcoe_R0.csv", usecols=use)
+    r1 = pd.read_csv(OUTDIR / "2026-08_final_lcoe_R1_n20.csv", usecols=use)
     tot = r0["Pop2030"].sum()
     techs = [("Grid2030", "Grid extension", BLUE), ("SA_PV2030", "Stand-alone PV", ORANGE),
              ("MG_PVHybrid2030", "PV-hybrid mini-grid", GREEN)]
@@ -286,29 +293,67 @@ def fig_techsplit():
     save_fig(fig, "fig_results_tech_split_R0_R1.png")
 
 
+RUN = "2026-08_final_lcoe"
+
+
+def _arm_pair(r0_name, r1_name, year=2030):
+    """Energy-weighted DeltaLCOE% and SA_PV->grid switch count for one arm pair.
+
+    Read from the arm CSVs rather than hard-coded, so a figure can never carry a
+    number from a superseded run. Returns None if either output is missing.
+    """
+    p0, p1 = OUTDIR / r0_name, OUTDIR / r1_name
+    if not (p0.exists() and p1.exists()):
+        return None
+    lc, ec, fc = f"MinimumOverallLCOE{year}", f"EnergyPerSettlement{year}", f"FinalElecCode{year}"
+    d0 = pd.read_csv(p0, usecols=[lc, ec, fc])
+    d1 = pd.read_csv(p1, usecols=[lc, ec, fc])
+    c0 = (d0[lc] * d0[ec]).sum()
+    c1 = (d1[lc] * d1[ec]).sum()
+    return (c1 - c0) / c0 * 100.0, int(((d0[fc] == 3) & (d1[fc] == 1)).sum())
+
+
+def nmid_series():
+    """(N_mid list, Tier-3 series, Tier-2 series or None) computed from the arm outputs."""
+    nm = [10, 20, 50]
+    t3 = [_arm_pair(f"{RUN}_R0.csv", f"{RUN}_R1_n{n}.csv") for n in nm]
+    t2 = [_arm_pair(f"{RUN}_R0_ruralT2.csv", f"{RUN}_R1_ruralT2_n{n}.csv") for n in nm]
+    if any(v is None for v in t3):
+        return nm, None, None
+    return nm, ([v[0] for v in t3], [v[1] for v in t3]), \
+           (([v[0] for v in t2], [v[1] for v in t2]) if all(v is not None for v in t2) else None)
+
+
 # ── Figure 4.2 — N_mid sweep x demand tier (verified full-country solves) ────
 def fig_nmid_sweep():
-    # Full-country solves from s06 and s07: delta-LCOE % and SA_PV->Grid switches at 2030.
-    nm = [10, 20, 50]
-    t3_d, t2_d = [34.6, 36.9, 38.8], [28.5, 32.3, 35.5]
-    t3_s, t2_s = [16999, 17787, 18260], [322, 946, 2146]
+    nm, t3, t2 = nmid_series()
+    if t3 is None:
+        print("  SKIP fig_nmid_sweep: Tier-3 arm outputs not found"); return
+    t3_d, t3_s = t3
+    if t2 is None:
+        print("  NOTE fig_nmid_sweep: Tier-2 arms (s07) not found - plotting Tier 3 only")
+        t2_d = t2_s = None
+    else:
+        t2_d, t2_s = t2
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6.3, 3.1))
     ax1.plot(nm, t3_d, "o-",  color=BLUE,   label="Rural Tier 3 (central)")
-    ax1.plot(nm, t2_d, "s--", color=ORANGE, label="Rural Tier 2 (sensitivity)")
-    for xs, ys in [(nm, t3_d), (nm, t2_d)]:
-        for xv, yv in zip(xs, ys):
+    if t2_d: ax1.plot(nm, t2_d, "s--", color=ORANGE, label="Rural Tier 2 (sensitivity)")
+    for ys in [y for y in (t3_d, t2_d) if y]:
+        for xv, yv in zip(nm, ys):
             ax1.annotate(f"+{yv:.1f}%", (xv, yv), textcoords="offset points", xytext=(2, 6), fontsize=8)
     ax1.set_xlabel(r"$N_\mathrm{mid}$ (households)")
     ax1.set_ylabel(r"$\Delta$LCOE (%)")
     ax1.set_title("(a) Lifetime-cost change", fontsize=10)
-    ax1.set_xticks(nm); ax1.set_ylim(25, 43)
+    _all = list(t3_d) + list(t2_d or [])
+    _pad = max(2.0, 0.12 * (max(_all) - min(_all)))
+    ax1.set_xticks(nm); ax1.set_ylim(min(_all) - _pad, max(_all) + _pad)
     ax1.grid(ls="--", alpha=0.35)
     ax1.legend(frameon=False, fontsize=8.5, loc="lower right")
     ax2.semilogy(nm, t3_s, "o-",  color=BLUE,   label="Rural Tier 3")
-    ax2.semilogy(nm, t2_s, "s--", color=ORANGE, label="Rural Tier 2")
+    if t2_s: ax2.semilogy(nm, t2_s, "s--", color=ORANGE, label="Rural Tier 2")
     for xv, yv in zip(nm, t3_s):
         ax2.annotate(f"{yv:,}", (xv, yv), textcoords="offset points", xytext=(3, -11), fontsize=8)
-    for xv, yv in zip(nm, t2_s):
+    for xv, yv in zip(nm, t2_s or []):
         ax2.annotate(f"{yv:,}", (xv, yv), textcoords="offset points", xytext=(3, 5), fontsize=8)
     ax2.set_xlabel(r"$N_\mathrm{mid}$ (households)")
     ax2.set_ylabel(r"Settlements switching SA PV $\rightarrow$ grid")
@@ -322,8 +367,8 @@ def fig_nmid_sweep():
 
 # ── Figure 4.3 — Morris screen (ranking only) ────────────────────────────────
 def fig_morris():
-    bc = pd.read_csv(OUTDIR / "2026-07-02_grid3_morris_delta_lcoe_corrected.csv").sort_values("mu_star")
-    sw = pd.read_csv(OUTDIR / "2026-07-02_grid3_morris_switch_count.csv").sort_values("mu_star")
+    bc = pd.read_csv(OUTDIR / "2026-08_final_morris_delta_lcoe_corrected.csv").sort_values("mu_star")
+    sw = pd.read_csv(OUTDIR / "2026-08_final_morris_switch_count.csv").sort_values("mu_star")
     names = {"Rural_tier": "Rural demand tier", "MaxGridDist_km": "Max. grid distance",
              "Discount_rate": "Discount rate", "N_mid": r"$N_\mathrm{mid}$",
              "SA_PV_capex_mult": "SA PV/battery capex", "Diesel_price_USDl": "Diesel price"}
@@ -349,7 +394,7 @@ def fig_morris():
 
 # ── Figure 4.4 — LHS uncertainty band + full-country anchors ─────────────────
 def fig_uncertainty():
-    lhs = pd.read_csv(OUTDIR / "2026-07-02_grid3_lhs_uncertainty.csv")
+    lhs = pd.read_csv(OUTDIR / "2026-08_final_lhs_uncertainty.csv")
     corr = lhs["delta_lcoe_pct_corrected"].values
     p5, p50, p95 = np.percentile(corr, [5, 50, 95])
     fig, ax = plt.subplots(figsize=(6.3, 4.0))
@@ -358,16 +403,28 @@ def fig_uncertainty():
     ax.axvline(p5,  color=BLUE, ls="--", lw=1.4, label=f"Indicative 5th percentile: +{p5:.1f}%")
     ax.axvline(p50, color=BLUE, ls="-",  lw=1.8, label=f"Median (anchored): +{p50:.1f}%")
     ax.axvline(p95, color=BLUE, ls="--", lw=1.4, label=f"Indicative 95th percentile: +{p95:.1f}%")
-    diamonds = [(18.30, "P5"), (30.67, "P50"), (48.90, "P95")]
-    for v, lab in diamonds:
-        ax.scatter([v], [0.0015], marker="D", s=45, color="k", zorder=6,
-                   label=f"Full-country re-solve, {lab} sample: +{v:.1f}%")
-    for v, lab in [(34.6, None), (36.9, "Full-country Tier-3 solves: +34.6% to +38.8%"), (38.8, None)]:
-        ax.axvline(v, color=RED, ls=":", lw=1.1, alpha=0.8, label=lab)
-    ax.axvline(32.3, color=ORANGE, ls="-.", lw=1.3, alpha=0.9, label="Full-country Tier-2 central: +32.3%")
+    fs_path = OUTDIR / "2026-08_final_lhs_fullspine_validation.csv"
+    if fs_path.exists():
+        fs = pd.read_csv(fs_path)
+        for _, row in fs.iterrows():
+            ax.scatter([row["fullspine_delta"]], [0.0015], marker="D", s=45, color="k", zorder=6,
+                       label=f"Full-country re-solve, {row['label']} sample: "
+                             f"+{row['fullspine_delta']:.1f}%")
+    else:
+        print("  NOTE fig_uncertainty: full-spine validation (s09) not found - anchors omitted")
+    nm, t3, t2 = nmid_series()
+    if t3 is not None:
+        t3_d = t3[0]
+        for v, lab in [(min(t3_d), None),
+                       (t3_d[1], f"Full-country Tier-3 solves: +{min(t3_d):.1f}% to +{max(t3_d):.1f}%"),
+                       (max(t3_d), None)]:
+            ax.axvline(v, color=RED, ls=":", lw=1.1, alpha=0.8, label=lab)
+    if t2 is not None:
+        ax.axvline(t2[0][1], color=ORANGE, ls="-.", lw=1.3, alpha=0.9,
+                   label=f"Full-country Tier-2 central: +{t2[0][1]:.1f}%")
     ax.set_xlabel(r"Energy-weighted $\Delta$LCOE (%), R1 relative to R0")
     ax.set_ylabel("Density")
-    ax.set_xlim(10, 65)
+    ax.set_xlim(max(0, corr.min() - 5), corr.max() + 12)
     ax.grid(ls="--", alpha=0.3)
     ax.legend(frameon=False, fontsize=7.8, loc="lower center", bbox_to_anchor=(0.5, 1.01), ncol=2)
     save_fig(fig, "fig_headline_uncertainty.png")
@@ -449,8 +506,8 @@ def _utm35s_arc1950_to_wgs84(easting, northing):
 def fig_switching_map():
     from matplotlib.collections import LineCollection
 
-    r0_path  = OUTDIR / "2026-07-01_grid3_lcoe_R0.csv"
-    r1_path  = OUTDIR / "2026-07-01_grid3_lcoe_R1_n20.csv"
+    r0_path  = OUTDIR / "2026-08_final_lcoe_R0.csv"
+    r1_path  = OUTDIR / "2026-08_final_lcoe_R1_n20.csv"
     mv_path  = (RAWDIR / "zambia" / "grid" / "mv_distribution_2023"
                 / "distribution_medium_voltage_overhead_line_network"
                 / "Distribution_Medium_Voltage_Overhead_Line_Network.shp")
@@ -467,8 +524,8 @@ def fig_switching_map():
     sw_mask = (r0["MinimumOverall2030"] == "SA_PV2030") & (r1["MinimumOverall2030"] == "Grid2030")
     switchers = r0[sw_mask]
     n_sw = len(switchers)
-    if n_sw != 17787:
-        print(f"  GATE FAIL: switcher count = {n_sw:,}, expected 17,787. Stopping.")
+    if n_sw != EXPECTED_SWITCHES:
+        print(f"  GATE FAIL: switcher count = {n_sw:,}, expected {EXPECTED_SWITCHES:,}. Stopping.")
         return
     print(f"  Gate passed: {n_sw:,} switching settlements (SA_PV→Grid at 2030)")
 
@@ -562,7 +619,7 @@ def fig_switching_map():
             Line2D([0], [0], color=mv_col, linewidth=1.2,
                    label=f"ZESCO MV network ({len(mv_lines):,} lines)"),
             mpatches.Patch(color=sw_col,
-                           label="Switching settlements (n = 17,787)\n(stand-alone PV → grid, 2030)"),
+                           label=f"Switching settlements (n = {len(switchers):,})\n(stand-alone PV → grid, 2030)"),
         ]
         ax.legend(handles=legend_handles, loc="lower left", fontsize=9,
                   framealpha=0.85, edgecolor="#bbbbbb")

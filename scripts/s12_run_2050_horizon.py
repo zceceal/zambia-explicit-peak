@@ -5,7 +5,7 @@ Reuses run_arm() from run_grid3_lcoe_stage4.py (the harness that produced the pu
 2026-07-01_grid3 outputs) unchanged. Two modes:
 
   python run_2050_arms.py validate2035   # re-runs 2035 R0 + R1_n20 with the untouched config;
-                                         # headline must reproduce +36.9% / 18,224
+                                         # headline must reproduce +49.9% / 34,461
   python run_2050_arms.py 2050           # same harness, only the 2050_RUN_INPUTS.md §A changes:
                                          #   end_year 2050, PopEndYear 38,083,385, urban 0.672,
                                          #   years_of_analysis [2030, 2050],
@@ -131,6 +131,7 @@ def main():
             print(f"  {label}: base columns byte-identical to R0 (only PE_ratio differs) — PASS")
         proc, _, _ = run_arm(label, df_arm, cfg, x_tx, y_tx,
                              ghi_profile, temp_profile, wind_profile, n_mid=n_mid)
+        proc.df.sort_values("id", inplace=True)  # labels are lat/lon order after condition_df; restore id order on disk
         proc.df.to_csv(out_path, index=False)
         print(f"  {label} output → {out_path}")
 

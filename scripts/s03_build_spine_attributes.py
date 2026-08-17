@@ -609,6 +609,10 @@ for c in crit:
     if status != "OK":
         all_ok = False
 print(f"    → Overall: {'ALL PASS' if all_ok else 'FAILURES ABOVE'}")
+if not all_ok:
+    # HARD GATE (2026-08-16): previously this verdict was print-only, so a NaN or negative
+    # in a resource column produced output files indistinguishable from a good run.
+    raise SystemExit("s03 attribute gate FAILED - see the FAIL rows above; output not trustworthy")
 
 print(f"\n(d) Sanity ranges:")
 print(f"    GHI:           {df.GHI.min():.0f}–{df.GHI.max():.0f} kWh/m²/yr   (expected 1,700–2,200)")

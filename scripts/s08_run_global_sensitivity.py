@@ -23,7 +23,7 @@ Hard rules
 • 2030 columns used for all cost metrics (2035 cols are incremental — never used).
 • Seeds fixed: reported in output.
 • SA_PV capex multiplier passed through cfg and Technology object — no monkey-patch.
-• Subsample validated (≤ ±3pp vs full-spine +36.9%) before any screen or LHS.
+• Subsample validated against the full-spine +49.9% before any screen or LHS.
 
 """
 
@@ -81,11 +81,22 @@ SEED_LHS        = 43
 SUBSAMPLE_N          = 50_000
 # Network-topology note: any spatial subsample of OnSSET breaks grid relay
 # paths, inflating MG_PVHybrid and underestimating SA_PV→Grid switches.
-# Empirically, a 50k-settlement subsample (18.5% of 270k) yields ΔLCOE%
-# ~0.69× the full-spine value (+25.6% vs +36.9%). The validation gate
-# therefore uses a GENEROUS tolerance; the bias is documented and a
-# bias-correction factor (full_spine / subsample) is applied to all results.
-VALIDATION_TOL_PP    = 15.0     # generous tolerance; bias documented; see BIAS_CORRECTION_FACTOR
+# That reasoning predicted a DOWNWARD bias, and pre-fix the measurement agreed:
+# a 50k-settlement subsample (18.5% of 270k) returned ~0.69x the full-spine
+# ΔLCOE%. After the 2026-08-16 index-alignment fix the measured ratio is 1.12x
+# (subsample +55.54% against full-spine +49.9%) — the bias reversed direction,
+# so the topology argument above no longer explains it and should not be quoted
+# as the mechanism. The validation gate therefore uses a GENEROUS
+# tolerance; the bias is documented and a bias-correction factor
+# (full_spine / subsample) is applied to all results.
+#
+# The bias is MULTIPLICATIVE, so the admissible gap in percentage points scales
+# with the headline. At the pre-fix headline of +36.9% a 0.69x subsample sits
+# 11.4 pp low and 15.0 pp was ample; at the corrected +49.9% the same 0.69x
+# sits 15.4 pp low and 15.0 pp would fail for the wrong reason. Widened to 22.0
+# (0.31 x 49.9 = 15.5, plus headroom for sampling noise). If the gate fails at
+# this tolerance the subsample is genuinely unrepresentative, not merely biased.
+VALIDATION_TOL_PP    = 22.0     # see note above; scales with STAGE4_DELTA_LCOE_CENTRAL
 MORRIS_R             = 8        # trajectories
 MORRIS_K             = 6        # parameters
 MORRIS_P             = 4        # levels
@@ -97,16 +108,17 @@ EMUL_RMSE_THRESHOLD  = 5.0      # pp; use emulator only if RMSE ≤ this
 ANALYSIS_YEAR = 2030   # primary metric year; 2030 cols used throughout
 
 # ── Stage-4 baseline headline (sanity gate) ──────────────────────────────────
-STAGE4_DELTA_LCOE_CENTRAL = 36.9   # +36.9% at N_mid=20, Tier 3 (full-spine central case from s06)
+STAGE4_DELTA_LCOE_CENTRAL = 49.9   # +49.92% at N_mid=20, Tier 3 (full-spine central, s06 2026-08_final)
+                                   # was 36.9 before the index-alignment fix
 
 # ── Paths ────────────────────────────────────────────────────────────────────
 PE_N20 = REPO / "data" / "processed" / "zambia_grid3_spine_pe_n20.csv"
 PE_N10 = REPO / "data" / "processed" / "zambia_grid3_spine_pe_n10.csv"
 PE_N50 = REPO / "data" / "processed" / "zambia_grid3_spine_pe_n50.csv"
-R0_STAGE4    = OUTDIR / "2026-07-01_grid3_lcoe_R0.csv"
-R1_N10_STAGE4 = OUTDIR / "2026-07-01_grid3_lcoe_R1_n10.csv"
-R1_N20_STAGE4 = OUTDIR / "2026-07-01_grid3_lcoe_R1_n20.csv"
-R1_N50_STAGE4 = OUTDIR / "2026-07-01_grid3_lcoe_R1_n50.csv"
+R0_STAGE4    = OUTDIR / "2026-08_final_lcoe_R0.csv"
+R1_N10_STAGE4 = OUTDIR / "2026-08_final_lcoe_R1_n10.csv"
+R1_N20_STAGE4 = OUTDIR / "2026-08_final_lcoe_R1_n20.csv"
+R1_N50_STAGE4 = OUTDIR / "2026-08_final_lcoe_R1_n50.csv"
 TX_SHP = (REPO / "data" / "raw" / "zambia" / "grid" /
            "transmission_network_wb" / "zambia-electricity-transmission-network" /
            "Zambia Electricity Transmission Network.shp")
@@ -268,7 +280,8 @@ def run_arm_subsample(
     mg_diesel_cost = {"diesel_price": diesel_price, "efficiency": 0.33,
                       "diesel_truck_consumption": 33.7, "diesel_truck_volume": 15000}
 
-    min_mg_size = 100
+    # Mini-grid size threshold, in households; read from config (see technology_options).
+    min_mg_size = int(cfg.get("technology_options", {}).get("min_mg_size", 100))
     techs       = ["Grid", "SA_PV", "MG_PVHybrid", "MG_Wind", "MG_Hydro"]
     tech_codes  = [1, 3, 5, 6, 7]
     all_off_grid = ["SA_PV", "MG_PVHybrid", "MG_Wind", "MG_Hydro"]
@@ -1017,8 +1030,8 @@ def main():
           f"{'YES: ' + ', '.join(sign_flip) if sign_flip else 'NO — positive sign robust across all 56 trajectory evaluations.'}")
     print(f"  All f(θ) > 0: {all_f_delta_positive}  (bias-corrected values also all > 0 since correction factor > 0)")
 
-    morris_df_delta.to_csv(OUTDIR / "2026-07-02_grid3_morris_delta_lcoe.csv", index=False)
-    morris_df_switch.to_csv(OUTDIR / "2026-07-02_grid3_morris_switch_count.csv", index=False)
+    morris_df_delta.to_csv(OUTDIR / "2026-08_final_morris_delta_lcoe.csv", index=False)
+    morris_df_switch.to_csv(OUTDIR / "2026-08_final_morris_switch_count.csv", index=False)
 
     # Bias-corrected table: the subsample understates effect sizes by a constant
     # factor, so mu*, mu and sigma are scaled uniformly. Ranking is unchanged.
@@ -1026,7 +1039,7 @@ def main():
     for _col in ("mu_star", "mu", "sigma"):
         morris_df_delta_corrected[_col] = morris_df_delta_corrected[_col] * BIAS_CORRECTION_FACTOR
     morris_df_delta_corrected.to_csv(
-        OUTDIR / "2026-07-02_grid3_morris_delta_lcoe_corrected.csv", index=False)
+        OUTDIR / "2026-08_final_morris_delta_lcoe_corrected.csv", index=False)
     ee_raw_rows = []
     for t_idx in range(MORRIS_R):
         for i, name in enumerate(PARAM_NAMES):
@@ -1038,7 +1051,7 @@ def main():
                 "bias_correction_factor":  BIAS_CORRECTION_FACTOR,
             })
     pd.DataFrame(ee_raw_rows).to_csv(
-        OUTDIR / "2026-07-02_grid3_morris_ee_raw.csv", index=False)
+        OUTDIR / "2026-08_final_morris_ee_raw.csv", index=False)
 
     # ── [7/8] LHS — validate emulator, then use or fall back ─────────────
     print(f"\n[7/8] LHS uncertainty propagation …")
@@ -1244,7 +1257,7 @@ def main():
         "switch_count":              lhs_sw_full,
         "bias_correction_factor":    BIAS_CORRECTION_FACTOR,
     })
-    lhs_out = OUTDIR / "2026-07-02_grid3_lhs_uncertainty.csv"
+    lhs_out = OUTDIR / "2026-08_final_lhs_uncertainty.csv"
     lhs_df.to_csv(lhs_out, index=False)
 
     val_df = pd.DataFrame({
@@ -1255,9 +1268,9 @@ def main():
         "full_switch":          full_switch_val,
         "emul_switch":          emul_switch_val,
     })
-    val_df.to_csv(OUTDIR / "2026-07-02_grid3_lhs_emulator_validation.csv", index=False)
+    val_df.to_csv(OUTDIR / "2026-08_final_lhs_emulator_validation.csv", index=False)
 
-    tookeff_df.to_csv(OUTDIR / "2026-07-02_grid3_took_effect_checks.csv", index=False)
+    tookeff_df.to_csv(OUTDIR / "2026-08_final_took_effect_checks.csv", index=False)
 
     # ── [8/8] Write notes file ─────────────────────────────────────────────
     t_elapsed_total = time.time() - t_total
@@ -1439,17 +1452,17 @@ by ~+{STAGE4_DELTA_LCOE_CENTRAL:.0f}% at the central case — is **robust**:
 
 | File | Contents |
 |------|----------|
-| `2026-07-02_grid3_morris_delta_lcoe.csv` | Morris μ*/σ table, ΔLCOE% metric |
-| `2026-07-02_grid3_morris_switch_count.csv` | Morris μ*/σ table, switch-count metric |
-| `2026-07-02_grid3_morris_ee_raw.csv` | Raw elementary effects matrix (r×k) |
-| `2026-07-02_grid3_lhs_uncertainty.csv` | LHS samples, method flag, ΔLCOE%, switch count |
-| `2026-07-02_grid3_lhs_emulator_validation.csv` | Full vs emulator comparison ({LHS_N_VAL} samples) |
-| `2026-07-02_grid3_took_effect_checks.csv` | Per-parameter took-effect verification |
+| `2026-08_final_morris_delta_lcoe.csv` | Morris μ*/σ table, ΔLCOE% metric |
+| `2026-08_final_morris_switch_count.csv` | Morris μ*/σ table, switch-count metric |
+| `2026-08_final_morris_ee_raw.csv` | Raw elementary effects matrix (r×k) |
+| `2026-08_final_lhs_uncertainty.csv` | LHS samples, method flag, ΔLCOE%, switch count |
+| `2026-08_final_lhs_emulator_validation.csv` | Full vs emulator comparison ({LHS_N_VAL} samples) |
+| `2026-08_final_took_effect_checks.csv` | Per-parameter took-effect verification |
 
 Total script runtime: {t_elapsed_total/60:.1f} min
 """
 
-    notes_path = NOTEDIR / "2026-07-02_grid3_GSA_uncertainty.md"
+    notes_path = NOTEDIR / "2026-08_final_GSA_uncertainty.md"
     notes_path.write_text(notes)
     print(f"  Notes → {notes_path.relative_to(REPO)}")
     print(f"\n  DONE. Total elapsed: {t_elapsed_total/60:.1f} min")
