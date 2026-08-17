@@ -10,7 +10,7 @@ full-spine OAT at those three prices.
 Rules (inherited from run_post_gsa_tasks01.py):
 - DOES NOT overwrite any Stage-4/4b, Stage-5 or 2026-07-03 OAT outputs.
 - All new outputs go to data/onsset_outputs/ dated 2026-07-05.
-- Seed 42 for OAT arms. Gate: central variant must reproduce +36.9% / 17,787
+- Seed 42 for OAT arms. Gate: central variant must reproduce +49.9% / 34,461
   (±1.0 pp tolerance) before the drought variants are trusted.
 - PV-hybrid lookup cache is built at the central diesel price and reused; grid
   generation cost does not enter the MG_PVHybrid sizing, so reuse is exact here
@@ -41,7 +41,7 @@ import copy
 # (label, grid_gen_cost USD/kWh, note)
 VARIANTS = [
     ("central",    GRID_GEN_COST_CENTRAL,
-     "Gate check — must reproduce +36.9%/17,787"),
+     "Gate check — must reproduce +49.9%/34,461"),
     ("gen-0.17",   0.17,
      "Eskom drought-year import price 2024 (Moobola 2024)"),
     ("gen-0.22",   0.22,
@@ -137,14 +137,14 @@ def main():
 
         if label != "central":
             tag = label.replace(".", "")
-            df_r0.to_csv(OUTDIR / f"2026-07-05_grid3_oat_{tag}_R0.csv",
+            df_r0.to_csv(OUTDIR / f"2026-08_final_oat_{tag}_R0.csv",
                          index=False)
-            df_r1.to_csv(OUTDIR / f"2026-07-05_grid3_oat_{tag}_R1_n20.csv",
+            df_r1.to_csv(OUTDIR / f"2026-08_final_oat_{tag}_R1_n20.csv",
                          index=False)
 
         # incremental save so partial results survive interruption
         pd.DataFrame(results).to_csv(
-            OUTDIR / "2026-07-05_grid3_oat_drought_price.csv", index=False)
+            OUTDIR / "2026-08_final_oat_drought_price.csv", index=False)
 
     df_out = pd.DataFrame(results)
     print("\n" + "=" * 70)

@@ -235,6 +235,12 @@ def apply_pv_hybrid_lookup(onsseter, lcoe_lut, inv_lut, cap_lut,
     p_col  = SET_POP + str(year)
     fc_col = SET_ELEC_FINAL_CODE + str(year - time_step)
 
+    # NOTE (2026-08-16): a units mismatch, left in place deliberately. This test is on
+    # POPULATION (p_col), whereas onsset.py's calculate_off_grid_lcoes gates the same
+    # technology on HOUSEHOLDS (Pop / NumPeoplePerHH) against the same constant. With
+    # min_mg_size = 100 the household test is ~5x stricter and always binds afterwards, so
+    # this condition has no effect on any reported result. It is documented rather than
+    # changed because altering it cannot improve the outputs and could perturb them.
     potential_mg = np.where(
         ((onsseter.df[p_col] > mg_pv_hybrid_params["min_mg_connections"])
          & (onsseter.df[fc_col] != 1)
@@ -339,6 +345,8 @@ def apply_wind_hybrid_lookup(onsseter, lcoe_lut, inv_lut, cap_lut,
     p_col  = SET_POP + str(year)
     fc_col = SET_ELEC_FINAL_CODE + str(year - time_step)
 
+    # NOTE (2026-08-16): same population-vs-household units mismatch as the PV-hybrid path
+    # above; the household gate in onsset.py binds first, so this has no effect on results.
     potential_mg = np.where(
         ((onsseter.df[p_col] > mg_wind_hybrid_params["min_mg_connections"])
          & (onsseter.df[fc_col] != 1)
@@ -607,7 +615,10 @@ def run_arm(arm: str, spine_path: Path, cfg: dict,
     mg_diesel_cost = {"diesel_price": diesel_price, "efficiency": 0.33,
                       "diesel_truck_consumption": 33.7, "diesel_truck_volume": 15000}
 
-    min_mg_size = 100
+    # Mini-grid size threshold, in households. Read from config so that a parameter which
+    # decides which technologies exist is visible and auditable; default preserves the
+    # published value exactly.
+    min_mg_size = int(cfg.get("technology_options", {}).get("min_mg_size", 100))
     techs       = ["Grid", "SA_PV", "MG_PVHybrid", "MG_Wind", "MG_Hydro"]
     tech_codes  = [1, 3, 5, 6, 7]
     all_off_grid = ["SA_PV", "MG_PVHybrid", "MG_Wind", "MG_Hydro"]
@@ -667,6 +678,11 @@ def run_arm(arm: str, spine_path: Path, cfg: dict,
         if arm == "R1" and "PE_ratio" in onsseter.df.columns:
             pe = onsseter.df["PE_ratio"].clip(lower=0.1)
             onsseter.df[SET_AVERAGE_TO_PEAK] = (1.0 / pe).clip(upper=1.0)
+            # GUARD (2026-08-16): must follow calculate_demand, which resets this column
+            # to the tier table. See the identical guard in s06_run_arms.py.
+            assert onsseter.df[SET_AVERAGE_TO_PEAK].nunique() > 100, (
+                "R1 arm but AverageToPeakLoadRatio is (near-)uniform - override ran "
+                "before calculate_demand overwrote it, or not at all.")
             print(f"    R1 AverageToPeakLoadRatio: mean={onsseter.df[SET_AVERAGE_TO_PEAK].mean():.4f}")
 
         onsseter.calculate_unmet_demand(year, reliability=0.963)

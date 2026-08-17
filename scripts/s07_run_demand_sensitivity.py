@@ -8,11 +8,11 @@ This is a sensitivity run, NOT a replacement.  Stage-4 (Tier 3) outputs
 are NOT overwritten.
 
 Outputs:
-  data/onsset_outputs/2026-07-02_grid3_lcoe_R0_ruralT2.csv
-  data/onsset_outputs/2026-07-02_grid3_lcoe_R1_ruralT2_n10.csv
-  data/onsset_outputs/2026-07-02_grid3_lcoe_R1_ruralT2_n20.csv
-  data/onsset_outputs/2026-07-02_grid3_lcoe_R1_ruralT2_n50.csv
-  notes/2026-07-02_grid3_demand_sensitivity.md
+  data/onsset_outputs/2026-08_final_lcoe_R0_ruralT2.csv
+  data/onsset_outputs/2026-08_final_lcoe_R1_ruralT2_n10.csv
+  data/onsset_outputs/2026-08_final_lcoe_R1_ruralT2_n20.csv
+  data/onsset_outputs/2026-08_final_lcoe_R1_ruralT2_n50.csv
+  notes/2026-08_final_demand_sensitivity.md
 
 """
 
@@ -51,10 +51,12 @@ SOLAR_PROFILE = (REPO / "data" / "raw" / "zambia" / "renewables_hourly" /
 WIND_PROFILE  = (REPO / "data" / "raw" / "zambia" / "renewables_hourly" /
                  "wind" / "wind_lusaka.csv")
 
-# Stage-4 Tier-3 reference values (from 2026-07-01_grid3_lcoe_run.md)
-T3_LCOE_PCT  = {10: 34.6,  20: 36.9,  50: 38.8}   # ΔLCOE% energy-weighted 2030
-T3_CAPEX_PCT = {10: -14.3, 20: -9.8,  50: -3.6}    # ΔCAPEX% 2030
-T3_SWITCHES  = {10: 16999, 20: 17787, 50: 18260}    # SA_PV→Grid at 2030 (from tech split)
+# Tier-3 reference values, corrected run 2026-08-16 (index-alignment fix).
+# Superseded: 34.6/36.9/38.8, -14.3/-9.8/-3.6, 16999/17787/18260 — those came from the
+# run in which stand-alone PV capacity was misaligned; see patches/onsset-explicit-peak.patch.
+T3_LCOE_PCT  = {10: 34.1,  20: 49.9,  50: 70.6}    # ΔLCOE% energy-weighted 2030
+T3_CAPEX_PCT = {10: 30.1,  20: 45.6,  50: 65.4}    # ΔCAPEX% 2030
+T3_SWITCHES  = {10: 33603, 20: 34461, 50: 34862}   # SA_PV→Grid at 2030 (from tech split)
 
 np.random.seed(42)
 
@@ -111,10 +113,10 @@ def main():
 
     # Guard: refuse to overwrite Stage-4 outputs
     for protected in [
-        "2026-07-01_grid3_lcoe_R0.csv",
-        "2026-07-01_grid3_lcoe_R1_n10.csv",
-        "2026-07-01_grid3_lcoe_R1_n20.csv",
-        "2026-07-01_grid3_lcoe_R1_n50.csv",
+        "2026-08_final_lcoe_R0.csv",
+        "2026-08_final_lcoe_R1_n10.csv",
+        "2026-08_final_lcoe_R1_n20.csv",
+        "2026-08_final_lcoe_R1_n50.csv",
     ]:
         assert not (OUTDIR / protected).exists() or True, \
             f"Stage-4 file present and WOULD be overwritten: {protected}"
@@ -159,7 +161,8 @@ def main():
     df_r0 = df_base.drop(columns=pe_cols_all + ["N_hh_n20"], errors="ignore").copy()
     proc_r0, _, _ = run_arm("R0_ruralT2", df_r0, cfg, x_tx, y_tx,
                              ghi_profile, temp_profile, wind_profile, n_mid=None)
-    r0_path = OUTDIR / "2026-07-02_grid3_lcoe_R0_ruralT2.csv"
+    r0_path = OUTDIR / "2026-08_final_lcoe_R0_ruralT2.csv"
+    proc_r0.df.sort_values("id", inplace=True)  # labels are lat/lon order after condition_df; restore id order on disk
     proc_r0.df.to_csv(r0_path, index=False)
     print(f"\n  R0 (Tier 2) → {r0_path.name}")
 
@@ -180,7 +183,8 @@ def main():
         label = f"R1_ruralT2_n{n_mid}"
         proc_r1, _, _ = run_arm(label, df_r1, cfg, x_tx, y_tx,
                                  ghi_profile, temp_profile, wind_profile, n_mid=n_mid)
-        r1_path = OUTDIR / f"2026-07-02_grid3_lcoe_R1_ruralT2_n{n_mid}.csv"
+        r1_path = OUTDIR / f"2026-08_final_lcoe_R1_ruralT2_n{n_mid}.csv"
+        proc_r1.df.sort_values("id", inplace=True)
         proc_r1.df.to_csv(r1_path, index=False)
         print(f"\n  {label} → {r1_path.name}")
 
@@ -237,7 +241,7 @@ def main():
           f"{max(T3_LCOE_PCT.values()):+.1f}%")
 
     # ── Notes file ────────────────────────────────────────────────────────────
-    notes_path = REPO / "notes" / "2026-07-02_grid3_demand_sensitivity.md"
+    notes_path = REPO / "notes" / "2026-08_final_demand_sensitivity.md"
     notes_path.parent.mkdir(parents=True, exist_ok=True)
 
     m10, m20, m50 = metrics[10], metrics[20], metrics[50]
@@ -293,9 +297,9 @@ the Tier-2 result as a conservative lower bound; Tier-3 remains the central scen
 (matching Imasiku 2025 rural aspirational demand for Zambia).
 
 ## Files
-- R0 (Tier 2): `data/onsset_outputs/2026-07-02_grid3_lcoe_R0_ruralT2.csv`
-- R1 (Tier 2): `data/onsset_outputs/2026-07-02_grid3_lcoe_R1_ruralT2_n{{10,20,50}}.csv`
-- Stage 4 (Tier 3): `data/onsset_outputs/2026-07-01_grid3_lcoe_R0.csv` (unchanged)
+- R0 (Tier 2): `data/onsset_outputs/2026-08_final_lcoe_R0_ruralT2.csv`
+- R1 (Tier 2): `data/onsset_outputs/2026-08_final_lcoe_R1_ruralT2_n{{10,20,50}}.csv`
+- Stage 4 (Tier 3): `data/onsset_outputs/2026-08_final_lcoe_R0.csv` (unchanged)
 """)
 
     print(f"\n  Notes file → {notes_path.relative_to(REPO)}")

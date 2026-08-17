@@ -7,12 +7,12 @@ carries its own licence. This file lists what is needed, where it comes from, an
 
 | Dataset | Used for | Source | Licence |
 |---|---|---|---|
-| GRID3 Zambia settlement extents | The settlement spine (stage 01) | GRID3 / WorldPop | CC BY 4.0 |
+| GRID3 Zambia settlement extents v3.0 | The settlement dataset (stage 01) | CIESIN, Columbia University (2024), doi:10.7916/0pet-p051 | **CC BY-SA 4.0 — share-alike** |
 | WorldPop population, 100 m | Population per settlement (stages 01–02) | worldpop.org | CC BY 4.0 |
-| ZESCO MV distribution lines | Grid distances (stage 03) | World Bank / EnergyData.info | check layer terms |
-| NEP planned MV extensions | Planned-grid distances (stage 03) | Rural Electrification Authority | check terms |
-| MV / MVLV transformers, substations | Base-year electrification gate (stage 04) | World Bank / EnergyData.info | check layer terms |
-| Transmission network | Grid distances (stage 03) | World Bank | check terms |
+| ZESCO MV distribution lines | Grid distances (stage 03) | World Bank Group (2022), *Zambia — Electrical Lines*, ENERGYDATA.INFO | CC BY 4.0 |
+| NEP planned MV extensions | Planned-grid distances (stage 03) | Rural Electrification Authority | terms not published with the layer — see note below |
+| MV / MVLV transformers, substations | Base-year electrification gate (stage 04) | World Bank / EnergyData.info | terms not published with the layer — see note below |
+| Transmission network | Grid distances (stage 03) | World Bank | terms not published with the layer — see note below |
 | Global Solar Atlas GHI | Solar resource (stage 03) | globalsolaratlas.info | CC BY 4.0 |
 | renewables.ninja hourly solar | PV-hybrid mini-grid lookup tables | renewables.ninja (MERRA-2, 5 points, 2025) | **CC BY-NC 4.0 — non-commercial only** |
 | UN World Population Prospects 2024 | Population projections to 2035 and 2050 | population.un.org | CC BY 3.0 IGO |
@@ -21,9 +21,16 @@ carries its own licence. This file lists what is needed, where it comes from, an
 | Integrated Resource Plan | Scenario context, connection programme | Ministry of Energy | official publication |
 | ERB pump-price bulletin | Diesel price | Energy Regulation Board | official publication |
 
-The **renewables.ninja non-commercial clause is the binding constraint** on redistribution. Anything
-derived from those profiles — including the PV-hybrid lookup tables — inherits it. This matters if the
-repository is ever made public alongside derived data.
+Two clauses bind redistribution. The **renewables.ninja profiles are CC BY-NC**: anything derived from
+them, including the PV-hybrid lookup tables, inherits the non-commercial restriction. The **GRID3
+settlement extents are CC BY-SA 4.0**: the settlement dataset and anything derived from it carries a
+share-alike obligation. Neither dataset is redistributed here, and no derived product of either is
+committed to this repository.
+
+Three layers above are marked *terms not published with the layer*: the NEP planned MV extensions, the
+transformer/substation records and the transmission network were obtained without an accompanying
+licence statement. They are used here for academic analysis and are not redistributed. Anyone reusing
+them should confirm terms with the publisher first.
 
 ## Expected local layout
 

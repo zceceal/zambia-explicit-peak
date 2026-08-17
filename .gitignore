@@ -47,3 +47,17 @@ htmlcov/
 *.swo
 *~
 .spyproject/
+
+# session backups and paper tooling (not part of the reproducible pipeline)
+*.bak-preindexfix
+scripts/fill_values.py
+
+# ── Run artefacts written outside results/ (regenerated; not distributed) ─────
+# data/ above matches directories only; this tree is reached through a symlink
+/data
+# per-arm 2050 solves written under scripts/ by s12 (~3 GB)
+scripts/outputs/
+# the 2050 peak-ratio spine and its root-level erosion summary; the summary is
+# committed under results/summary/ with the run label
+/zambia_settlements_PE_2050_uniform.csv
+/pe_2050_erosion_summary.csv

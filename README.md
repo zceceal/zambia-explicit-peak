@@ -31,16 +31,24 @@ demand pre-processor is the only difference, which is what makes the comparison 
 
 ## Headline results
 
+Run of 2026-08-16, the first with the index-alignment defect corrected (see
+[`REPRODUCING.md`](REPRODUCING.md) §7). **Earlier figures from this repository are superseded.**
+
 | Result | Value |
 |---|---|
-| Change in lifetime cost of universal access | **+36.9%** (+28.5% to +38.8% across sensitivities; +14.1% under the most conservative sizing assumption) |
-| Change in upfront capital | **−9.8%** |
-| Settlements changing least-cost technology | **18,224** (6.7%, exclusively rural; 97.6% stand-alone solar → grid) |
-| Same comparison at lower (Tier-2) demand | Cost rise persists; reallocation largely disappears |
-| Same comparison at projected 2050 population | Cost penalty falls to **+23.9%**; reallocation falls only ~7% |
+| Change in lifetime cost of universal access | **+49.9%** (+34.1% to +70.6% across the `N_mid` sweep) |
+| Change in upfront capital | **+45.4%**; new capacity +3.0% |
+| Settlements changing least-cost technology | **34,461** (12.7%); every one stand-alone solar → grid |
+| Same comparison at lower (Tier-2) demand | −2.2% to +8.4% — a boundary condition, not a confirmation |
+| Same comparison at projected 2050 population | Cost penalty falls to **+34.9%**; reallocation falls ~7% |
 
-Capital falls while lifetime cost rises. Both are true: grid extension is capital-light and
-operating-heavy, and OnSSET optimises lifetime cost, not capital.
+Two qualifications belong with the headline. About 27 of the 49.9 percentage points come from
+settlements crossing a step in OnSSET's stand-alone capital-cost schedule at 1 kW per household,
+rather than from the smooth capacity response; `scripts/s15_run_capex_curve_sensitivity.py` measures
+that split. And the effect reaches levelised cost through the stand-alone PV channel only — freezing
+stand-alone costs at their R0 values leaves −1.1% — because OnSSET keeps grid capacity cost out of the
+levelised cost and sizes mini-grid generation from a fixed load archetype. The measured effect is
+therefore a lower bound on a model with explicit peaks in all three supply options.
 
 ## Installation
 
@@ -57,8 +65,13 @@ or with conda:
 conda env create -f environment.yml && conda activate zambia-peak
 ```
 
-The allocation engine is OnSSET at upstream commit `c154ece` with a two-line patch applied — see
-[`patches/README.md`](patches/README.md). **The results do not reproduce without it.**
+The allocation engine is OnSSET at upstream commit `c154ece` with the patch in
+[`patches/`](patches/README.md) applied. **The results do not reproduce without it.** It does three
+things: resets the DataFrame index after `condition_df()` sorts, so that peak load and capacity factor
+are no longer mispaired across settlements; adds a runtime guard that raises if that invariant is ever
+broken again; and makes stand-alone PV read the same per-settlement peak field every other technology
+already read. The unpatched code *suppressed* the effect this study measures on both counts, so the
+patch does not create the result. All three are disclosed in the paper's Methodology (§2.2.1).
 
 The input data is **not** in this repository: roughly 17 GB under third-party licences. See
 [`docs/04_data_sources.md`](docs/04_data_sources.md) for every source and the expected layout.
@@ -71,12 +84,15 @@ Full step-by-step instructions, pinned versions and expected outputs are in
 ```
 config/                  config.yaml — every contested value, with its source
 docs/                    pipeline, variables, assumptions, data sources
-patches/                 the two-line change to the OnSSET core, and why
+patches/                 the changes to the OnSSET core, and why
 peak_preprocessor/       the study's contribution: the peak-to-energy sub-model
-scripts/                 the pipeline, in run order (s00 … s13)
-test/                    unit tests for the sub-model; OnSSET install check
+scripts/                 the pipeline, in run order (s01 … s13), the standalone
+                         analyses s14 … s17, and the two acceptance checks
+                         (check_index_alignment.py, check_spine_integrity.py)
+test/                    unit tests for the sub-model; OnSSET install check;
+                         index-alignment regression test
 resources/               small reference inputs (specs templates)
-results/                 model outputs (gitignored; summaries only)
+results/                 summary outputs (committed); per-settlement CSVs gitignored
 ```
 
 ## Running the pipeline
@@ -105,6 +121,14 @@ quantity, `N_mid`, is swept over {10, 20, 50} and every result is reported as a 
 ```bash
 PYTHONPATH=peak_preprocessor python test/test_pe_diversity.py     # 8 tests on the sub-model
 python test/test_onsset_install.py                                # end-to-end OnSSET install check
+python test/test_index_alignment.py                               # regression test for the 2026-08-16 defect
+```
+
+After any run of `s06`, before trusting anything downstream:
+
+```bash
+python scripts/check_index_alignment.py data/onsset_outputs/<run>_R0.csv   # must report ~100%
+python scripts/check_spine_integrity.py                                    # 22 checks on the spine
 ```
 
 ## Reading order for a reviewer

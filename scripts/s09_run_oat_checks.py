@@ -13,7 +13,7 @@ Rules:
 - All new outputs go to data/onsset_outputs/ with new filenames dated 2026-07-03.
 - Seeds: LHS_VAL seed inherited from Stage-5 LHS CSV (seed=43 for LHS design);
          OAT arms use np.random.seed(42).
-- Gate: central OAT variant must reproduce +36.9% / 17,787 before variants are trusted.
+- Gate: central OAT variant must reproduce +49.9% / 34,461 before variants are trusted.
 """
 
 import copy
@@ -60,10 +60,20 @@ from onsset import (
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 ANALYSIS_YEAR   = 2030
-STAGE4_DELTA    = 36.9      # Central case +36.9% (s06, N_mid=20, Tier 3)
-STAGE4_SWITCHES = 17787     # SA_PV→Grid at 2030, N_mid=20 (corrected series)
-BIAS_FACTOR     = 1.4390    # = 36.9 / 25.64  (Stage-5 documented factor)
+STAGE4_DELTA    = 49.9      # Central case +49.92% (s06, N_mid=20, Tier 3, 2026-08_final run)
+STAGE4_SWITCHES = 34461     # SA_PV→Grid at 2030, N_mid=20 (2026-08-16 fixed run)
+# Full-spine / subsample ratio from s08's validation gate, 2026-08-16 run.
+# NOTE THE SIGN CHANGE. Pre-fix the 50k subsample UNDER-stated the effect (25.6% against a
+# 36.9% full-spine reference, factor 1.4390). Post-fix it OVER-states it (55.43% against
+# 49.7%, factor 0.8966). The documented explanation for the old bias - that a spatial
+# subsample severs grid relay paths and so suppresses SA_PV->Grid switching - predicted an
+# under-estimate, and no longer holds. Treat the factor as an empirical calibration, not as
+# a quantity with a settled mechanism, until that is re-derived.
+BIAS_FACTOR     = 0.8985    # s08 2026-08_final run: full-spine 49.9 / subsample 55.54.
+                            # (0.8966 on the pre-MV-fix run; 1.4390 pre-index-fix - the
+                            #  direction reversal is documented above.)
 OAT_TOL_PP      = 1.0       # pp tolerance for gate check (allow rounding in re-run)
+OAT_SWITCH_TOL  = 0         # exact: the LUT is rebuilt per arm, matching s06
 
 # Grid cost central values (from config / Egli 2023 Table S8)
 GRID_CAP_COST_CENTRAL = 1441.1   # USD/kW
@@ -80,14 +90,14 @@ SOLAR_PROFILE = (REPO / "data" / "raw" / "zambia" / "renewables_hourly" /
                  "solar" / "solar_lusaka.csv")
 WIND_PROFILE  = (REPO / "data" / "raw" / "zambia" / "renewables_hourly" /
                  "wind" / "wind_lusaka.csv")
-LHS_CSV = OUTDIR / "2026-07-02_grid3_lhs_uncertainty.csv"
+LHS_CSV = OUTDIR / "2026-08_final_lhs_uncertainty.csv"
 
 # ── Stage-4 output guard ──────────────────────────────────────────────────────
 PROTECTED = [
-    OUTDIR / "2026-07-01_grid3_lcoe_R0.csv",
-    OUTDIR / "2026-07-01_grid3_lcoe_R1_n20.csv",
-    OUTDIR / "2026-07-02_grid3_morris_delta_lcoe.csv",
-    OUTDIR / "2026-07-02_grid3_lhs_uncertainty.csv",
+    OUTDIR / "2026-08_final_lcoe_R0.csv",
+    OUTDIR / "2026-08_final_lcoe_R1_n20.csv",
+    OUTDIR / "2026-08_final_morris_delta_lcoe.csv",
+    OUTDIR / "2026-08_final_lhs_uncertainty.csv",
 ]
 
 
@@ -133,7 +143,8 @@ def run_arm_full(
     mg_diesel_cost = {"diesel_price": diesel_price, "efficiency": 0.33,
                       "diesel_truck_consumption": 33.7, "diesel_truck_volume": 15000}
 
-    min_mg_size = 100
+    # Mini-grid size threshold, in households; read from config (see technology_options).
+    min_mg_size = int(cfg.get("technology_options", {}).get("min_mg_size", 100))
     techs       = ["Grid", "SA_PV", "MG_PVHybrid", "MG_Wind", "MG_Hydro"]
     tech_codes  = [1, 3, 5, 6, 7]
     all_off_grid = ["SA_PV", "MG_PVHybrid", "MG_Wind", "MG_Hydro"]
@@ -415,7 +426,7 @@ def task0_lhs_validation(spine_n20, cfg_base, x_tx, y_tx,
         })
 
     df_out = pd.DataFrame(results)
-    out_path = OUTDIR / "2026-07-03_grid3_lhs_fullspine_validation.csv"
+    out_path = OUTDIR / "2026-08_final_lhs_fullspine_validation.csv"
     df_out.to_csv(out_path, index=False)
     print(f"\n  Saved: {out_path.name}")
     return df_out
@@ -429,7 +440,7 @@ def task1_grid_oat(spine_n20, cfg_base, x_tx, y_tx,
     (a) Grid capacity cost: ±30% of 1,441.1 USD/kW (Egli 2023 Table S8 cross-country range)
     (b) Grid generation cost: {0.013 central, 0.05 drought/new-build proxy}
 
-    Gate: central variant must reproduce +36.9% / 17,787 (within OAT_TOL_PP pp).
+    Gate: central variant must reproduce +49.9% / 34,461 (within OAT_TOL_PP pp).
     Reports ΔLCOE% AND SA_PV→Grid switch count per variant.
     """
     print("\n" + "="*70)
@@ -441,7 +452,7 @@ def task1_grid_oat(spine_n20, cfg_base, x_tx, y_tx,
 
     # OAT variants: (label, grid_cap_cost, grid_gen_cost, note)
     oat_variants = [
-        ("central",   GRID_CAP_COST_CENTRAL,        GRID_GEN_COST_CENTRAL, "Gate check — must reproduce +36.9%/17787"),
+        ("central",   GRID_CAP_COST_CENTRAL,        GRID_GEN_COST_CENTRAL, "Gate check — must reproduce +49.9%/34461"),
         ("cap-30pct", GRID_CAP_COST_CENTRAL * 0.70, GRID_GEN_COST_CENTRAL, "Grid cap cost −30% (lower bound Egli 2023 cross-country range)"),
         ("cap+30pct", GRID_CAP_COST_CENTRAL * 1.30, GRID_GEN_COST_CENTRAL, "Grid cap cost +30% (upper bound Egli 2023 cross-country range)"),
         ("gen-drought",GRID_CAP_COST_CENTRAL,        0.05,                  "Grid gen cost 0.05 USD/kWh (drought / new-build proxy)"),
@@ -460,14 +471,22 @@ def task1_grid_oat(spine_n20, cfg_base, x_tx, y_tx,
         cfg_v["grid"]["generation_cost_usd_kwh"]         = gen_cost
 
         t0 = time.time()
+        # pv_lut_cache is deliberately NOT used here. s06_run_arms.py rebuilds the PV-hybrid
+        # differential-evolution lookup table inside each arm, immediately after np.random.seed(42).
+        # Reusing a cache built earlier in this script draws from the random stream at a different
+        # point, giving marginally different mini-grid costs; that was enough to flip one settlement
+        # at the grid-extension margin (index 72830) and return 17,786 switches instead of 17,787.
+        # (Those counts belong to the pre-2026-08-16 series, before the index-alignment fix;
+        #  they are retained here because they document why this cache is rebuilt per arm.)
+        # Rebuilding per arm makes the central variant reproduce s06 exactly. Costs ~2 min per arm.
         print(f"    Running R0 on full spine …")
         df_r0 = run_arm_full("OAT_R0", spine_r0, cfg_v, x_tx, y_tx,
                               ghi_profile, temp_profile, wind_profile,
-                              n_mid=None, pv_lut_cache=pv_lut_cache, silent=True)
+                              n_mid=None, pv_lut_cache=None, silent=True)
         print(f"    Running R1 on full spine …")
         df_r1 = run_arm_full("OAT_R1", spine_r1_n20, cfg_v, x_tx, y_tx,
                               ghi_profile, temp_profile, wind_profile,
-                              n_mid=20, pv_lut_cache=pv_lut_cache, silent=True)
+                              n_mid=20, pv_lut_cache=None, silent=True)
 
         delta  = compute_delta_lcoe_pct(df_r0, df_r1)
         sw     = count_sapv_to_grid(df_r0, df_r1)
@@ -476,8 +495,17 @@ def task1_grid_oat(spine_n20, cfg_base, x_tx, y_tx,
         print(f"    ΔLCOE% = {delta:+.2f}%  switches = {sw:,}  ({elapsed:.0f}s)")
 
         if variant == "central":
-            gate_ok = abs(delta - STAGE4_DELTA) <= OAT_TOL_PP
-            print(f"    GATE: |{delta:.2f} - {STAGE4_DELTA}| = {abs(delta-STAGE4_DELTA):.2f}pp ≤ {OAT_TOL_PP}pp → {'PASS ✓' if gate_ok else 'FAIL ✗'}")
+            gate_delta = abs(delta - STAGE4_DELTA) <= OAT_TOL_PP
+            # Switch count is gated exactly: the hybrid LUT is now rebuilt per arm (as in s06),
+            # so the central variant must reproduce the headline 34,461 with no residual.
+            sw_resid  = abs(sw - STAGE4_SWITCHES)
+            gate_sw   = sw_resid <= OAT_SWITCH_TOL
+            print(f"    GATE dLCOE: |{delta:.2f} - {STAGE4_DELTA}| = {abs(delta-STAGE4_DELTA):.2f}pp <= {OAT_TOL_PP}pp -> {'PASS' if gate_delta else 'FAIL'}")
+            print(f"    GATE switch: |{sw:,} - {STAGE4_SWITCHES:,}| = {sw_resid} <= {OAT_SWITCH_TOL} -> {'PASS' if gate_sw else 'FAIL'}")
+            if sw_resid:
+                print(f"    NOTE: {sw_resid} settlement(s) differ from the headline run "
+                      f"(cached vs rebuilt hybrid LUT; documented in REPRODUCING.md).")
+            gate_ok = gate_delta and gate_sw
             if not gate_ok:
                 print(f"    WARNING: Central case gate FAILED. "
                       f"OAT variants may not be trusted. Continuing anyway.")
@@ -496,14 +524,16 @@ def task1_grid_oat(spine_n20, cfg_base, x_tx, y_tx,
         # Per-variant outputs are written under new filenames; existing outputs are not overwritten
         if variant != "central":
             tag = variant.replace("+", "plus").replace("-", "minus")
-            out_r0 = OUTDIR / f"2026-07-03_grid3_oat_{tag}_R0.csv"
-            out_r1 = OUTDIR / f"2026-07-03_grid3_oat_{tag}_R1_n20.csv"
+            out_r0 = OUTDIR / f"2026-08_final_oat_{tag}_R0.csv"
+            out_r1 = OUTDIR / f"2026-08_final_oat_{tag}_R1_n20.csv"
+            df_r0.sort_values("id", inplace=True)
+            df_r1.sort_values("id", inplace=True)
             df_r0.to_csv(out_r0, index=False)
             df_r1.to_csv(out_r1, index=False)
             print(f"    Saved: {out_r0.name}, {out_r1.name}")
 
     df_out = pd.DataFrame(results)
-    out_path = OUTDIR / "2026-07-03_grid3_oat_grid_costs.csv"
+    out_path = OUTDIR / "2026-08_final_oat_grid_costs.csv"
     df_out.to_csv(out_path, index=False)
     print(f"\n  Saved: {out_path.name}")
 
@@ -588,7 +618,7 @@ def main():
                        "diff_corrected_pp","fullspine_switch","subsample_switch"]].to_string(index=False))
     print("\n  Task 1 — Grid-side OAT:")
     print(oat_df[["variant","grid_cap_cost","grid_gen_cost","delta_lcoe_pct","switch_count"]].to_string(index=False))
-    print(f"\n  Gate (central reproduces +36.9%): {'PASSED ✓' if gate_ok else 'FAILED ✗'}")
+    print(f"\n  Gate (central reproduces +{STAGE4_DELTA:.1f}%): {'PASSED ✓' if gate_ok else 'FAILED ✗'}")
     print(f"\nOutputs in: {OUTDIR}")
 
 

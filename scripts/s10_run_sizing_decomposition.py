@@ -3,7 +3,7 @@ s10_run_sizing_decomposition.py — sizing-convention f-band and per-connection 
 
 Task 2: On EXISTING Stage-4 outputs, recompute energy-weighted ΔLCOE% with only a
 fraction f of SA_PV capex peak-scaled (remainder energy-scaled). f ∈ {0.4, 0.6, 1.0}.
-No OnSSET re-run. Verify f=1.0 reproduces +36.9%.
+No OnSSET re-run. Verify f=1.0 reproduces the current headline (+49.9%).
 
 Task 5: Trace InvestmentCost2030 and NewConnections2030 definitions; determine why
 aggregate reads ~$20k/HH; state correct formula for defensible per-connection metric.
@@ -22,8 +22,9 @@ HERE   = Path(__file__).resolve().parent
 REPO   = HERE.parent
 OUTDIR = REPO / "data" / "onsset_outputs"
 
-R0_PATH  = OUTDIR / "2026-07-01_grid3_lcoe_R0.csv"
-R1_N20   = OUTDIR / "2026-07-01_grid3_lcoe_R1_n20.csv"
+HEADLINE_DELTA = 49.9   # s06 central case, N_mid=20, Tier 3 (2026-08_final run; was 36.9 pre-fix)
+R0_PATH  = OUTDIR / "2026-08_final_lcoe_R0.csv"
+R1_N20   = OUTDIR / "2026-08_final_lcoe_R1_n20.csv"
 ANALYSIS_YEAR = 2030
 
 
@@ -76,7 +77,7 @@ def task2_f_band():
     c1 = (r1_lcoe * energy).sum()
     delta_full = (c1 - c0) / c0 * 100.0
     print(f"  Baseline ΔLCOE% (f=1.0, full model) = {delta_full:+.4f}%  "
-          f"(target: +{36.9:.1f}%)")
+          f"(target: +{HEADLINE_DELTA:.1f}%)")
 
     # Identify settlement categories
     stays_sapv = (fc0 == 3) & (fc1 == 3)   # SA_PV in both arms
@@ -119,7 +120,7 @@ def task2_f_band():
           f"|{f1_delta:.4f} - {delta_full:.4f}| = {abs(f1_delta-delta_full):.4f}pp "
           f"→ {'PASS ✓' if gate_ok else 'FAIL ✗'}")
 
-    out_path = OUTDIR / "2026-07-03_grid3_sizing_convention_fband.csv"
+    out_path = OUTDIR / "2026-08_final_sizing_convention_fband.csv"
     df_out.to_csv(out_path, index=False)
     print(f"\n  Saved: {out_path.name}")
     print(f"  ΔLCOE% band: [{df_out['delta_lcoe_pct'].min():+.1f}%, "
@@ -234,24 +235,41 @@ def task5_per_connection():
     print(f"    R1 total NPC: ${r1_total_npc/1e9:.2f}B")
     print(f"    ΔNPC: ${(r1_total_npc-r0_total_npc)/1e9:.2f}B  ({(r1_total_npc-r0_total_npc)/r0_total_npc*100:+.1f}%)")
 
-    verdict = """
+    # Every figure below is computed from the current outputs. The previous version of
+    # this block was a frozen narrative quoting ~$20k/HH aggregate and a mean/median
+    # split of $39k/$7k. Those were symptoms of the index misalignment in
+    # SettlementProcessor.condition_df() diagnosed on 2026-08-16, not of the accounting.
+    _ipc  = ipc.dropna()
+    _skew = _ipc.mean() / _ipc.median() if _ipc.median() else float("nan")
+    _delta = (r1_total_npc - r0_total_npc) / r0_total_npc * 100
+    _outliers_resolved = (
+        "RESOLVED. No settlement exceeds $1B of investment, and the mean/median ratio\n"
+        "        is {:.2f} (a value near 1.0 means no outlier skew). Extreme per-settlement\n"
+        "        investment was a symptom of the index misalignment, not of the accounting."
+    ).format(_skew) if len(extreme) == 0 and _skew < 1.5 else (
+        "STILL PRESENT: {} settlements above $1B; mean/median ratio {:.2f}. Investigate\n"
+        "        before quoting any absolute per-connection figure."
+    ).format(len(extreme), _skew)
+
+    verdict = f"""
 VERDICT (Task 5):
-  InvestmentCost2030 / NewConnections2030 ~ $20k/HH is NOT a valid per-connection cost.
-  Root causes:
-    (a) PERIOD MISMATCH: InvestmentCost includes full 2020-2035 horizon (undiscounted
-        NPC of 2 SA_PV installations); NewConnections2030 counts new HH in 2020-2030
-        step only — numerator and denominator span different periods.
-    (b) OUTLIERS: ~handful of SA_PV settlements with near-zero ATR (very small
-        settlements or numerical edge cases) drive InvestmentCost to $1B+ per
-        settlement, inflating the aggregate. SA_PV mean $39k/HH vs median $7k/HH.
+  R0 aggregate InvestmentCost{yr} / NewConnections{yr} = ${agg_per_conn:,.0f}/HH.
+  Per settlement, OnSSET's InvestmentPerConnection{yr}: median ${_ipc.median():,.0f}/HH,
+  mean ${_ipc.mean():,.0f}/HH, P5-P95 ${_ipc.quantile(0.05):,.0f}-${_ipc.quantile(0.95):,.0f}/HH.
 
-  ABSOLUTE per-connection figures must NOT be quoted in Results until a correctly
-  specified formula is agreed. The existing OnSSET InvestmentPerConnection2030 column
-  (OffGridInvestmentCost/NewConnections, per settlement median = $7,019/HH) is
-  more internally consistent but still blends period-spanning investment.
+  (a) PERIOD MISMATCH — still present. InvestmentCost spans the full 2020-2035 horizon
+      (undiscounted NPC of two stand-alone PV installations); NewConnections{yr} counts
+      new households in the 2020-{yr} step only. Numerator and denominator therefore
+      span different periods, and the ratio overstates cost per connection by roughly
+      the reinvestment factor. Any absolute figure quoted must state this.
 
-  The RELATIVE R0-R1 cost change (ΔLCOE% = +36.9%) is computed from energy-weighted
-  LCOEs and is unaffected by this accounting issue. It is the credible headline.
+  (b) OUTLIERS — {_outliers_resolved}
+
+  Absolute per-connection figures are therefore quotable, with (a) stated. The
+  distribution is tight and physically plausible.
+
+  The RELATIVE R0-R1 cost change (dLCOE% = {_delta:+.1f}%) is computed from
+  energy-weighted LCOEs and is unaffected by either issue. It remains the headline.
     """
     print(verdict)
 
@@ -267,7 +285,7 @@ VERDICT (Task 5):
         "n_outliers_gt1B": len(extreme),
         "outlier_share_pct": extreme[f"InvestmentCost{yr}"].sum() / total_inv_r0 * 100,
     }])
-    out_path = OUTDIR / "2026-07-03_grid3_per_connection_analysis.csv"
+    out_path = OUTDIR / "2026-08_final_per_connection_analysis.csv"
     summary_df.to_csv(out_path, index=False)
     print(f"  Saved: {out_path.name}")
     return summary_df

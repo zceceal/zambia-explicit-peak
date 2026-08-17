@@ -1,5 +1,5 @@
 diff --git a/onsset/onsset.py b/onsset/onsset.py
-index e88a561..426aeeb 100644
+index e88a561..d0622d1 100644
 --- a/onsset/onsset.py
 +++ b/onsset/onsset.py
 @@ -298,7 +298,7 @@ class Technology:
@@ -11,7 +11,97 @@ index e88a561..426aeeb 100644
          cost_dict_list = self.capital_cost.keys()
          cost_dict_list = sorted(cost_dict_list)
          for key in cost_dict_list:
-@@ -2588,7 +2588,7 @@ class SettlementProcessor:
+@@ -501,8 +501,21 @@ class Technology:
+             hv_to_mv_lines = self.hv_line_cost / self.mv_line_cost
+             max_mv_load = self.mv_line_amperage_limit * self.mv_line_type * hv_to_mv_lines
+ 
+-            mv_amperage = self.service_transf_type / self.mv_line_type # ToDo check
+-            no_of_mv_lines = np.ceil(peak_load / (mv_amperage * self.mv_line_type))
++            # PATCH (explicit-peak study, 2026-08-16): count MV lines against the MV line's own
++            # rating, not the service transformer's. The original expression reduces algebraically
++            # to ceil(peak_load / service_transf_type) = ceil(peak_load / 75 kVA), i.e. it sizes the
++            # number of parallel MEDIUM-VOLTAGE FEEDERS off a 75 kVA distribution transformer.
++            # A 33 kV line at the 275 A limit carries 9,075 kVA, so the original over-counts by up
++            # to 121x. `mv_line_amperage_limit` was otherwise used only to pick the MV/HV switch.
++            # Upstream flagged this itself with "# ToDo check".
++            #
++            # Measured exposure on this dataset before changing it: the two expressions differ for
++            # 371 of 270,526 settlements (0.137%) - only those with peak load above 75 kW - of which
++            # 190 are served by grid, and their median connection distance is 0.00 km, so the term
++            # mv_km = additional_mv_line_length * no_of_mv_lines is zero for most of them. Total
++            # over-charged length 1,562 km, about 0.09% of aggregate investment. The correction is
++            # made because it is right, not because it moves the result.
++            no_of_mv_lines = np.ceil(peak_load / (self.mv_line_amperage_limit * self.mv_line_type))
+             hv_amperage = self.hv_mv_substation_type / self.hv_line_type
+             no_of_hv_lines = np.ceil(peak_load / (hv_amperage * self.hv_line_type))
+ 
+@@ -907,6 +920,16 @@ class SettlementProcessor:
+ 
+         logging.info('Sort by country, Y and X')
+         self.df.sort_values(by=[SET_Y_DEG, SET_X_DEG], inplace=True)
++        # PATCH (explicit-peak study, 2026-08-16): reset the index after the sort.
++        # Without this the frame's row positions and index labels are different
++        # orderings of the same settlements. Technology.get_lcoe() wraps peak_load
++        # (a numpy array, hence POSITIONAL) in a pd.Series and divides it by
++        # capacity_factor (a df column, hence LABEL-indexed); pandas aligns on
++        # labels, so each settlement's peak load is divided by a different
++        # settlement's capacity factor. Upstream this is masked because
++        # condition_df() is normally followed by a CSV write/read round trip,
++        # which silently repairs the index.
++        self.df.reset_index(drop=True, inplace=True)
+ 
+     @staticmethod
+     def classify_road_distance(road_distance):
+@@ -1491,8 +1514,10 @@ class SettlementProcessor:
+ 
+         hv_to_mv_lines = grid_calc.hv_line_cost / grid_calc.mv_line_cost
+         max_mv_load = grid_calc.mv_line_amperage_limit * grid_calc.mv_line_type * hv_to_mv_lines
+-        mv_amperage = grid_calc.service_transf_type / grid_calc.mv_line_type
+-        no_of_mv_lines = np.ceil(peak_load / (mv_amperage * grid_calc.mv_line_type))
++        # PATCH (explicit-peak study, 2026-08-16): same correction as in transmission_network -
++        # count MV lines against the line's own rating. Kept identical so that MaxDist and the
++        # realised connection cost use one convention.
++        no_of_mv_lines = np.ceil(peak_load / (grid_calc.mv_line_amperage_limit * grid_calc.mv_line_type))
+         hv_amperage = grid_calc.hv_mv_substation_type / grid_calc.hv_line_type
+         no_of_hv_lines = np.ceil(peak_load / (hv_amperage * grid_calc.hv_line_type))
+ 
+@@ -2509,6 +2534,27 @@ class SettlementProcessor:
+ 
+         return hybrid_lcoe, hybrid_capacity, hybrid_investment, wind_hybrid_investment
+ 
++    def _assert_positional_index(self, where):
++        """Fail loudly if row positions and index labels have diverged.
++
++        Technology.get_lcoe() mixes objects of two kinds: Series built from numpy
++        arrays (labelled 0..N-1 by POSITION) and columns taken straight off self.df
++        (labelled by the frame's INDEX). Pandas aligns those on labels. If the frame
++        has been sorted without resetting its index the two orderings differ, and
++        every stand-alone technology is sized against another settlement's capacity
++        factor - silently, because the energy term cancels out of the levelised cost
++        and only the capacity, investment and cost-band terms are left wrong.
++
++        This is not hypothetical: it is what condition_df() did before 2026-08-16.
++        """
++        if not self.df.index.equals(pd.RangeIndex(len(self.df))):
++            raise RuntimeError(
++                "self.df index is not a clean RangeIndex at {}. Row positions and "
++                "index labels have diverged, which silently misaligns stand-alone "
++                "capacity, investment and LCOE. Call "
++                "self.df.reset_index(drop=True, inplace=True) after whatever sorted "
++                "the frame.".format(where))
++
+     def calculate_off_grid_lcoes(self, mg_hydro_calc, mg_wind_hybrid_calc, sa_pv_calc,  mg_pv_hybrid_calc, year, end_year, time_step, techs, tech_codes,
+                                  min_mg_size=0, mg_min_grid_dist=0):
+         """
+@@ -2516,6 +2562,7 @@ class SettlementProcessor:
+         """
+ 
+         print(time.ctime(), 'Starting off-grid LCOE calculation for year {}'.format(year))
++        self._assert_positional_index('calculate_off_grid_lcoes')
+ 
+         logging.info('Calculate minigrid hydro LCOE')
+         self.df[SET_LCOE_MG_HYDRO + "{}".format(year)], mg_hydro_investment, mg_hydro_capacity = \
+@@ -2588,7 +2635,7 @@ class SettlementProcessor:
                                  num_people_per_hh=self.df[SET_NUM_PEOPLE_PER_HH],
                                  grid_cell_area=self.df[SET_GRID_CELL_AREA],
                                  capacity_factor=self.df[SET_GHI] / HOURS_PER_YEAR,
@@ -20,3 +110,11 @@ index e88a561..426aeeb 100644
  
          self.df.loc[(self.df[SET_ELEC_FINAL_CODE + "{}".format(year - time_step)] != 3) &
                      (self.df[SET_ELEC_FINAL_CODE + "{}".format(year - time_step)] != 99),
+@@ -2753,6 +2800,7 @@ class SettlementProcessor:
+         mg_hydro_investment.replace([np.inf, -np.inf], 0, inplace=True)
+         grid_investment.replace([np.inf, -np.inf], 0, inplace=True)
+ 
++        self._assert_positional_index('calculate_investments_and_capacity')
+         logging.info('Calculate investment cost')
+ 
+         self.df[SET_INVESTMENT_COST + "{}".format(year)] = 0
