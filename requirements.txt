@@ -23,5 +23,8 @@ pyogrio==0.12.1
 shapely==2.1.2
 geopandas==1.1.3
 
+# Dev dependency — not used by the pipeline itself, only to run `pytest test/ -v`
+pytest==9.1.1
+
 # OnSSET is NOT installed from PyPI. It is built from upstream commit c154ece with the
-# two-line patch in patches/ applied. See patches/README.md and REPRODUCING.md.
+# five-change patch in patches/ applied. See patches/README.md and REPRODUCING.md.

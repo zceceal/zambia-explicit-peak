@@ -1,8 +1,9 @@
 # Patch to the OnSSET core
 
 The allocation engine is used unmodified except for the changes in
-`onsset-explicit-peak.patch`. It must be applied for the results to reproduce. There are three:
-one correctness fix, one guard against that fix being undone, and one symmetry fix.
+`onsset-explicit-peak.patch`. It must be applied for the results to reproduce. There are five:
+one correctness fix, one guard against that fix being undone, one medium-voltage line-count
+correction, one symmetry fix, and one type fix.
 
 Base version: OnSSET at upstream commit `c154ece` (installed as `onsset 2.1.dev24+gc154ece12`).
 
@@ -34,6 +35,22 @@ diverge, and is called at the start of `calculate_off_grid_lcoes` and of
 `calculate_investments_and_capacity`. Its purpose is that this class of defect can never again fail
 silently: it becomes a crash with an explanatory message rather than a plausible wrong number.
 `test/test_index_alignment.py` is the matching regression test.
+
+**`onsset.py` lines ~504 and ~1493 — the medium-voltage line-count correction (added 2026-08-16).**
+`no_of_mv_lines` was computed against `mv_amperage = service_transf_type / mv_line_type`, which
+algebraically reduces to `ceil(peak_load / service_transf_type)` — i.e. it counted parallel
+MEDIUM-VOLTAGE feeders against the rating of a 75 kVA distribution *transformer*, not against the MV
+*line's* own rating (`mv_line_amperage_limit`). A 33 kV line at its 275 A limit carries 9,075 kVA, so
+the original over-counted by up to 121x for settlements above that threshold. The upstream code
+itself flagged the line with `# ToDo check`. The same correction is applied at both call sites
+(`Technology.get_lcoe`'s transmission-network branch, and the standalone grid-extension calculation)
+so both use one convention.
+
+Measured exposure on this dataset: the two expressions differ for 371 of 270,526 settlements
+(0.137%) — only those with peak load above 75 kW — of which 190 are grid-served with a median
+connection distance of 0 km, so the correction changes total MV line length by about 1,562 km,
+roughly 0.09% of aggregate investment. It is made because it is right, not because it is large; it
+is not the source of the headline effect.
 
 **`onsset.py` line ~2591 — the symmetry fix.**
 Stand-alone PV was the one technology that ignored the per-settlement peak: it received a hard-coded

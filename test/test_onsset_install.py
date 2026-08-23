@@ -30,11 +30,15 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPO        = os.path.join(PROJECT_ROOT, "data", "onsset_repo")
+
+# Same fallback as test_index_alignment.py: works whether onsset was `pip install -e`'d
+# (patches/README.md) or the patched source is merely present at data/onsset_repo.
+sys.path.insert(0, REPO)
 from onsset import SettlementProcessor
 from onsset.runner import calibration
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-REPO        = os.path.join(PROJECT_ROOT, "data", "onsset_repo")
 SPECS       = os.path.join(REPO, "test", "test_data", "dj-specs-test.xlsx")
 CSV_IN      = os.path.join(REPO, "test", "test_data", "dj-test.csv")
 FIGURES_DIR = os.path.join(PROJECT_ROOT, "figures", "data_checks")

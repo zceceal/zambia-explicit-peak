@@ -48,8 +48,11 @@ intermediate archetype. That is `N_mid`.
 
 - **Handling:** central value 20 households, swept over a full decade {10, 20, 50}, with the entire
   pipeline re-solved at each. Every headline is reported as a band.
-- **Result:** the Tier-3 cost effect moves only about ±2 percentage points across the decade. The
-  global sensitivity screen ranked `N_mid` a comparatively minor factor, below the discount rate.
+- **Result:** the Tier-3 cost effect spans **+34.1% (`N_mid`=10) to +70.6% (`N_mid`=50)** around the
+  central-case +49.9% (`N_mid`=20) — a wide band, not a tight one. The corrected global sensitivity
+  screen ranks `N_mid` **2nd of six factors** (μ\* = 14.5, behind only the rural demand tier), **above**
+  the discount rate (5th, μ\* = 2.2). `N_mid` is one of the more influential parameters in the model,
+  which is the reason it is swept over a full decade rather than fixed.
 - **Why not measured:** no metered multi-site Zambian mini-grid load dataset is public. The one
   commercial dataset is proprietary. This is stated as future work.
 
@@ -71,8 +74,11 @@ Rural households are assigned MTF Tier 3 (~803 kWh/household/year), matching the
 study and the universal-access framing. This is aspirational for rural Zambia.
 
 - **Test:** the whole comparison is repeated at Tier 2, a 73% reduction.
-- **Result:** the cost increase persists (+28.5% to +35.5%). The technology reallocation largely
-  disappears. So the cost finding is demand-robust; the reallocation finding requires Tier 3+.
+- **Result:** the cost effect does **not** simply persist at reduced magnitude — it reverses sign at
+  `N_mid`=10: **−2.2% (n10), +3.3% (n20), +8.4% (n50)**, against +34.1%/+49.9%/+70.6% at Tier 3. The
+  technology reallocation largely disappears (12/72/436 SA_PV→Grid switches at Tier 2, versus ~34,000
+  at Tier 3). So the cost finding is Tier-3-dependent — it does not survive the demand reduction as a
+  fixed-sign effect — while the reallocation finding requires Tier 3+ regardless.
 
 ### 2.5 Absolute cost level
 
@@ -102,7 +108,7 @@ in the comparison that carries the contribution.
 | Wind mini-grids disabled | A one-line bug in the OnSSET core. Zambian wind capacity factor ≈ 0.10, so immaterial |
 | Hydro mini-grids allocate to zero | 195 settlements sit within 5 km of hydro but fall below the 100-connection viability threshold |
 | Single diesel price bin | Diesel is never least-cost in any reported outcome |
-| Coarse grid in dispersed rural areas | Creates a single-household tail; excluding it moves the headline by 0.6 pp |
+| GRID3 natural-cluster settlement geometry | Inherits a single-household tail (55,157 settlements, N_hh<=1) from the published GRID3 building-footprint product — 50,880 of the 55,157 (92%) are GRID3 clusters (chiefly the Hamlet class), not cells of the model's own dispersed-rural grid; the tail is a property of the source data, not manufactured by the aggregation choice. Excluding it moves the headline by −2.5 pp (+49.9% -> +47.4%) |
 
 ---
 

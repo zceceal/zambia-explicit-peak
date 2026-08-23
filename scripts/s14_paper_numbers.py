@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Extract every headline number the paper quotes, from a pair of arm outputs.
 
-Written 2026-08-16 to read the post-index-fix run. Compares against the
-as-published values so the size of every change is visible at a glance.
+Written 2026-08-16 to read the post-index-fix run; PUBLISHED updated 2026-08-23 to the
+canonical 2026-08_final_lcoe values (the 2026-08-16 index-misalignment repair that produced
+them changed the headline from +36.87% to +49.92% and settled the switch count at 34,461).
+Compares against the as-published values so the size of every change is visible at a glance.
 
     python scripts/s14_paper_numbers.py 2026-08_final_lcoe
 """
@@ -16,10 +18,10 @@ OUT = REPO / "data" / "onsset_outputs"
 YEAR = 2030
 
 PUBLISHED = {
-    "dlcoe": 36.872520, "switches": 17787, "sw_total": 18224,
-    "r0_grid": 39058, "r0_sapv": 230581, "r0_hyb": 887,
-    "r1_grid": 56831, "r1_sapv": 212452, "r1_hyb": 1243,
-    "d_inv": -9.80, "d_cap": -9.96,
+    "dlcoe": 49.923139, "switches": 34461, "sw_total": 34461,
+    "r0_grid": 32058, "r0_sapv": 236843, "r0_hyb": 1625,
+    "r1_grid": 66519, "r1_sapv": 202382, "r1_hyb": 1625,
+    "d_inv": 45.591, "d_cap": 2.946,
 }
 LABELS = {1: "Grid", 3: "SA_PV", 5: "MG_PVHybrid", 6: "MG_Wind", 7: "MG_Hydro", 99: "Unelectrified"}
 
