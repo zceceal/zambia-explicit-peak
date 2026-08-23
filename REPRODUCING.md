@@ -121,13 +121,17 @@ python scripts/s15_run_capex_curve_sensitivity.py smooth     # continuous capita
 python scripts/s15_run_capex_curve_sensitivity.py monotone   # and with the >1 kW premium removed
 python scripts/s16_run_corrected_conventions.py             # full reinvestment schedule
 python scripts/s17_run_fitted_anchors.py                    # curve fitted to the two measured anchors
+python scripts/s18_run_hhsize_sensitivity.py                 # rural household size 4.5 / 5.5 vs census 5.0; four arms, ~7 min
 python scripts/check_spine_integrity.py                     # 22 hard checks on the spine, no re-run
 ```
 
 `s16` returns +50.56% against the +49.92% headline: repricing the only channel that carries the effect
 by 5.9% moves the result by 0.64 pp. `s17` returns +35.6% with 33,549 stand-alone-to-grid switches,
 inside the swept band, and removes the `N_mid` assumption by fitting the curve to the study's own two
-measured anchors instead.
+measured anchors instead. `s18` perturbs the census rural household size (5.0) by ±10% and returns
+**+48.10%** with 33,605 stand-alone-to-grid switches at 4.5 persons, and **+51.62%** with 34,694
+switches at 5.5 — a band narrower than the `N_mid` sweep, so household size is not a material driver
+of the headline.
 
 ## 5. What you should get
 

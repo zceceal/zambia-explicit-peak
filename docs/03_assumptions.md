@@ -91,6 +91,23 @@ The modelled cost per person sits roughly 3–4× above continental averages for
 - **Why it does not matter for the finding:** the paper's claims are all **relative** (R1 versus R0), so
   a level offset cancels in the contrast.
 
+### 2.6 Mean household size
+
+Household size is a measured 2022 census enumeration (ZamStats 2022, Section 4.3), not an assumed or
+borrowed value: urban 4.6, rural 5.0, applied identically to both cases. It sits in Group 2 not
+because the figure is uncertain, but because it feeds an asymmetric channel: the demand-side effect
+(fewer, larger households means less energy per settlement) is common to both R0 and R1 and cancels
+out of the stand-alone levelised cost, while the connection count N = max(1, Pop/s), which it also
+sets, feeds the coincidence model, which only the explicit-peak case uses. A change in household size
+can therefore move the R1–R0 contrast even though its demand-side effect cancels.
+
+- **Handling:** as a stress test far wider than the real uncertainty in an enumerated census figure,
+  the rural value is perturbed by ±10% (4.5 and 5.5 against the census 5.0) and both cases re-solved
+  at `N_mid` = 20 (`s18`).
+- **Result:** +48.10% at 4.5 persons (33,605 stand-alone-to-grid switches) and +51.62% at 5.5
+  (34,694 switches), against +49.9% at the census value — a band narrower than the `N_mid` sweep
+  already reported (Section 2.2).
+
 ---
 
 ## Group 3 — Assumptions shared by both runs (they cancel out)

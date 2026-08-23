@@ -92,7 +92,7 @@ docs/                    pipeline, variables, assumptions, data sources
 patches/                 the changes to the OnSSET core, and why
 peak_preprocessor/       the study's contribution: the peak-to-energy sub-model
 scripts/                 the pipeline, in run order (s01 … s13), the standalone
-                         analyses s14 … s17, and the two acceptance checks
+                         analyses s14 … s18, and the two acceptance checks
                          (check_index_alignment.py, check_spine_integrity.py)
 test/                    unit tests for the sub-model; OnSSET install check;
                          index-alignment regression test
