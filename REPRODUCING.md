@@ -29,7 +29,7 @@ that produced the published results; a from-scratch install fails at import with
 ## 2. OnSSET, with the patch
 
 The allocation engine is OnSSET at upstream commit `c154ece`, with the patch in `patches/` applied.
-**The results do not reproduce without it.** It makes three changes, all documented inline at the point
+**The results do not reproduce without it.** It makes five changes, all documented inline at the point
 of change:
 
 1. `condition_df()` resets the DataFrame index after its sort. Without this, row positions and index
@@ -38,9 +38,14 @@ of change:
    See §7 and `test/test_index_alignment.py`.
 2. `SettlementProcessor._assert_positional_index()` is added and called at the two points where that
    invariant matters, so the failure can never again be silent.
-3. Stand-alone PV reads the per-settlement `AverageToPeakLoadRatio` like every other technology,
-   instead of a hard-coded load factor; and its `cap_cost` accumulator is cast to float so
-   non-integer capital costs are not truncated.
+3. `no_of_mv_lines` is computed against the medium-voltage line's own amperage rating rather than a
+   75 kVA distribution-transformer rating it was previously (and mistakenly) derived from — applied at
+   both call sites. Affects 371 of 270,526 settlements (0.137%, ~0.09% of aggregate investment); not
+   the source of the headline effect. See `patches/README.md`.
+4. Stand-alone PV reads the per-settlement `AverageToPeakLoadRatio` like every other technology,
+   instead of a hard-coded load factor.
+5. `Technology.get_lcoe`'s `cap_cost` accumulator (shared by every technology, not just
+   stand-alone PV) is cast to float so non-integer capital costs are not truncated.
 
 Clone it into `data/onsset_repo`, which is where `test/test_onsset_install.py` looks for its
 test fixtures:
@@ -246,16 +251,19 @@ minutes rather than 19.
 
 **Re-run completed, 2026-08-16**, after the index-alignment fix of §7. The central variant reproduced
 `s06` to six decimal places and **exactly 34,461** switches — the switch-count gate passed with zero
-residual:
+residual. *Updated 2026-08-23: the values below are read from
+`results/summary/2026-08_final_oat_grid_costs.csv`, the canonical run. An earlier version of this
+table carried values from the intermediate `2026-08-16_grid3fix` run, which differ by about 0.24 pp
+on ΔLCOE% (see §7).*
 
 | variant | grid_cap_cost | grid_gen_cost | ΔLCOE% | switches |
 |---|---|---|---|---|
-| central | 1441.10 | 0.013 | 49.685932 | 34,461 |
-| cap−30pct | 1008.77 | 0.013 | 49.685932 | 34,461 |
-| cap+30pct | 1873.43 | 0.013 | 49.685932 | 34,461 |
-| gen−drought | 1441.10 | 0.050 | 45.444815 | 35,092 |
+| central | 1441.10 | 0.013 | 49.923139 | 34,461 |
+| cap−30pct | 1008.77 | 0.013 | 49.923139 | 34,461 |
+| cap+30pct | 1873.43 | 0.013 | 49.923139 | 34,461 |
+| gen−drought | 1441.10 | 0.050 | 45.649720 | 35,092 |
 
-gen−drought against central: −4.24 pp on ΔLCOE% and +1.83% on switches.
+gen−drought against central: −4.27 pp on ΔLCOE% and +1.83% on switches.
 
 The two capacity-cost rows are identical to central to six decimal places, and necessarily so: OnSSET
 accumulates `grid_capacity_investment` into the reported investment total but not into the discounted

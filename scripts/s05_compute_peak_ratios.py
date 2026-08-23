@@ -7,7 +7,8 @@ Writes : data/processed/zambia_grid3_spine_pe_n10.csv
          data/processed/zambia_grid3_spine_pe_n50.csv
 
 Each output is identical to the input except for two added columns:
-  N_hh     = max(1, Pop / HH_size)   (ZamStats 2022: urban 4.6, rural 5.0)
+  N_hh     = max(1, Pop / HH_size)   (household_size in config/config.yaml;
+                                      ZamStats 2022: urban 4.6, rural 5.0)
   PE_ratio  = pe_from_n(N_hh, N_mid=N_MID)
 
 IsUrban > 1 is used for urban (standard OnSSET convention; after calibrate_current_pop_and_urban
@@ -21,22 +22,59 @@ import sys
 from pathlib import Path
 import numpy as np
 import pandas as pd
+import yaml
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent
 
 sys.path.insert(0, str(REPO / "peak_preprocessor"))
+sys.path.insert(0, str(HERE))
 from pe_diversity import pe_from_n, compute_beta
 
 SPINE_IN   = REPO / "data" / "processed" / "zambia_grid3_calib_distgate.csv"
 OUT_N10    = REPO / "data" / "processed" / "zambia_grid3_spine_pe_n10.csv"
 OUT_N20    = REPO / "data" / "processed" / "zambia_grid3_spine_pe_n20.csv"
 OUT_N50    = REPO / "data" / "processed" / "zambia_grid3_spine_pe_n50.csv"
+CONFIG     = REPO / "config" / "config.yaml"
 
-HH_URBAN   = 4.6   # ZamStats 2022 Census, Section 4.3
-HH_RURAL   = 5.0   # ZamStats 2022 Census, Section 4.3
+# Household sizes are read from config.yaml (household_size.urban / .rural), NOT hard-coded here:
+# the same two values drive the OnSSET demand calculation in s06, so a config edit has to move the
+# connection count N as well.  Source: ZamStats 2022 Census, Section 4.3 (urban 4.6, rural 5.0).
 N_MID_VALS = [10, 20, 50]
 OUT_PATHS  = {10: OUT_N10, 20: OUT_N20, 50: OUT_N50}
+
+
+# Prefer the repo's shared loader (scripts/onsset_helpers.load_config).  That module is documented
+# as "stages 06 onward" and imports the whole OnSSET stack, which this pre-processor does not
+# otherwise need, so fall back to reading the same file the same way when that stack is absent.
+try:
+    from onsset_helpers import load_config
+except ImportError:
+    def load_config() -> dict:
+        with open(CONFIG) as f:
+            return yaml.safe_load(f)
+
+
+def household_sizes(cfg: dict) -> tuple:
+    """
+    (urban, rural) household size from config.yaml.
+
+    pe_model.hh_size_urban / hh_size_rural duplicate the same two values.  If they ever diverged,
+    the demand calculation and the peak sub-model's connection count would silently disagree, so
+    assert they match rather than let the two drift apart.
+    """
+    hh_urban = float(cfg["household_size"]["urban"])
+    hh_rural = float(cfg["household_size"]["rural"])
+
+    pe_cfg = cfg.get("pe_model") or {}
+    for key, val, name in (("hh_size_urban", hh_urban, "urban"),
+                           ("hh_size_rural", hh_rural, "rural")):
+        if key in pe_cfg:
+            assert float(pe_cfg[key]) == val, (
+                f"config.yaml: pe_model.{key} = {pe_cfg[key]} but household_size.{name} = {val}. "
+                f"The peak sub-model and the demand calculation would use different household "
+                f"sizes; make them equal.")
+    return hh_urban, hh_rural
 
 
 def reassign_border_slivers(df: pd.DataFrame) -> pd.DataFrame:
@@ -77,6 +115,9 @@ def main():
     print("  s05 — demand pre-processor (per-settlement P/E)")
     print("=" * 65)
 
+    cfg = load_config()
+    hh_urban, hh_rural = household_sizes(cfg)
+
     print(f"\nReading spine: {SPINE_IN.name}")
     df = pd.read_csv(SPINE_IN)
     print(f"  {len(df):,} rows × {len(df.columns)} columns")
@@ -94,13 +135,14 @@ def main():
 
     # Compute N_hh (urban = IsUrban > 1, consistent with onsset convention)
     is_urban  = df["IsUrban"] > 1
-    hh_size   = np.where(is_urban, HH_URBAN, HH_RURAL)
+    hh_size   = np.where(is_urban, hh_urban, hh_rural)
     N_raw     = df["Pop"].values / hh_size
     N_hh      = np.maximum(N_raw, 1.0)
     n_clipped = int((N_raw < 1.0).sum())
     df["N_hh"] = N_hh
 
-    print(f"\n  Household sizes: urban={HH_URBAN}, rural={HH_RURAL}")
+    print(f"\n  Household sizes: urban={hh_urban}, rural={hh_rural}"
+          f"   (config.yaml household_size)")
     print(f"  N_hh < 1 (clipped to 1): {n_clipped:,}")
     print(f"  N_hh range: [{N_hh.min():.1f}, {N_hh.max():.1f}]")
     print(f"  N_hh urban median: {np.median(N_hh[is_urban.values]):.1f}")

@@ -89,6 +89,25 @@ RUN_LABEL = "2026-08_final_lcoe"   # index-alignment fix; 2026-07-01 archive pre
 np.random.seed(42)
 
 
+def assert_base_cols_match(df_ref: pd.DataFrame, df_arm: pd.DataFrame, label: str,
+                           pe_cols=("PE_ratio",)) -> None:
+    """
+    Pre-run guard: every column an arm shares with the R0 reference frame must be identical, so
+    the ONLY input difference between arms is the P/E representation.  Fails the run otherwise.
+
+    The check originated inline in s12_run_2050_horizon.py; it lives here so every run script can
+    call the same one on its own arm frames.
+    """
+    skip      = set(pe_cols)
+    base_cols = [c for c in df_arm.columns if c not in skip]
+    missing   = [c for c in base_cols if c not in df_ref.columns]
+    assert not missing, f"{label}: base columns absent from R0: {missing}"
+    diff = [c for c in base_cols if not df_ref[c].equals(df_arm[c])]
+    assert not diff, f"{label}: base columns differ from R0: {diff}"
+    print(f"  {label}: base columns byte-identical to R0 "
+          f"(only {', '.join(sorted(skip))} differs) — PASS")
+
+
 def run_arm(arm_label: str, spine_df: pd.DataFrame, cfg: dict,
             x_tx_orig: np.ndarray, y_tx_orig: np.ndarray,
             ghi_profile: np.ndarray, temp_profile: np.ndarray,
@@ -451,9 +470,10 @@ def main():
 
     # ── Verify pre-run byte-identity for the shared spine ─────────────────────
     # For each R1 arm, we set df["PE_ratio"] from the appropriate column before running.
-    # The base (non-PE) columns are identical across all arms by construction.
-    print("\n  Pre-run byte-identity: all arms share the same non-PE base columns.")
-    print("  PASS by construction (single loaded DataFrame, PE_ratio set per arm).")
+    # The base (non-PE) columns should be identical across all arms by construction — but
+    # "by construction" is not a check, so each arm's frame is asserted against R0's below,
+    # immediately before that arm runs (assert_base_cols_match).
+    print("\n  Pre-run byte-identity: asserted per arm against R0 before each arm runs.")
 
     # ── Run R0 ────────────────────────────────────────────────────────────────
     print("\n" + "=" * 65)
@@ -486,6 +506,7 @@ def main():
             df_r1 = df_r1.drop(columns=["N_hh_n20"])
 
         label = f"R1_n{n_mid}"
+        assert_base_cols_match(df_r0, df_r1, label)
         proc_r1, sum_r1, hs_r1 = run_arm(label, df_r1, cfg, x_tx, y_tx,
                                           ghi_profile, temp_profile, wind_profile,
                                           n_mid=n_mid)

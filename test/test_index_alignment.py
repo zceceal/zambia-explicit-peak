@@ -43,7 +43,7 @@ import pandas as pd
 
 REPO = Path(__file__).resolve().parents[1]
 OUTDIR = REPO / "data" / "onsset_outputs"
-RUN_LABEL = "2026-08-16_grid3fix_lcoe"
+RUN_LABEL = "2026-08_final_lcoe"
 YEAR = 2030
 
 
@@ -84,9 +84,10 @@ def test_condition_df_resets_index():
 def test_stand_alone_capacity_closed_form():
     """OnSSET sizes stand-alone PV as E / (ATR * GHI); the outputs must satisfy it."""
     path = OUTDIR / f"{RUN_LABEL}_R0.csv"
-    if not path.exists():
-        print(f"  SKIP  {path.name} not present — run s06 first")
-        return
+    assert path.exists(), (
+        f"{path.name} not present. This test must FAIL, not skip, on a clean checkout: "
+        f"a reviewer who has not run s06 must not see a green test suite for a check that "
+        f"never executed. Run `python scripts/s06_run_arms.py` first.")
     df = pd.read_csv(path, usecols=[f"EnergyPerSettlement{YEAR}", "AverageToPeakLoadRatio",
                                     "GHI", f"FinalElecCode{YEAR}", f"NewCapacity{YEAR}"])
     predicted = df[f"EnergyPerSettlement{YEAR}"].to_numpy() / (

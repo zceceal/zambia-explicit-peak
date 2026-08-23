@@ -52,7 +52,7 @@ sys.path.insert(0, str(HERE))
 
 OUTDIR    = REPO / "data" / "onsset_outputs"
 RUN_LABEL = "2026-08-16_capex-"
-CENTRAL   = OUTDIR / "2026-08-16_grid3fix_lcoe_R0.csv"
+CENTRAL   = OUTDIR / "2026-08_final_lcoe_R0.csv"  # self-test reference only; main() re-solves R0/R1 itself
 
 # OnSSET's schedule, as (upper size bound in kW, USD/kW)
 ONSSET_STEPS = [(0.020, 9620), (0.050, 8780), (0.100, 6380), (1.000, 4470), (float("inf"), 6950)]
