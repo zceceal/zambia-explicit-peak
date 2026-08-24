@@ -1,8 +1,34 @@
 diff --git a/onsset/onsset.py b/onsset/onsset.py
-index e88a561..d0622d1 100644
+index e88a561..b0296de 100644
 --- a/onsset/onsset.py
 +++ b/onsset/onsset.py
-@@ -298,7 +298,7 @@ class Technology:
+@@ -114,6 +114,25 @@ LHV_DIESEL = 9.9445485  # (kWh/l) lower heating value
+ HOURS_PER_YEAR = 8760
+ 
+ 
++# ── Corrected-conventions switches (explicit-peak study, 2026-08-16) ──────────────
++# Default False everywhere: with these off the model reproduces unmodified OnSSET, which is
++# what the central case reports and what keeps it comparable with published OnSSET studies.
++# scripts/s16_run_corrected_conventions.py sets them True for a labelled robustness variant.
++CORRECTED_CONVENTIONS = {
++    # OnSSET books at most ONE reinvestment, at year `tech_life`, however long the horizon, and
++    # then applies a salvage term that goes NEGATIVE (an extra charge) to compensate. Over a
++    # 16-year horizon a 5-year asset is therefore installed at years 0 and 5 only, while
++    # generation is credited for all 16 years. Discounted at 8% the capital multiplier is 2.0589
++    # against 2.2068 for a full schedule (installs at 0, 5, 10, 15 with the unused life of the
++    # last asset credited): stand-alone PV capital is understated by 7.19%.
++    #
++    # This is TECHNOLOGY-ASYMMETRIC and therefore matters here: grid has tech_life 30 > 16, so it
++    # reinvests under neither convention and is unaffected, while stand-alone PV - the channel
++    # through which this study's entire measured effect travels - is the technology understated.
++    "full_reinvestment": False,
++}
++
++
+ class Technology:
+     """
+     Used to define the parameters for each electricity access technology, and to calculate the LCOE depending on
+@@ -298,7 +317,7 @@ class Technology:
          td_om_cost = td_investment_cost * self.om_of_td_lines * penalty
          installed_capacity = peak_load / capacity_factor
  
@@ -11,7 +37,59 @@ index e88a561..d0622d1 100644
          cost_dict_list = self.capital_cost.keys()
          cost_dict_list = sorted(cost_dict_list)
          for key in cost_dict_list:
-@@ -501,8 +501,21 @@ class Technology:
+@@ -329,25 +348,36 @@ class Technology:
+             el_gen[:, s] = 0
+         discount_factor = (1 + self.discount_rate) ** year
+         investments = np.zeros(project_life)
+-        investments[step] = 1
+-        # Calculate the year of re-investment if tech_life is smaller than project life
+-        if reinvest_year:
+-            investments[reinvest_year] = 1
+-        investments = np.outer(total_investment_cost, investments)
+-
+         grid_capacity_investments = np.zeros(project_life)
+-        grid_capacity_investments[step] = 1
+-        # Calculate the year of re-investment if tech_life is smaller than project life
+-        if reinvest_year:
+-            grid_capacity_investments[reinvest_year] = 1
+-        grid_capacity_investments = np.outer(peak_load * self.grid_capacity_investment, grid_capacity_investments)
++
++        _full = CORRECTED_CONVENTIONS.get("full_reinvestment", False) and self.tech_life > 0
++        if _full:
++            # Replace the asset every tech_life years for as long as it generates, and credit the
++            # unused life of the LAST asset installed. See CORRECTED_CONVENTIONS above.
++            install_years = list(range(step, project_life, int(self.tech_life)))
++            for _k in install_years:
++                investments[_k] = 1
++                grid_capacity_investments[_k] = 1
++            used_life = project_life - install_years[-1]
++        else:
++            investments[step] = 1
++            # Calculate the year of re-investment if tech_life is smaller than project life
++            if reinvest_year:
++                investments[reinvest_year] = 1
++            grid_capacity_investments[step] = 1
++            if reinvest_year:
++                grid_capacity_investments[reinvest_year] = 1
++            if reinvest_year > 0:
++                used_life = (project_life - step) - self.tech_life
++            else:
++                used_life = project_life - step - 1
++
++        investments = np.outer(total_investment_cost, investments)
++        grid_capacity_investments = np.outer(peak_load * self.grid_capacity_investment,
++                                             grid_capacity_investments)
+ 
+         # Calculate salvage value if tech_life is bigger than project life
+         salvage = np.zeros(project_life)
+-        if reinvest_year > 0:
+-            used_life = (project_life - step) - self.tech_life
+-        else:
+-            used_life = project_life - step - 1
+         salvage[-1] = 1
+         salvage = np.outer(total_investment_cost * (1 - used_life / self.tech_life), salvage)
+ 
+@@ -501,8 +531,21 @@ class Technology:
              hv_to_mv_lines = self.hv_line_cost / self.mv_line_cost
              max_mv_load = self.mv_line_amperage_limit * self.mv_line_type * hv_to_mv_lines
  
@@ -35,7 +113,7 @@ index e88a561..d0622d1 100644
              hv_amperage = self.hv_mv_substation_type / self.hv_line_type
              no_of_hv_lines = np.ceil(peak_load / (hv_amperage * self.hv_line_type))
  
-@@ -907,6 +920,16 @@ class SettlementProcessor:
+@@ -907,6 +950,16 @@ class SettlementProcessor:
  
          logging.info('Sort by country, Y and X')
          self.df.sort_values(by=[SET_Y_DEG, SET_X_DEG], inplace=True)
@@ -52,7 +130,7 @@ index e88a561..d0622d1 100644
  
      @staticmethod
      def classify_road_distance(road_distance):
-@@ -1491,8 +1514,10 @@ class SettlementProcessor:
+@@ -1491,8 +1544,10 @@ class SettlementProcessor:
  
          hv_to_mv_lines = grid_calc.hv_line_cost / grid_calc.mv_line_cost
          max_mv_load = grid_calc.mv_line_amperage_limit * grid_calc.mv_line_type * hv_to_mv_lines
@@ -65,7 +143,7 @@ index e88a561..d0622d1 100644
          hv_amperage = grid_calc.hv_mv_substation_type / grid_calc.hv_line_type
          no_of_hv_lines = np.ceil(peak_load / (hv_amperage * grid_calc.hv_line_type))
  
-@@ -2509,6 +2534,27 @@ class SettlementProcessor:
+@@ -2509,6 +2564,27 @@ class SettlementProcessor:
  
          return hybrid_lcoe, hybrid_capacity, hybrid_investment, wind_hybrid_investment
  
@@ -93,7 +171,7 @@ index e88a561..d0622d1 100644
      def calculate_off_grid_lcoes(self, mg_hydro_calc, mg_wind_hybrid_calc, sa_pv_calc,  mg_pv_hybrid_calc, year, end_year, time_step, techs, tech_codes,
                                   min_mg_size=0, mg_min_grid_dist=0):
          """
-@@ -2516,6 +2562,7 @@ class SettlementProcessor:
+@@ -2516,6 +2592,7 @@ class SettlementProcessor:
          """
  
          print(time.ctime(), 'Starting off-grid LCOE calculation for year {}'.format(year))
@@ -101,7 +179,7 @@ index e88a561..d0622d1 100644
  
          logging.info('Calculate minigrid hydro LCOE')
          self.df[SET_LCOE_MG_HYDRO + "{}".format(year)], mg_hydro_investment, mg_hydro_capacity = \
-@@ -2588,7 +2635,7 @@ class SettlementProcessor:
+@@ -2588,7 +2665,7 @@ class SettlementProcessor:
                                  num_people_per_hh=self.df[SET_NUM_PEOPLE_PER_HH],
                                  grid_cell_area=self.df[SET_GRID_CELL_AREA],
                                  capacity_factor=self.df[SET_GHI] / HOURS_PER_YEAR,
@@ -110,7 +188,7 @@ index e88a561..d0622d1 100644
  
          self.df.loc[(self.df[SET_ELEC_FINAL_CODE + "{}".format(year - time_step)] != 3) &
                      (self.df[SET_ELEC_FINAL_CODE + "{}".format(year - time_step)] != 99),
-@@ -2753,6 +2800,7 @@ class SettlementProcessor:
+@@ -2753,6 +2830,7 @@ class SettlementProcessor:
          mg_hydro_investment.replace([np.inf, -np.inf], 0, inplace=True)
          grid_investment.replace([np.inf, -np.inf], 0, inplace=True)
  

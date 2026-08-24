@@ -28,9 +28,14 @@ that produced the published results; a from-scratch install fails at import with
 
 ## 2. OnSSET, with the patch
 
-The allocation engine is OnSSET at upstream commit `c154ece`, with the patch in `patches/` applied.
-**The results do not reproduce without it.** It makes five changes, all documented inline at the point
-of change:
+The allocation engine is OnSSET at upstream commit `c154ece`. The exact modifications are recorded as
+commit `cd64900445feb6a41c03c86cfe3d46c2d30cfee8` on the `explicit-peak-thesis` branch of the vendored
+copy at `data/onsset_repo` — a local branch, not pushed to any remote, built directly on top of
+upstream `c154ece` with no rewriting of upstream history. `patches/onsset-explicit-peak.patch` is the
+human-readable record of that same commit, regenerated 2026-08-24 as `git diff c154ece cd64900` so it
+reconstructs the engine byte-for-byte (verified: applying it to a clean `c154ece` checkout and diffing
+the result against the live `onsset.py` returns no difference). **The results do not reproduce without
+it.** It makes six changes, all documented inline at the point of change:
 
 1. `condition_df()` resets the DataFrame index after its sort. Without this, row positions and index
    labels diverge and `Technology.get_lcoe()` divides each settlement's peak load by a different
@@ -46,9 +51,17 @@ of change:
    instead of a hard-coded load factor.
 5. `Technology.get_lcoe`'s `cap_cost` accumulator (shared by every technology, not just
    stand-alone PV) is cast to float so non-integer capital costs are not truncated.
+6. `CORRECTED_CONVENTIONS["full_reinvestment"]` (default `False`) and the reinvestment-schedule
+   refactor it switches: OnSSET books at most one reinvestment regardless of horizon length and
+   compensates with a salvage term; with the switch on, an asset already installed is replaced every
+   `tech_life` years for as long as it generates. Off by default — the central case and every other
+   reported number reproduce unmodified OnSSET's convention.
+   `scripts/s16_run_corrected_conventions.py` sets it `True` for the labelled robustness variant this
+   file quotes below; without this change in the patch, that script raised `AttributeError` on a
+   freshly-patched checkout even though the headline still reproduced.
 
-Clone it into `data/onsset_repo`, which is where `test/test_onsset_install.py` looks for its
-test fixtures:
+Reproducers with access to the vendored copy and its branch can check out `cd64900` directly. Anyone
+else clones upstream and applies the patch, which is verified equivalent:
 
 ```bash
 mkdir -p data

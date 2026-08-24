@@ -1,11 +1,15 @@
 # Patch to the OnSSET core
 
 The allocation engine is used unmodified except for the changes in
-`onsset-explicit-peak.patch`. It must be applied for the results to reproduce. There are five:
+`onsset-explicit-peak.patch`. It must be applied for the results to reproduce. There are six:
 one correctness fix, one guard against that fix being undone, one medium-voltage line-count
-correction, one symmetry fix, and one type fix.
+correction, one symmetry fix, one type fix, and one reinvestment-schedule convention switch.
 
-Base version: OnSSET at upstream commit `c154ece` (installed as `onsset 2.1.dev24+gc154ece12`).
+Base version: OnSSET at upstream commit `c154ece` (installed as `onsset 2.1.dev24+gc154ece12`). The
+exact result of applying this patch is also recorded as commit
+`cd64900445feb6a41c03c86cfe3d46c2d30cfee8` on the `explicit-peak-thesis` branch of the vendored copy
+at `data/onsset_repo` (local only, not pushed) — verified byte-identical to applying the patch fresh
+(see `REPRODUCING.md` §2).
 
 ## What the patch does
 
@@ -64,7 +68,24 @@ from 22 to over 11,000 in the run where it was first tested.
 
 **`onsset.py` line ~301 — a type fix.**
 `cap_cost` was initialised as an integer array, which truncated non-integer capital-cost values. Cast
-to float. This affects both arms identically and does not influence the treatment effect.
+to float. This affects both arms identically and does not influence the explicit-peak effect.
+
+**`onsset.py` lines ~117–133 and ~348–377 — the reinvestment-schedule convention switch.**
+OnSSET books at most one reinvestment, at year `tech_life`, however long the project horizon, and
+compensates with a salvage term that goes negative to correct for it. Over a 16-year horizon a 5-year
+asset is therefore installed at years 0 and 5 only, while generation is credited for all 16 years —
+understating stand-alone PV capital by 7.19% relative to installing at 0, 5, 10 and 15 with the unused
+life of the last asset credited. This is technology-asymmetric: grid has `tech_life` 30 > 16 and is
+unaffected under either convention, while stand-alone PV — the channel this study's whole measured
+effect travels through — is the technology understated.
+
+The new module-level dict `CORRECTED_CONVENTIONS = {"full_reinvestment": False}` defaults to
+reproducing unmodified OnSSET (the central case and every other reported number). Setting
+`onsset.CORRECTED_CONVENTIONS["full_reinvestment"] = True` — as `scripts/s16_run_corrected_conventions.py`
+does — switches to the full schedule for a labelled robustness variant. This dict and the branch it
+takes were part of the working engine from the outset but were missing from this patch file until
+2026-08-24, so a reader who applied only the earlier version of the patch could reproduce the headline
+but not `s16`, which raised `AttributeError` on the missing name.
 
 ## Worth reporting upstream
 

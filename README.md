@@ -66,17 +66,18 @@ conda env create -f environment.yml && conda activate zambia-peak
 ```
 
 The allocation engine is OnSSET at upstream commit `c154ece` with the patch in
-[`patches/`](patches/README.md) applied. **The results do not reproduce without it.** It does five
+[`patches/`](patches/README.md) applied. **The results do not reproduce without it.** It does six
 things: resets the DataFrame index after `condition_df()` sorts, so that peak load and capacity factor
 are no longer mispaired across settlements; adds a runtime guard that raises if that invariant is ever
 broken again; corrects a medium-voltage line-count formula that over-counted feeders against a
 transformer rating instead of the line's own rating; makes stand-alone PV read the same per-settlement
-peak field every other technology already read; and casts a capital-cost accumulator to float so it
-stops truncating non-integer costs. The unpatched code *suppressed* the effect this study measures on
-both counts, so the patch does not create the result. See [`patches/README.md`](patches/README.md) for
-all five and the paper's Methodology (§2.2.1) for the three — the index-alignment fix, the
-medium-voltage line-count correction (371 settlements, 0.14%, 0.24 pp), and the peak-symmetry
-fix — that it discloses.
+peak field every other technology already read; casts a capital-cost accumulator to float so it
+stops truncating non-integer costs; and adds an off-by-default switch to a full reinvestment schedule,
+used only by the labelled robustness variant in `scripts/s16_run_corrected_conventions.py`. The
+unpatched code *suppressed* the effect this study measures on both counts, so the patch does not
+create the result. See [`patches/README.md`](patches/README.md) for all six and the paper's
+Methodology (§2.2.1) for the three — the index-alignment fix, the medium-voltage line-count
+correction (371 settlements, 0.14%, 0.24 pp), and the peak-symmetry fix — that it discloses.
 
 The input data is **not** in this repository: roughly 17 GB under third-party licences. See
 [`docs/04_data_sources.md`](docs/04_data_sources.md) for every source and the expected layout.
