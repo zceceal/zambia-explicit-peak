@@ -31,8 +31,8 @@ balance-of-system should scale with peak; the solar panels scale with energy.
 - **A second, related convention.** OnSSET prices stand-alone PV from a five-step schedule keyed on
   system size per household, and that schedule is non-monotonic: \$4,470/kW between 100 W and 1 kW,
   rising to \$6,950/kW above 1 kW. Explicit peaks lift the median household system from 0.80 kW to
-  1.24 kW, so about 200,000 settlements cross that step. Holding the band fixed at its R0 value puts
-  the headline at +22.8% rather than +49.9% — more than half the effect is the discontinuity rather
+  1.24 kW, so about 153,000 settlements cross that step. Holding the band fixed at its R0 value puts
+  the headline at +23.6% rather than +49.9% — more than half the effect is the discontinuity rather
   than the smooth capacity response. `scripts/s15_run_capex_curve_sensitivity.py` re-solves the
   central case against a continuous curve to measure this directly.
 - **Why it is kept:** it is unmodified OnSSET behaviour, shared with the GEP and Imasiku benchmarks.
@@ -123,7 +123,7 @@ in the comparison that carries the contribution.
 | Residential demand only | Productive and institutional loads not separately modelled |
 | Per-household demand held flat | Total demand grows only through population |
 | Wind mini-grids disabled | A one-line bug in the OnSSET core. Zambian wind capacity factor ≈ 0.10, so immaterial |
-| Hydro mini-grids allocate to zero | 195 settlements sit within 5 km of hydro but fall below the 100-connection viability threshold |
+| Hydro mini-grids allocate to zero | 162 settlements sit within 5 km of hydro; most (156) fall below the 100-connection viability threshold |
 | Single diesel price bin | Diesel is never least-cost in any reported outcome |
 | GRID3 natural-cluster settlement geometry | Inherits a single-household tail (55,157 settlements, N_hh<=1) from the published GRID3 building-footprint product — 50,880 of the 55,157 (92%) are GRID3 clusters (chiefly the Hamlet class), not cells of the model's own dispersed-rural grid; the tail is a property of the source data, not manufactured by the aggregation choice. Excluding it moves the headline by −2.5 pp (+49.9% -> +47.4%) |
 
@@ -136,7 +136,7 @@ present-day values**, changing only the population and its urban/rural split.
 
 Real 2050 conditions would very likely include further solar and battery cost declines, which would
 push more settlements toward peak-tolerant technologies and **erode the peak penalty further**. The
-measured ~35% erosion is therefore a **lower bound**, not a central estimate.
+measured ~33% erosion is therefore a **lower bound**, not a central estimate.
 
 ---
 

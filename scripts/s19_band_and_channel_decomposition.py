@@ -118,7 +118,7 @@ def main():
     }
     for k, v in defs.items():
         print(f"  {k:<62} {v:>9,}")
-    print("\n  Paper currently states 199,621.")
+    print("\n  Paper currently states 153,262.")
 
     print("\n" + "=" * 72)
     print("(2) COST BAND HELD FIXED AT ITS R0 VALUE")
@@ -148,7 +148,7 @@ def main():
           f"{energy_weighted_delta(l0, l1, energy):+.4f}%")
     print(f"\n  Share of the effect carried by the discrete step (2a): "
           f"{(1 - d_2a / energy_weighted_delta(l0, l1, energy)) * 100:.1f}%")
-    print("  Paper currently states +22.8%.")
+    print("  Paper currently states +23.6%.")
 
     print("\n" + "=" * 72)
     print("(3) STAND-ALONE CHANNEL FROZEN AT R0")
@@ -171,7 +171,7 @@ def main():
     print(f"  (3a) R1 allocation, R1 stand-alone at R0 LCOE (switchers keep R1 grid) : {d_3a:+.4f}%")
     print(f"  (3b) R0 allocation retained, stand-alone at R0 LCOE                    : {d_3b:+.4f}%")
     print(f"  (3c) R1 allocation, every R0 stand-alone settlement at R0 LCOE         : {d_3c:+.4f}%")
-    print("  Paper currently states -1.1%.")
+    print("  Paper currently states -0.5%.")
 
     SUM.mkdir(parents=True, exist_ok=True)
     rows = [{"quantity": k, "value": v, "unit": "settlements"} for k, v in defs.items()]

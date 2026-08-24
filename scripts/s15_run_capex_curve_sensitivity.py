@@ -12,9 +12,9 @@ OnSSET prices stand-alone PV from a five-step schedule keyed on system size per 
       > 1.00 kW : 6950        <- note the reversal: larger systems cost MORE per kW
 
 Explicit peak representation raises the per-household system from about 0.80 kW to about 1.24 kW
-at rural Tier 3, so roughly 200,000 settlements step across that last boundary and their capital
+at rural Tier 3, so roughly 153,000 settlements step across that last boundary and their capital
 cost jumps by a factor of 1.55 in one discrete move. Freezing the band at its R0 value puts the
-headline at +22.8% rather than +49.9%, i.e. more than half of the effect is that single step.
+headline at +23.6% rather than +49.9%, i.e. more than half of the effect is that single step.
 At rural Tier 2 no settlement crosses any boundary and the effect is +3.3%.
 
 This script re-runs the central comparison with the schedule replaced by a continuous curve, so
@@ -186,7 +186,7 @@ def main():
     print(f"  variant '{variant}':  DeltaLCOE% = {(c1 - c0) / c0 * 100:+.2f}%   "
           f"SA_PV->grid switches = {sw:,}")
     print(f"  central case (OnSSET step schedule): +49.92%, 34,461")
-    print(f"  band frozen at R0 (analytic estimate): +22.82%")
+    print(f"  band frozen at R0 (analytic estimate): +23.63%")
     print(f"  elapsed {(time.time() - t0) / 60:.1f} min")
     print("=" * 68)
     return 0

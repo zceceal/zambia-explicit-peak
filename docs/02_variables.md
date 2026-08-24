@@ -68,7 +68,7 @@ same source, so the two are consistent.
 |---|---|
 | Settlement spine (270,526 settlements) | GRID3 |
 | Transformers, MV/HV lines | World Bank / EnergyData |
-| Base-year electrification target | NEAS 2023 — 34% national, 68% urban, 7.4% rural |
+| Base-year electrification target | NEAS 2023 — 34% national, 70% urban, 7.6% rural |
 | Solar resource | Global Solar Atlas |
 | PV-hybrid hourly profiles | renewables.ninja (MERRA-2, 5 points, 2025) |
 | Population projection | UN WPP 2024 |

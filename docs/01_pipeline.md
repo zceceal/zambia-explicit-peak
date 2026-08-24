@@ -66,13 +66,13 @@ Two reporting cautions. **Both were rewritten on 2026-08-16**: they described sy
 index-alignment defect (`REPRODUCING.md` §7), not properties of the model, and the earlier versions
 said the opposite of what is true.
 
-- **Capital and lifetime cost move together.** Under explicit peaks investment rises 45.4% and
+- **Capital and lifetime cost move together.** Under explicit peaks investment rises 45.6% and
   capacity 2.9%, alongside the 49.9% rise in lifetime cost. This is the physically expected direction:
   higher peaks require more capacity, which costs more to build. The previous version of this note
   claimed capital *falls*; that was an artefact of misaligned capacity accounting.
 - **Per-connection cost is now quotable, with one caveat.** The outlier problem is gone: no settlement
   exceeds $1 bn of investment, and `InvestmentPerConnection2030` has a mean of \$7,170 against a median
-  of \$7,120 — a ratio of 1.01, i.e. no skew. The aggregate is \$4,172 per household. The remaining
+  of \$7,120 — a ratio of 1.01, i.e. no skew. The aggregate is \$4,159 per new connection. The remaining
   caveat is a period mismatch, which is real and must be stated whenever an absolute figure is
   quoted: `InvestmentCost2030` spans the full 2020–2035 horizon, including a second stand-alone
   installation, while `NewConnections2030` counts households connected in the 2020–2030 step only.
@@ -110,7 +110,8 @@ what the experiment measures:
   references the peak ratio at all. Measured across all 2,258 settlements with a live mini-grid LCOE
   in both arms, the change from R0 to R1 is 0.00% at the 5th, 50th and 95th percentiles.
 
-Freezing stand-alone costs at their R0 values and re-deriving the headline gives −1.1%: the entire
+Holding the R0 allocation throughout (no settlement switches) and freezing stand-alone costs at their
+R0 values re-derives the headline as −0.5%: the entire
 measured effect travels through the stand-alone channel. Because the two missing channels would both
 *raise* costs under explicit peaks, the reported effect is a lower bound on what a model with explicit
 peaks in all three options would produce.

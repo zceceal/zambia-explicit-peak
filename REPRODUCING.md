@@ -182,8 +182,11 @@ sweep band **+23.1% to +50.9%** across `N_mid` ∈ {10, 50}. Note that this band
 
 From `s08`: LHS (200 samples, bias-corrected) 5th–50th–95th **+23.7% / +55.5% / +77.2%**. Morris μ*
 ranking Rural_tier (60.1) > N_mid (14.5) > MaxGridDist_km (10.7) > SA_PV_capex_mult (6.2) >
-Discount_rate (2.2) > Diesel_price (0.0), no sign reversal across all 56 trajectory evaluations. The
-emulator failed its own validation threshold (RMSE 11.48 pp against a 5.0 pp limit, R² = 0.520) and
+Discount_rate (2.2) > Diesel_price (0.0). ΔLCOE% itself was positive in all 56 underlying model
+evaluations; individual elementary effects are not all positive (16 of 48 are negative, chiefly for
+Discount_rate and MaxGridDist_km, whose higher settings reduce the effect) — the two claims are about
+different quantities. The
+emulator failed its own validation threshold (RMSE 11.44 pp against a 5.0 pp limit, R² = 0.524) and
 all 200 samples were therefore evaluated with the full model — check the `method` column is
 `full_OnSSET` throughout.
 
