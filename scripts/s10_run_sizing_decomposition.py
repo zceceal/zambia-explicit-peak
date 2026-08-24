@@ -30,6 +30,9 @@ ANALYSIS_YEAR = 2030
 
 def task2_f_band():
     """
+    WARNING: calling this function writes data/onsset_outputs/2026-08_final_sizing_convention_fband.csv
+    (a canonical, protected output) as a side effect — do not call it to "just check a number".
+
     Sizing-convention lower-bound analysis.
 
     Approach (fixed assignment):
@@ -131,6 +134,9 @@ def task2_f_band():
 
 def task5_per_connection():
     """
+    WARNING: calling this function writes data/onsset_outputs/2026-08_final_per_connection_analysis.csv
+    (a canonical, protected output) as a side effect — do not call it to "just check a number".
+
     Per-connection cost accounting — why does InvestmentCost2030/NewConnections2030 ~$20k?
 
     Findings from code inspection (onsset.py):

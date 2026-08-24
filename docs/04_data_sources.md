@@ -17,7 +17,7 @@ carries its own licence. This file lists what is needed, where it comes from, an
 | renewables.ninja hourly solar | PV-hybrid mini-grid lookup tables | renewables.ninja (MERRA-2, 5 points, 2025) | **CC BY-NC 4.0 — non-commercial only** |
 | UN World Population Prospects 2024 | Population projections to 2035 and 2050 | population.un.org | CC BY 3.0 IGO |
 | ZamStats 2022 Census | Household sizes (urban 4.6, rural 5.0) | Zambia Statistics Agency | official publication |
-| NEAS 2023 | Base-year access targets (34% / 68% / 7.4%) | Ministry of Energy | official publication |
+| NEAS 2023 | Base-year access targets (34% / 70% / 7.6%) | Ministry of Energy | official publication |
 | Integrated Resource Plan | Scenario context, connection programme | Ministry of Energy | official publication |
 | ERB pump-price bulletin | Diesel price | Energy Regulation Board | official publication |
 

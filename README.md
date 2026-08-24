@@ -37,16 +37,17 @@ Run of 2026-08-16, the first with the index-alignment defect corrected (see
 | Result | Value |
 |---|---|
 | Change in lifetime cost of universal access | **+49.9%** (+34.1% to +70.6% across the `N_mid` sweep) |
-| Change in upfront capital | **+45.4%**; new capacity +3.0% |
+| Change in upfront capital | **+45.6%**; new capacity +2.9% |
 | Settlements changing least-cost technology | **34,461** (12.7%); every one stand-alone solar → grid |
 | Same comparison at lower (Tier-2) demand | −2.2% to +8.4% — a boundary condition, not a confirmation |
 | Same comparison at projected 2050 population | Cost penalty falls to **+34.9%**; reallocation falls ~7% |
 
-Two qualifications belong with the headline. About 27 of the 49.9 percentage points come from
+Two qualifications belong with the headline. About 26 of the 49.9 percentage points come from
 settlements crossing a step in OnSSET's stand-alone capital-cost schedule at 1 kW per household,
 rather than from the smooth capacity response; `scripts/s15_run_capex_curve_sensitivity.py` measures
-that split. And the effect reaches levelised cost through the stand-alone PV channel only — freezing
-stand-alone costs at their R0 values leaves −1.1% — because OnSSET keeps grid capacity cost out of the
+that split. And the effect reaches levelised cost through the stand-alone PV channel only — holding
+the R0 allocation throughout (no settlement switches) and freezing stand-alone costs at their R0
+values leaves −0.5% — because OnSSET keeps grid capacity cost out of the
 levelised cost and sizes mini-grid generation from a fixed load archetype. The measured effect is
 therefore a lower bound on a model with explicit peaks in all three supply options.
 
@@ -93,7 +94,7 @@ docs/                    pipeline, variables, assumptions, data sources
 patches/                 the changes to the OnSSET core, and why
 peak_preprocessor/       the study's contribution: the peak-to-energy sub-model
 scripts/                 the pipeline, in run order (s01 … s13), the standalone
-                         analyses s14 … s18, and the two acceptance checks
+                         analyses s14 … s19, and the two acceptance checks
                          (check_index_alignment.py, check_spine_integrity.py)
 test/                    unit tests for the sub-model; OnSSET install check;
                          index-alignment regression test
