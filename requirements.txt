@@ -27,4 +27,4 @@ geopandas==1.1.3
 pytest==9.1.1
 
 # OnSSET is NOT installed from PyPI. It is built from upstream commit c154ece with the
-# five-change patch in patches/ applied. See patches/README.md and REPRODUCING.md.
+# six-change patch in patches/ applied. See patches/README.md and REPRODUCING.md.
