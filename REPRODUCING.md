@@ -1,7 +1,10 @@
 # Reproducing the published results
 
-Everything needed to re-run the experiment, in order. The published figures come from the
-`grid3_central` configuration: rural Tier 3, `N_mid = 20`, seed 42.
+Everything needed to re-run the experiment, in order. The published figures come from rural Tier 3
+(`config.yaml`'s `demand_tiers.rural_tier_large`/`rural_tier_small`), central `N_mid = 20` and seed 42
+— the latter two hardcoded in `s06_run_arms.py`, not read from any config key. Output files carry the
+label `RUN_LABEL = "2026-08_final_lcoe"`, also hardcoded there. (`config.yaml` does have a `run_label`
+key, but nothing reads it — don't infer anything from its value.)
 
 ## 1. Environment
 
