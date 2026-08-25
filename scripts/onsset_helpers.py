@@ -1,22 +1,10 @@
 """
 onsset_helpers.py — shared loaders (solar and wind profiles, config) for stages 06 onward.
-Clean run 2026-06-23: applies F1 (byte-identical spine), F5 (GHI bins re-centred),
-and F4 (per-connection reporting guard).
 
-Based on run_lcoe_full.py snapshot 2026-06-26_run_lcoe_full_PRE-F1F5.py.
-
-Key changes vs 2026-06-22_full_lcoe run:
-  F1: Both R0 and R1 arms share ONE in-memory spine loaded from the R0 CSV.
-      PE_ratio (and any other R1-only columns) are merged from the R1 CSV by
-      settlement id.  Only AverageToPeakLoadRatio and PE columns differ between
-      arms.  A post-run assertion lists every output column that differs and
-      verifies no physical input column (Pop, GHI, RoadDist, …) is among them.
-  F5: PV-hybrid GHI lookup bins now cover the full realised data range
-      (floor-to-100 of min, ceil-to-100 of max) so no settlement's GHI is
-      outside the bin range after rounding.  Previously the top bin was 2100
-      while 8,553 settlements had GHI > 2100 (all served by the clamp).
-  F4: Per-connection cost reporting uses the realised distribution (median,
-      inf/NaN excluded) rather than mean or dict-based figures.
+Both R0 and R1 arms share ONE in-memory spine loaded from the R0 CSV; PE_ratio (and any
+other R1-only columns) are merged from the R1 CSV by settlement id. Only
+AverageToPeakLoadRatio and PE columns differ between arms, which
+`assert_base_cols_match()` in s06_run_arms.py verifies before each arm runs.
 
 Technologies available:
     1 = Grid extension              (enabled)

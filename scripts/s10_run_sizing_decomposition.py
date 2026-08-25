@@ -137,34 +137,38 @@ def task5_per_connection():
     WARNING: calling this function writes data/onsset_outputs/2026-08_final_per_connection_analysis.csv
     (a canonical, protected output) as a side effect — do not call it to "just check a number".
 
-    Per-connection cost accounting — why does InvestmentCost2030/NewConnections2030 ~$20k?
+    Per-connection cost accounting on the canonical 2026-08_final R0 arm — is
+    InvestmentCost2030/NewConnections2030 quotable as a per-connection cost?
 
-    Findings from code inspection (onsset.py):
+    Findings from code inspection (onsset.py) and the canonical R0 output:
     1. InvestmentCost2030 = UNDISCOUNTED total capital investment over the FULL project
        life (2020-2035 = 16 years), NOT just the 2020-2030 time step. For SA_PV with
        5-year tech life, this includes 2 installations (year 0 and year 5), both at the
        UNDISCOUNTED capital cost. This is a NPC-complement, not a single-year capex.
     2. NewConnections2030 = new HOUSEHOLDS added in the 2020-2030 step only (= HH
        electrified in that step). It does NOT include HH already electrified at 2020.
-    3. Dividing (1) by (2) creates a timing mismatch:
-       numerator covers full 2020-2035 horizon;
-       denominator covers only 2020-2030 new connections.
-    4. Additionally: SA_PV has extreme outlier values (max InvestmentCost2030 ~$23B for
-       a single settlement), likely due to near-zero ATR in small settlements causing
-       very large installed capacity ratios. These outliers inflate the aggregate mean
-       dramatically (mean $39k/HH vs median $7k/HH for SA_PV).
-    5. Grid per-connection: $4.1B total / 1.69M HH = $2,420/HH (more stable; no
-       reinvestment in the 10-year step for 30-year grid technology).
+    3. Dividing (1) by (2) is therefore a period mismatch, still present: numerator
+       covers the full 2020-2035 horizon (USD 15.58bn / 3,745,418 new HH = $4,159/HH
+       aggregate), denominator covers only 2020-2030 new connections. By technology:
+       SA_PV $9.84bn / 1,363,324 HH = $7,217/HH; Grid $4.33bn / 1,918,219 HH =
+       $2,258/HH; MG_PVHybrid $1.41bn / 463,875 HH = $3,036/HH.
+    4. The outlier problem is RESOLVED post-index-fix. No settlement exceeds $1bn of
+       investment (max is $921.8M); OnSSET's own InvestmentPerConnection2030 has a
+       median of $7,120/HH and a mean of $7,170/HH (P5-P95 $3,491-$11,094/HH) — a
+       mean/median ratio of 1.01, i.e. no skew. The extreme per-settlement values
+       (up to ~$23bn) that motivated this task were a symptom of the pre-fix index
+       misalignment (REPRODUCING.md §7), not of the accounting.
 
-    Verdict: InvestmentCost2030/NewConnections2030 must NOT be quoted as a per-
-    connection cost. It mixes accounting periods and is dominated by outliers.
+    Verdict: absolute per-connection figures ARE now quotable, provided the period
+    mismatch in (3) is stated alongside them. The outlier caveat that used to apply
+    no longer does.
 
-    Defensible per-connection metric (if needed for Discussion):
-    - Use OffGridInvestmentCost2030 / NewConnections2030 PER SETTLEMENT (not aggregate)
-      → median $7,019/HH for off-grid arm (already computed by OnSSET as
-      InvestmentPerConnection2030 column).
-    - Or: use the LCOE × energy / 8760 / HH as a levelised annual cost per HH.
-    - Relative comparison (R0 vs R1 cost ratio) is unaffected by this accounting issue.
+    Defensible per-connection metrics (for the Discussion):
+    - OnSSET's own InvestmentPerConnection2030 column: median $7,120/HH.
+    - Or: LCOE x energy / HH / project-life-years as a levelised annual cost per HH
+      — median $56/HH/yr for SA_PV.
+    - Relative comparison (R0 vs R1 cost ratio) is unaffected either way: R0 total
+      NPC $1.73bn, R1 $2.59bn, +49.9%, matching the headline.
     """
     print("\n" + "="*65)
     print("  TASK 5 — Per-Connection Cost Accounting")

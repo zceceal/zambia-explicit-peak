@@ -31,6 +31,7 @@ import copy
 import sys
 import time
 import warnings
+from datetime import date
 from pathlib import Path
 
 import numpy as np
@@ -907,7 +908,9 @@ def main():
     t_arm_single = t_val / 2.0
 
     if not tol_ok:
-        print(f"\n  NOTE: subsample bias due to network topology (grid relay path truncation).")
+        print(f"\n  NOTE: subsample bias, mechanism not fully explained (see comment above")
+        print(f"  SUBSAMPLE_N — the network-topology explanation was retracted 2026-08-16;")
+        print(f"  the bias reversed direction post-fix).")
         print(f"  Morris RANKING and SIGN-ROBUSTNESS are valid (all evaluations share")
         print(f"  the same systematic bias); magnitudes need bias correction.")
 
@@ -1295,11 +1298,11 @@ def main():
 
     notes = f"""# GRID3 Stage 5 — Morris GSA + LHS Uncertainty Propagation
 
-**Date:** 2026-07-02
+**Date:** {date.today().isoformat()}
 **Primary metric:** ΔLCOE% = energy-weighted (`MinimumOverallLCOE2030 × EnergyPerSettlement2030`) R1−R0 lifetime-cost change at **2030** (2035 columns NOT used)
 **Secondary metric:** SA_PV→Grid switch count at 2030
 **Base spine:** GRID3, 270,526 settlements (`zambia_grid3_calib_distgate.csv`)
-**Central case:** N_mid=20, rural Tier 3 → ΔLCOE +{STAGE4_DELTA_LCOE_CENTRAL:.1f}% (Stage-4, 2026-07-01)
+**Central case:** N_mid=20, rural Tier 3 → ΔLCOE +{STAGE4_DELTA_LCOE_CENTRAL:.1f}% (canonical 2026-08_final run)
 
 ---
 
@@ -1333,15 +1336,18 @@ Total elapsed: {t_elapsed_total/60:.1f} min.
 | Metric | Subsample ({SUBSAMPLE_N:,}) | Full spine (Stage 4) | Verdict |
 |--------|----------------------------|----------------------|---------|
 | ΔLCOE% at N_mid=20, Tier 3, 2030 | {val_delta:+.2f}% | +{STAGE4_DELTA_LCOE_CENTRAL:.1f}% | {tol_str} |
-| SA_PV→Grid switches at 2030 | {val_switch:,} | ~17,783 (at 2035 reference) | — |
+| SA_PV→Grid switches at 2030 | {val_switch:,} | 34,461 (2030, full-spine canonical) | — |
 
 Stratification: 4 log-pop × 3 GHI × 3 MV-dist × 2 urban/rural = 72 strata; proportional allocation (min 1).
 Seed: {SEED_SUBSAMPLE}. Generous tolerance: ±{VALIDATION_TOL_PP}pp (see bias note below).
 
-**Bias source — network topology:** OnSSET grid extension is a relay algorithm (A→B→C→grid). In a
-{SUBSAMPLE_N:,}-settlement subsample ({100*SUBSAMPLE_N/270526:.1f}% density), relay nodes B and C are
-often absent, stranding settlement A as SA_PV or MG_PVHybrid. This systematically inflates MG_PVHybrid
-and suppresses grid extension, reducing ΔLCOE% below the full-spine value.
+**Bias source — not fully explained.** The "grid relay path truncation" mechanism once proposed here
+(a subsample breaks relay nodes B/C in OnSSET's A→B→C→grid extension algorithm, stranding A as
+off-grid) predicted a downward bias, and pre-fix the measurement agreed (ratio 0.69x). After the
+2026-08-16 index-alignment fix the measured ratio is 1.12x — the bias reversed direction, so that
+mechanism does not explain it and is not quoted as the cause. The correction below is empirical
+(measured ratio, not a modelled mechanism); a bias-correction factor
+(full_spine / subsample) is applied to all results.
 
 **Bias-correction factor: {BIAS_CORRECTION_FACTOR:.4f}** (full-spine {STAGE4_DELTA_LCOE_CENTRAL:.1f}% / subsample {val_delta:.2f}%)
 Applied multiplicatively to all ΔLCOE% μ* and percentile-band values in results below.
@@ -1396,7 +1402,7 @@ Raw subsample values (÷{BIAS_CORRECTION_FACTOR:.4f}): {morris_df_delta.to_strin
 
 ΔLCOE% positive at all {MORRIS_R*(MORRIS_K+1)} trajectory evaluations (both raw and bias-corrected):
 **{'YES — all f(θ) > 0' if all_f_delta_positive else 'NO — some negative values'}**
-{'No parameter can flip the sign; the +28–39% cost increase is robust to joint parameter variation.' if not sign_flip else 'Parameters that produce negative ΔLCOE: ' + ', '.join(sign_flip)}
+{'No parameter can flip the sign; the cost increase is robust to joint parameter variation (LHS 5th-95th percentile band, bias-corrected: +23.7% to +77.2%, all 200 samples positive).' if not sign_flip else 'Parameters that produce negative ΔLCOE: ' + ', '.join(sign_flip)}
 
 ---
 

@@ -64,8 +64,8 @@ STAGE4_DELTA    = 49.9      # Central case +49.92% (s06, N_mid=20, Tier 3, 2026-
 STAGE4_SWITCHES = 34461     # SA_PV→Grid at 2030, N_mid=20 (2026-08-16 fixed run)
 # Full-spine / subsample ratio from s08's validation gate, 2026-08-16 run.
 # NOTE THE SIGN CHANGE. Pre-fix the 50k subsample UNDER-stated the effect (25.6% against a
-# 36.9% full-spine reference, factor 1.4390). Post-fix it OVER-states it (55.43% against
-# 49.7%, factor 0.8966). The documented explanation for the old bias - that a spatial
+# 36.9% full-spine reference, factor 1.4390). Post-fix it OVER-states it (55.54% against
+# 49.9%, factor 0.8985 - matching BIAS_FACTOR below). The documented explanation for the old bias - that a spatial
 # subsample severs grid relay paths and so suppresses SA_PV->Grid switching - predicted an
 # under-estimate, and no longer holds. Treat the factor as an empirical calibration, not as
 # a quantity with a settled mechanism, until that is re-derived.

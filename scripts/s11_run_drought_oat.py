@@ -7,9 +7,9 @@ Moobola (2024) drought-year prices of 0.17 (Eskom import), 0.22 (EDM Mozambique
 import) and 0.26 USD/kWh (local emergency diesel). This script re-runs the same
 full-spine OAT at those three prices.
 
-Rules (inherited from run_post_gsa_tasks01.py):
-- DOES NOT overwrite any Stage-4/4b, Stage-5 or 2026-07-03 OAT outputs.
-- All new outputs go to data/onsset_outputs/ dated 2026-07-05.
+Rules:
+- DOES NOT overwrite any canonical 2026-08_final_* outputs.
+- All new outputs go to data/onsset_outputs/, named 2026-08_final_oat_*.
 - Seed 42 for OAT arms. Gate: central variant must reproduce +49.9% / 34,461
   (±1.0 pp tolerance) before the drought variants are trusted.
 - PV-hybrid lookup cache is built at the central diesel price and reused; grid

@@ -1,8 +1,8 @@
 """
 s12_run_2050_horizon.py — 2050 endpoint, two-arm (R0 / R1) driver.
 
-Reuses run_arm() from run_grid3_lcoe_stage4.py (the harness that produced the published
-2026-07-01_grid3 outputs) unchanged. Two modes:
+Reuses run_arm() from s06_run_arms.py (the harness that produced the published
+2026-08_final outputs) unchanged. Modes:
 
   python run_2050_arms.py validate2035   # re-runs 2035 R0 + R1_n20 with the untouched config;
                                          # headline must reproduce +49.9% / 34,461

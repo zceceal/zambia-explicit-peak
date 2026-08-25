@@ -17,7 +17,7 @@ Confirmed inputs (WPP-2024 medium variant; see SOURCES_WPP2050.md):
   (2035 was 28,266,892 / 0.538; 2020 is 0.437 — all match the specs, validating the series.)
 
 Run from anywhere; paths resolve relative to the repository root:
-  python build_r1_spine_2050.py
+  python scripts/s12b_build_2050_spine.py
 Outputs: zambia_grid3_spine_pe_2050_n20.csv  (+ _n10 / _n50 for the sweep)
 """
 import pandas as pd, numpy as np, sys, os
