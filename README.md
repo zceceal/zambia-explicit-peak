@@ -3,6 +3,10 @@
 A controlled OnSSET experiment testing whether representing **peak demand per settlement**, rather
 than through one national load factor, changes the least-cost electrification plan for Zambia.
 
+**Headline: doing so raises the modelled lifetime cost of universal access by +49.9%, and changes
+the least-cost technology for 34,461 settlements (12.7%) — see [Headline results](#headline-results)
+below, or `results/summary/` for the committed numbers behind every figure, with no setup required.**
+
 Model and code behind the MSc research paper *Explicit peak demand representation in least-cost
 electrification modelling: evidence from Zambia* (Imperial College London, 2026).
 
@@ -33,6 +37,9 @@ demand pre-processor is the only difference, which is what makes the comparison 
 
 Run of 2026-08-16, the first with the index-alignment defect corrected (see
 [`REPRODUCING.md`](REPRODUCING.md) §7). **Earlier figures from this repository are superseded.**
+Every number below is drawn from `results/summary/2026-08_final_*.csv`, committed to this repository
+— readable directly, with no data download and no engine to build, for anyone who wants to check a
+number without reproducing the full run.
 
 | Result | Value |
 |---|---|

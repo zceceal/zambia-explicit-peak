@@ -1,9 +1,9 @@
 """
 s13_generate_figures.py — regenerate all figures from current model outputs.
 
-All figures sourced from the GRID3 model (270,526-settlement spine).
+All figures sourced from the canonical 2026-08_final model outputs (270,526-settlement spine).
 Filenames are stable across runs.
-Generation log appended to notes/2026-07-03_post_GSA_finalisation.md.
+Generation log printed to console at the end of the run.
 
 Figures generated:
   1. fig_methods_pe_realised_distribution.png  — GRID3 spine P/E distribution
@@ -16,7 +16,7 @@ Figures generated:
   8. fig_results_switching_map.png            — SA_PV→Grid switching settlements vs MV network (Figure 4.5)
   8b. fig_results_switching_map_bw.png        — greyscale-safe variant
 
-Script + input file + date: generate_all_figures.py | GRID3 Stage-4/5 outputs | 2026-07-05
+Script + input: s13_generate_figures.py | canonical 2026-08_final model outputs
 """
 
 import sys
@@ -89,7 +89,7 @@ def save_fig(fig, name: str, dpi: int = 300):
         except Exception as e:
             print(f"  (pdf skipped for {name}: {e})")
     plt.close(fig)
-    log_entries.append(f"  {name}  ← generate_all_figures.py | {path.name} | 2026-07-05 (publication style)")
+    log_entries.append(f"  {name}  ← s13_generate_figures.py | {path.name} | (publication style)")
     print(f"  Saved: {name}")
 
 

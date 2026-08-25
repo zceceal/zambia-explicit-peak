@@ -539,23 +539,6 @@ def main():
               f"{r[y1]['delta_inv']/1e9:>+19.3f} bn  "
               f"{r[y2]['delta_inv']/1e9:>+19.3f} bn")
 
-    # ── Compare GRID3 vs 1km-spine headline ───────────────────────────────────
-    print("\n" + "=" * 65)
-    print("  COMPARISON: GRID3 spine vs 1km-spine (2026-06-23 canonical)")
-    print("=" * 65)
-    print(f"  1km-spine (canonical 2026-06-23 results, N_mid=20):")
-    print(f"    SA_PV→Grid switches at 2035:  10,858")
-    print(f"    ΔInvestment 2030 (R1-R0):    +$2.401 bn (+4.10%)")
-    print(f"  GRID3 spine (this run, N_mid=20):")
-    n_sw_g3 = results[20][last_year]["n_switch"]
-    delta_g3 = results[20][years[0]]["delta_inv"]
-    inv0_g3  = results[20][years[0]]["inv_r0"]
-    pct_g3   = delta_g3 / inv0_g3 * 100 if inv0_g3 != 0 else float("nan")
-    print(f"    SA_PV→Grid switches at 2035:  {n_sw_g3:,}")
-    print(f"    ΔInvestment 2030 (R1-R0):    {delta_g3/1e9:+.3f} bn ({pct_g3:+.2f}%)")
-    print(f"  Note: differences expected (new calibration, new spine); "
-          f"direction (SA_PV→Grid, ΔInv sign) is the primary comparand.")
-
     # ── Write tech-split CSV ───────────────────────────────────────────────────
     rows = []
     for arm_label, df_arm in [("R0", proc_r0.df)]:

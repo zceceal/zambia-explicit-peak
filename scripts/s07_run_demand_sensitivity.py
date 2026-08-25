@@ -55,7 +55,7 @@ WIND_PROFILE  = (REPO / "data" / "raw" / "zambia" / "renewables_hourly" /
 # Superseded: 34.6/36.9/38.8, -14.3/-9.8/-3.6, 16999/17787/18260 — those came from the
 # run in which stand-alone PV capacity was misaligned; see patches/onsset-explicit-peak.patch.
 T3_LCOE_PCT  = {10: 34.1,  20: 49.9,  50: 70.6}    # ΔLCOE% energy-weighted 2030
-T3_CAPEX_PCT = {10: 30.1,  20: 45.6,  50: 65.4}    # ΔCAPEX% 2030
+T3_CAPEX_PCT = {10: 30.3,  20: 45.6,  50: 65.7}    # ΔCAPEX% 2030
 T3_SWITCHES  = {10: 33603, 20: 34461, 50: 34862}   # SA_PV→Grid at 2030 (from tech split)
 
 np.random.seed(42)
