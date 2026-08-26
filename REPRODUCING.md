@@ -158,6 +158,16 @@ of the headline.
 
 ## 5. What you should get
 
+`ls data/onsset_outputs/2026-08_final_*` returns far more than the twelve files below, because the
+one-at-a-time grid-cost sensitivity runs (`2026-08_final_oat_*`) share the same `2026-08_final` prefix.
+They are a separate sensitivity, re-solved on the unchanged spine (`s09` reads
+`data/processed/zambia_grid3_spine_pe_n20.csv` directly, without rebuilding it), not additional
+full-spine solves. The twelve full-spine solves behind every headline figure are:
+
+- `2026-08_final_lcoe_{R0, R0_ruralT2, R1_n10, R1_n20, R1_n50, R1_ruralT2_n10, R1_ruralT2_n20,
+  R1_ruralT2_n50}.csv` — the eight primary solves (rural Tier 3 and Tier 2, `N_mid` swept where R1)
+- `2026-08-21_hhsize_*` — the four household-size solves, from `s18` above
+
 All values below are from the run of 2026-08-16, the first with the index-alignment defect of §7
 corrected. Figures from earlier runs of this repository are superseded and should not be quoted.
 
