@@ -126,7 +126,13 @@ python scripts/s08_run_global_sensitivity.py     # Morris + LHS; ~64 min       -
 # s08 prints the bias-correction factor. Set BIAS_FACTOR in s09 from it before running s09.
 python scripts/s09_run_oat_checks.py             # grid-side OAT               -> needed by s13
 python scripts/s13_generate_figures.py           # last: reads s07, s08 and s09 outputs
+python scripts/fig_r0r1_allocation_map.py [run-label]   # paper Figure 2: R0/R1 technology allocation maps
 ```
+
+`fig_r0r1_allocation_map.py` is kept separate from `s13` because it reads the two arm outputs
+directly rather than the summary tables, and because it is drawn at its printed width (0.66x
+textwidth) rather than scaled down by LaTeX, which is what previously rendered its panel titles
+at 6.2 pt.
 
 Two optional analyses, independent of the above:
 
