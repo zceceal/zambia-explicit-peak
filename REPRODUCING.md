@@ -90,7 +90,7 @@ Python puts only the *script's* directory on the path when a file is executed di
 cd zambia-explicit-peak
 export PYTHONPATH="$(pwd)"
 
-python scripts/s01_build_spine_clusters.py
+python scripts/s01_build_spine_clusters.py     # ~1.3 GB peak memory (recorded in the script's own comment)
 python scripts/s02_build_spine_dispersed.py
 python scripts/s03_build_spine_attributes.py
 python scripts/s04_calibrate_base_year.py
@@ -111,7 +111,8 @@ Robustness and reporting stages. The order matters in three places, marked below
 ```bash
 python scripts/s10_run_sizing_decomposition.py   # post-processing only, no re-solve; fastest first
 python scripts/s07_run_demand_sensitivity.py     # rural Tier 2                     -> needed by s13
-python scripts/s11_run_drought_oat.py            # drought-price generation cost
+python scripts/s11_run_drought_oat.py            # drought-price generation cost; 4 variants, 674.6s total
+                                                  # (recorded in results/summary/2026-08_final_oat_drought_price.csv's elapsed_s column)
 
 # 2050 endpoint. Use 2050only: the default mode reaches 100% electrification at the
 # 2030 stage, leaving the 2050 columns incremental-only and their levelised costs meaningless.
@@ -125,6 +126,10 @@ python scripts/s12c_summarise_2050.py scripts/outputs/2050only_grid3_lcoe_R0.csv
 python scripts/s08_run_global_sensitivity.py     # Morris + LHS; ~64 min       -> needed by s09, s13
 # s08 prints the bias-correction factor. Set BIAS_FACTOR in s09 from it before running s09.
 python scripts/s09_run_oat_checks.py             # grid-side OAT               -> needed by s13
+                                                  # ~2 min per arm (script's own comment); recorded totals:
+                                                  # LHS full-spine validation 603.7s/3 samples, grid-cost OAT
+                                                  # 1074.0s/4 variants (both from their own results/summary/
+                                                  # 2026-08_final_*.csv elapsed_s columns)
 python scripts/s13_generate_figures.py           # last: reads s07, s08 and s09 outputs
 python scripts/fig_r0r1_allocation_map.py [run-label]   # paper Figure 2: R0/R1 technology allocation maps
 ```
@@ -133,6 +138,11 @@ python scripts/fig_r0r1_allocation_map.py [run-label]   # paper Figure 2: R0/R1 
 directly rather than the summary tables, and because it is drawn at its printed width (0.66x
 textwidth) rather than scaled down by LaTeX, which is what previously rendered its panel titles
 at 6.2 pt.
+
+No advance runtime or memory figure is available for any other stage above or below (`s02`–`s07`,
+`s10`, `s12`/`s12a`/`s12b`/`s12c`, `s13`, `fig_r0r1_allocation_map.py`, `s14`–`s17`, `s19`, the
+acceptance checks, or the tests) — none is recorded anywhere in the repository, so none is stated
+here rather than estimated.
 
 Two optional analyses, independent of the above:
 
