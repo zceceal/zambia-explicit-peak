@@ -63,7 +63,7 @@ therefore a lower bound on a model with explicit peaks in all three supply optio
 ```bash
 git clone https://github.com/zceceal/zambia-explicit-peak.git
 cd zambia-explicit-peak
-python -m venv .venv && source .venv/bin/activate
+python3.13 -m venv .venv && source .venv/bin/activate   # Python 3.13 specifically -- see REPRODUCING.md §1 for why
 pip install -r requirements.txt
 ```
 
