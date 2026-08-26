@@ -20,6 +20,7 @@ carries its own licence. This file lists what is needed, where it comes from, an
 | Global Power Plant Database (hydro, Zambia) | Distance to hydropower sites (stage 03) | Global Energy Observatory, Google, KTH, Enipedia and WRI (2021), v1.3.0, datasets.wri.org | CC BY 4.0 |
 | CIAT-CSI SRTM (hole-filled) | Elevation and slope (stage 03) | Jarvis, Reuter, Nelson & Guevara (2008), CIAT, srtm.csi.cgiar.org, V4.1 | **CIAT custom terms — citation required; commercial or non-free redistribution needs CIAT's permission** |
 | OpenStreetMap roads (Zambia extract) | Road network / distance (stage 03) | OpenStreetMap contributors, via Geofabrik (download.geofabrik.de); extract obtained 2026-06-16 | ODbL 1.0 — share-alike |
+| Global accessibility-to-cities map, 30 arc-sec | Travel time to market (stage 03) | Weiss et al. (2018), *Nature* 553:333–336, doi:10.1038/nature25181 (Malaria Atlas Project / Oxford) — confirmed against the raster's own 0.0083333° (30 arc-sec) pixel grid | licence not yet confirmed — see note below |
 | renewables.ninja hourly solar | PV-hybrid mini-grid lookup tables | renewables.ninja (MERRA-2, 5 points, 2025) | **CC BY-NC 4.0 — non-commercial only** |
 | UN World Population Prospects 2024 | Population projections to 2035 and 2050 | population.un.org | CC BY 3.0 IGO |
 | ZamStats 2022 Census | Household sizes (urban 4.6, rural 5.0) | Zambia Statistics Agency | official publication |
@@ -42,6 +43,11 @@ The EOG VIIRS night-lights composite is a different case: publisher, product and
 (confirmed against the raster's own pixel grid), but its specific redistribution terms have not yet
 been checked against Earth Observation Group's current data policy. Not redistributed here either way;
 confirm directly with EOG before reuse.
+
+The travel-time layer is the same case: publisher, product and vintage are identified (the paper's own
+citation, confirmed against the raster's 30 arc-second pixel grid), but its redistribution terms have
+not yet been checked against the Malaria Atlas Project's current data policy. Not redistributed here
+either way; confirm directly with the publisher before reuse.
 
 The hydro layer lists five existing grid-scale stations (Kafue Gorge 990 MW, Kariba 930 MW,
 Itezhi-Tezhi 120 MW, Victoria Falls 108 MW, Lusiwasi 12 MW), not a mini-hydro potential assessment —
