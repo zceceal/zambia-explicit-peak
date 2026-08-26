@@ -15,6 +15,8 @@ carries its own licence. This file lists what is needed, where it comes from, an
 | MV / MVLV transformers, substations | Base-year electrification gate (stage 04) | World Bank / EnergyData.info | terms not published with the layer — see note below |
 | Transmission network | Grid distances (stage 03) | World Bank | terms not published with the layer — see note below |
 | Global Solar Atlas GHI | Solar resource (stage 03) | globalsolaratlas.info | CC BY 4.0 |
+| Global Wind Atlas 3.0, 250 m | Wind resource (stage 03) | DTU / World Bank ESMAP, globalwindatlas.info — confirmed against the raster's own 0.0025° pixel grid | CC BY 4.0 |
+| EOG VIIRS annual composite, 15 arc-sec | Night-lights, base-year electrification proxy (stages 03–04) | Elvidge et al. (2021), Colorado School of Mines, Earth Observation Group — confirmed against the raster's own 0.0041666667° pixel grid | licence not yet confirmed — see note below |
 | Global Power Plant Database (hydro, Zambia) | Distance to hydropower sites (stage 03) | Global Energy Observatory, Google, KTH, Enipedia and WRI (2021), v1.3.0, datasets.wri.org | CC BY 4.0 |
 | CIAT-CSI SRTM (hole-filled) | Elevation and slope (stage 03) | Jarvis, Reuter, Nelson & Guevara (2008), CIAT, srtm.csi.cgiar.org, V4.1 | **CIAT custom terms — citation required; commercial or non-free redistribution needs CIAT's permission** |
 | OpenStreetMap roads (Zambia extract) | Road network / distance (stage 03) | OpenStreetMap contributors, via Geofabrik (download.geofabrik.de); extract obtained 2026-06-16 | ODbL 1.0 — share-alike |
@@ -35,6 +37,11 @@ Three layers above are marked *terms not published with the layer*: the NEP plan
 transformer/substation records and the transmission network were obtained without an accompanying
 licence statement. They are used here for academic analysis and are not redistributed. Anyone reusing
 them should confirm terms with the publisher first.
+
+The EOG VIIRS night-lights composite is a different case: publisher, product and vintage are identified
+(confirmed against the raster's own pixel grid), but its specific redistribution terms have not yet
+been checked against Earth Observation Group's current data policy. Not redistributed here either way;
+confirm directly with EOG before reuse.
 
 The hydro layer lists five existing grid-scale stations (Kafue Gorge 990 MW, Kariba 930 MW,
 Itezhi-Tezhi 120 MW, Victoria Falls 108 MW, Lusiwasi 12 MW), not a mini-hydro potential assessment —
