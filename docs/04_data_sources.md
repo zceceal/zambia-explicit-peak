@@ -14,6 +14,7 @@ carries its own licence. This file lists what is needed, where it comes from, an
 | MV / MVLV transformers, substations | Base-year electrification gate (stage 04) | World Bank / EnergyData.info | terms not published with the layer — see note below |
 | Transmission network | Grid distances (stage 03) | World Bank | terms not published with the layer — see note below |
 | Global Solar Atlas GHI | Solar resource (stage 03) | globalsolaratlas.info | CC BY 4.0 |
+| Global Power Plant Database (hydro, Zambia) | Distance to hydropower sites (stage 03) | Global Energy Observatory, Google, KTH, Enipedia and WRI (2021), v1.3.0, datasets.wri.org | CC BY 4.0 |
 | renewables.ninja hourly solar | PV-hybrid mini-grid lookup tables | renewables.ninja (MERRA-2, 5 points, 2025) | **CC BY-NC 4.0 — non-commercial only** |
 | UN World Population Prospects 2024 | Population projections to 2035 and 2050 | population.un.org | CC BY 3.0 IGO |
 | ZamStats 2022 Census | Household sizes (urban 4.6, rural 5.0) | Zambia Statistics Agency | official publication |
@@ -31,6 +32,12 @@ Three layers above are marked *terms not published with the layer*: the NEP plan
 transformer/substation records and the transmission network were obtained without an accompanying
 licence statement. They are used here for academic analysis and are not redistributed. Anyone reusing
 them should confirm terms with the publisher first.
+
+The hydro layer lists five existing grid-scale stations (Kafue Gorge 990 MW, Kariba 930 MW,
+Itezhi-Tezhi 120 MW, Victoria Falls 108 MW, Lusiwasi 12 MW), not a mini-hydro potential assessment —
+there is no sixth site waiting to be found in it. This is why `docs/01_pipeline.md` and the paper
+report mini-grid hydro as near-absent from the allocation: only settlements within reach of one of
+these five named stations are ever costed on that technology.
 
 ## Expected local layout
 
