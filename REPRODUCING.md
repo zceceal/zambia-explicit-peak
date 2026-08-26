@@ -138,6 +138,7 @@ python scripts/s15_run_capex_curve_sensitivity.py monotone   # and with the >1 k
 python scripts/s16_run_corrected_conventions.py             # full reinvestment schedule
 python scripts/s17_run_fitted_anchors.py                    # curve fitted to the two measured anchors
 python scripts/s18_run_hhsize_sensitivity.py                 # rural household size 4.5 / 5.5 vs census 5.0; four arms, ~7 min
+python scripts/s19_band_and_channel_decomposition.py         # step-crossing and channel-freeze decomposition, no re-solve -> 2026-08_final_band_and_channel_decomposition.csv
 python scripts/check_spine_integrity.py                     # 22 hard checks on the spine, no re-run
 ```
 
