@@ -55,6 +55,14 @@ there is no sixth site waiting to be found in it. This is why `docs/01_pipeline.
 report mini-grid hydro as near-absent from the allocation: only settlements within reach of one of
 these five named stations are ever costed on that technology.
 
+`admin/geoboundaries/geoBoundaries-ZMB-ADM1.geojson` is not a Required input, even though `s01`, `s02`
+and `s05` all read it. Traced its use: it is spatially joined onto each settlement to populate the
+`Admin_1` column (province name), which `s05` also uses to relabel 135 border-sliver settlements to
+their nearest province. Downstream, `onsset.py`'s own `conditioning()` step only null-checks `Admin_1`
+and prints a warning if it finds one — no cost or allocation formula anywhere in the pipeline reads it.
+It is a labelling/QA field, not a model input, so it carries no publisher, version or licence row here;
+its version and licence remain unconfirmed regardless.
+
 ## Expected local layout
 
 Scripts resolve every path relative to the repository root, so the tree below is exact. Paths are
