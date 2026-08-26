@@ -138,6 +138,11 @@ python test/test_onsset_install.py                                # end-to-end O
 python test/test_index_alignment.py                               # regression test for the 2026-08-16 defect
 ```
 
+`test_index_alignment.py`'s third check, `test_stand_alone_capacity_closed_form`, needs
+`data/onsset_outputs/2026-08_final_lcoe_R0.csv` — a completed `s06` run (see "Running the pipeline"
+above). Run before that, it FAILS by design, not skips: a reviewer on a clean checkout must not see a
+green suite for a check that never executed. Its own assertion message says so.
+
 After any run of `s06`, before trusting anything downstream:
 
 ```bash
