@@ -11,10 +11,13 @@ carries its own licence. This file lists what is needed, where it comes from, an
 | WorldPop population, 100 m | Population per settlement (stages 01–02) | worldpop.org | CC BY 4.0 |
 | ZESCO MV distribution lines | Grid distances (stage 03) | World Bank Group (2022), *Zambia — Electrical Lines*, ENERGYDATA.INFO | CC BY 4.0 |
 | NEP planned MV extensions | Planned-grid distances (stage 03) | Rural Electrification Authority | terms not published with the layer — see note below |
+| Facebook/Meta MV predictive grid | Additional MV-line distance signal (stage 03) | Meta Data for Good (Gershenson, Rohrer, Lerner) (2019), via energydata.info / HDX | CC BY 4.0 |
 | MV / MVLV transformers, substations | Base-year electrification gate (stage 04) | World Bank / EnergyData.info | terms not published with the layer — see note below |
 | Transmission network | Grid distances (stage 03) | World Bank | terms not published with the layer — see note below |
 | Global Solar Atlas GHI | Solar resource (stage 03) | globalsolaratlas.info | CC BY 4.0 |
 | Global Power Plant Database (hydro, Zambia) | Distance to hydropower sites (stage 03) | Global Energy Observatory, Google, KTH, Enipedia and WRI (2021), v1.3.0, datasets.wri.org | CC BY 4.0 |
+| CIAT-CSI SRTM (hole-filled) | Elevation and slope (stage 03) | Jarvis, Reuter, Nelson & Guevara (2008), CIAT, srtm.csi.cgiar.org, V4.1 | **CIAT custom terms — citation required; commercial or non-free redistribution needs CIAT's permission** |
+| OpenStreetMap roads (Zambia extract) | Road network / distance (stage 03) | OpenStreetMap contributors, via Geofabrik (download.geofabrik.de); extract obtained 2026-06-16 | ODbL 1.0 — share-alike |
 | renewables.ninja hourly solar | PV-hybrid mini-grid lookup tables | renewables.ninja (MERRA-2, 5 points, 2025) | **CC BY-NC 4.0 — non-commercial only** |
 | UN World Population Prospects 2024 | Population projections to 2035 and 2050 | population.un.org | CC BY 3.0 IGO |
 | ZamStats 2022 Census | Household sizes (urban 4.6, rural 5.0) | Zambia Statistics Agency | official publication |
