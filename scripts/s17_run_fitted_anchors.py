@@ -9,35 +9,46 @@ The central calibration fixes rho_inf = 1.45 (Lorenzoni's "Flat" archetype) and 
 an assumed N_mid = 20. The paper's two external validation anchors play no part in that
 calibration — which means they can be used to FIT the curve instead:
 
-    metered Ethiopian residential mini-grid   rho = 1.80  at N ~ 450   (Wassie & Ahlgren 2024)
-    Zambian national residential aggregate    rho ~ 1.67  at N ~ 1.3e6 (ERB 2021 / IRP demand)
+    metered Ethiopian residential mini-grid   rho = 1.80    at N ~ 450   (Wassie & Ahlgren 2024)
+    Zambian national residential aggregate    rho = 1.4587  at N ~ 1.0e6 (IRP Demand Assessment
+                                                                          and Forecast, Table 3.01,
+                                                                          2020: 769 MW / 4,618 GWh)
 
-With rho_1 = 3.98 kept at N = 1, two anchors determine the two remaining parameters exactly:
+With rho_1 = 3.98 kept at N = 1, the other two anchors pin the remaining two parameters — but, unlike
+the earlier version of this script, NOT by setting rho_inf equal to the raw reading at the second
+anchor's N and deriving beta from the first alone. That shortcut assumed the decaying term
+(rho_1 - rho_inf)*N^-beta is negligible by N = 1e6, which held for the old, faster-decaying fit
+(beta ~= 0.47, residual ~0.003) but does not hold here: fixing rho_inf = 1.4587 and solving beta from
+the Ethiopian anchor alone gives beta = 0.32733, and at that beta the curve has NOT converged by
+N = 1e6 (it gives 1.4861, not 1.4587 — a 0.027 residual, 5x too large to call "negligible"). So both
+parameters are instead solved SIMULTANEOUSLY, as a 2x2 nonlinear system fitting both anchors exactly
+(scipy.optimize.fsolve, done at runtime — see calibrate_curve() below):
 
-    rho_inf = 1.670          (the national aggregate pins the floor; the decaying term is
-                              negligible at N = 1.3 million for any plausible beta)
-    beta    = 0.47096        (from the Ethiopian anchor)
-    equivalent N_mid = 10.6  (inside the swept 10-50 range)
+    rho_inf = 1.42545        (solved, not read directly off either anchor)
+    beta    = 0.31426        (solved)
+    equivalent N_mid = 19.49 (inside the swept 10-50 range)
 
-The fitted curve reproduces both anchors exactly (1.800 at 450; 1.673 at 1.3e6) where the central
-curve gives 1.816 and 1.479. It is flatter at small N (rho 3.23 vs 3.39 at the rural median of
-2.3 households) but has a higher floor, so the large grid-served settlements that carry ~72% of
-national energy become PEAKIER relative to the central curve (1.74 vs 1.68 at the urban median).
+The fitted curve reproduces both anchors to solver tolerance (<1e-9): 1.800 at 450, 1.4587 at 1.0e6.
+The central curve gives 1.816 and 1.482 at those same two N. The fitted curve is essentially on the
+central curve at the rural median (rho 3.39 vs 3.39 at N=2.3 households) and slightly below it at the
+urban median (1.66 vs 1.68 at N=1925).
 
 This is an exactly-determined alternative calibration, not a statistical fit: two anchors, two
-parameters, no residual. Its value is that it is independent of the Lorenzoni "Flat" archetype and
-of the N_mid assumption — the paper's one stated free parameter disappears.
+parameters, zero residual by construction. Its value is that it is independent of the Lorenzoni
+"Flat" archetype and of the N_mid assumption — the paper's one stated free parameter disappears.
 
     python scripts/s17_run_fitted_anchors.py             # one R1 arm; compares to final R0
     python scripts/s17_run_fitted_anchors.py --self-test
 """
 
+import math
 import sys
 import time
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from scipy.optimize import fsolve
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent
@@ -49,9 +60,31 @@ RUN_LABEL = "2026-08_fittedanchor_lcoe"
 R0_FINAL  = OUTDIR / "2026-08_final_lcoe_R0.csv"
 YEAR      = 2030
 
-RHO_1   = 3.98       # kept: Lorenzoni "Peak" archetype at N = 1
-RHO_INF = 1.670      # fitted: Zambian national residential aggregate at N ~ 1.3e6
-BETA    = 0.47096    # fitted: metered Ethiopian residential anchor, rho = 1.80 at N = 450
+RHO_1 = 3.98   # kept: Lorenzoni "Peak" archetype at N = 1
+
+# The two independent validation anchors. rho_inf and beta below are SOLVED from these,
+# not read off either anchor directly (see WHY above for why that shortcut no longer holds).
+ANCHOR_ETHIOPIA = (450.0, 1.80)      # Wassie & Ahlgren 2024, Tum mini-grid, residential
+ANCHOR_ZAMBIA   = (1.0e6, 1.4587)    # IRP Demand Assessment and Forecast Report, Table 3.01,
+                                     # 2020 column: 769 MW / 4,618 GWh -> 769 / (4,618/8760) = 1.4587
+
+
+def calibrate_curve():
+    """Solve rho_inf and beta simultaneously so the curve fits both anchors exactly."""
+    def equations(params):
+        rho_inf, beta = params
+        n1, r1 = ANCHOR_ETHIOPIA
+        n2, r2 = ANCHOR_ZAMBIA
+        return [rho_inf + (RHO_1 - rho_inf) * n1 ** (-beta) - r1,
+                rho_inf + (RHO_1 - rho_inf) * n2 ** (-beta) - r2]
+
+    (rho_inf, beta), info, ier, msg = fsolve(equations, x0=[1.0, 0.4], full_output=True)
+    if ier != 1:
+        raise RuntimeError(f"anchor calibration failed to converge: {msg}")
+    return float(rho_inf), float(beta)
+
+
+RHO_INF, BETA = calibrate_curve()
 
 
 def rho_fitted(N):
@@ -61,8 +94,9 @@ def rho_fitted(N):
 
 def self_test():
     print("Self-test: the fitted curve must reproduce the two independent anchors exactly\n")
-    checks = [("Ethiopian residential mini-grid", 450.0, 1.80, 5e-3),
-              ("Zambian national aggregate", 1.3e6, 1.67, 5e-3),
+    print(f"  solved rho_inf = {RHO_INF:.5f}   solved beta = {BETA:.5f}")
+    checks = [("Ethiopian residential mini-grid", *ANCHOR_ETHIOPIA, 1e-6),
+              ("Zambian national aggregate", *ANCHOR_ZAMBIA, 1e-6),
               ("Lorenzoni Peak archetype (kept)", 1.0, 3.98, 1e-9)]
     ok = True
     for name, n, expect, tol in checks:
@@ -71,7 +105,6 @@ def self_test():
         ok &= good
         print(f"  {name:<36} N={n:>9,.0f}  rho={got:.4f}  expect {expect:.2f}"
               f"  {'PASS' if good else 'FAIL'}")
-    import math
     n_mid_eq = math.exp(-math.log((2.43 - RHO_INF) / (RHO_1 - RHO_INF)) / BETA)
     print(f"\n  equivalent N_mid = {n_mid_eq:.2f}  (central assumption: 20; swept 10-50)")
     print(f"  rho at rural median N=2.3 : {float(rho_fitted(2.3)):.3f}  (central curve: 3.394)")
