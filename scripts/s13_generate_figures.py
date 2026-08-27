@@ -152,7 +152,7 @@ def fig0_workflow():
         "Demand assignment\nMTF tiers: urban Tier 5, rural Tier 3\n"
         "→ annual kWh per household", REUSED)
     box(c2x + 0.048, 0.390, c2w - 0.048, 0.185,
-        "R0  —  energy-only\nuniform peak factor\n(unmodified OnSSET)", REUSED)
+        "R0  —  energy-only\nuniform peak factor\n(OnSSET convention)", REUSED)
     box(c2x, 0.130, c2w, 0.185,
         r"R1  —  explicit peak" "\n" r"demand pre-processor:" "\n" r"coincidence curve $\rho(N)$" "\n" r"(built)", BUILT)
 
