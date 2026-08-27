@@ -227,7 +227,7 @@ def fig_validation():
     ax.scatter([443], [2.88], color=RED, marker="s", s=55, zorder=5,
                label=r"Omorate mini-grid, $N$ = 443 (incl. productive): 2.88")
     ax.scatter([1.0e6], [1.4587], color=GREEN, marker="o", s=65, zorder=5,
-               label=r"Zambia residential system 2020, $N \approx 1.0$M: 1.46")
+               label=r"Zambia IRP residential load factor (68.5%): 1.46")
     ax.axhline(P_INF_DEFAULT, color="k", ls="--", lw=0.8, alpha=0.5)
     ax.axhline(P_1_DEFAULT,   color="k", ls=":",  lw=0.8, alpha=0.5)
     ax.set_xscale("log")

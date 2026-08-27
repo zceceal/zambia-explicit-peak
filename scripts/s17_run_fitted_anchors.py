@@ -1,40 +1,60 @@
 #!/usr/bin/env python3
 """
-s17_run_fitted_anchors.py — the R1 arm under a coincidence curve FITTED to the study's own
-independent validation anchors, removing the N_mid assumption entirely.
+s17_run_fitted_anchors.py — the R1 arm under a coincidence curve calibrated to the metered Tum
+mini-grid and Zambia's own national residential load-factor assumption, removing the N_mid
+assumption entirely.
 
 WHY
 ---
 The central calibration fixes rho_inf = 1.45 (Lorenzoni's "Flat" archetype) and derives beta from
-an assumed N_mid = 20. The paper's two external validation anchors play no part in that
-calibration — which means they can be used to FIT the curve instead:
+an assumed N_mid = 20. Two other reference points play no part in that calibration — which means
+they can be used to fit the curve instead. Only one of them is a measurement:
 
-    metered Ethiopian residential mini-grid   rho = 1.80    at N ~ 450   (Wassie & Ahlgren 2024)
-    Zambian national residential aggregate    rho = 1.4587  at N ~ 1.0e6 (IRP Demand Assessment
-                                                                          and Forecast, Table 3.01,
-                                                                          2020: 769 MW / 4,618 GWh)
+    metered Ethiopian residential mini-grid       rho = 1.80    at N ~ 450   (Wassie & Ahlgren
+                                                                              2024, Tum)
+    Zambia's national residential load-factor     rho = 1.4587  at N ~ 1.0e6 (IRP Demand
+    assumption (NOT a measurement — see below)                              Assessment and
+                                                                              Forecast, Table 3.01)
 
-With rho_1 = 3.98 kept at N = 1, the other two anchors pin the remaining two parameters — but, unlike
-the earlier version of this script, NOT by setting rho_inf equal to the raw reading at the second
-anchor's N and deriving beta from the first alone. That shortcut assumed the decaying term
-(rho_1 - rho_inf)*N^-beta is negligible by N = 1e6, which held for the old, faster-decaying fit
-(beta ~= 0.47, residual ~0.003) but does not hold here: fixing rho_inf = 1.4587 and solving beta from
-the Ethiopian anchor alone gives beta = 0.32733, and at that beta the curve has NOT converged by
-N = 1e6 (it gives 1.4861, not 1.4587 — a 0.027 residual, 5x too large to call "negligible"). So both
-parameters are instead solved SIMULTANEOUSLY, as a 2x2 nonlinear system fitting both anchors exactly
-(scipy.optimize.fsolve, done at runtime — see calibrate_curve() below):
+The second point is not an independent observation of national peak-to-mean behaviour. The IRP
+states it directly: "The load factor for demand from the residential sector is constant over the
+modelled period at 68.5%." Table 3.01's two 2020 figures are both generated FROM that one assumed
+load factor, not measured independently of each other: 1/0.685 = 1.4599 (the anchor value, up to
+rounding), and 4,618 GWh / 8,760 h / 0.685 = 769.59 MW, which is exactly the table's stated 769 MW
+peak. Dividing the table's peak by its energy therefore just returns the load-factor assumption the
+table was built from. `rho = 1.4587` is correct arithmetic and a correct reading of the source — it
+is simply Zambia's own planning assumption about national residential load shape, not a metered
+peak-to-mean ratio. It is still worth comparing against: it shows what this model implies at
+national scale next to what Zambia's own planner assumes. It is not external validation by
+measurement, and should never be described as "measured" or "independently validated".
+
+With rho_1 = 3.98 kept at N = 1, the Tum measurement and the IRP load-factor assumption pin the
+remaining two parameters — but NOT by setting rho_inf equal to the raw reading at the second point's
+N and deriving beta from Tum alone. That shortcut (the earlier version of this script) assumed the
+decaying term (rho_1 - rho_inf)*N^-beta is negligible by N = 1e6, which held for the old, faster-
+decaying fit (beta ~= 0.47, residual ~0.003) but does not hold here: fixing rho_inf = 1.4587 and
+solving beta from Tum alone gives beta = 0.32733, and at that beta the curve has NOT converged by
+N = 1e6 (it gives 1.4861, not 1.4587 — a 0.027 residual, 5x too large to call "negligible"). This
+also would have made the paper's own description of the method (§2.4: "the two anchors determine
+[rho_inf and beta] exactly") false. So both parameters are instead solved SIMULTANEOUSLY, as a 2x2
+nonlinear system fitting both points exactly (scipy.optimize.fsolve, done at runtime — see
+calibrate_curve() below):
 
     rho_inf = 1.42545        (solved, not read directly off either anchor)
     beta    = 0.31426        (solved)
     equivalent N_mid = 19.49 (inside the swept 10-50 range)
 
-The fitted curve reproduces both anchors to solver tolerance (<1e-9): 1.800 at 450, 1.4587 at 1.0e6.
+rho_inf comes out slightly below Lorenzoni's own "Flat" archetype of 1.45 — expected, not a defect:
+it reflects that the IRP point at N=1e6 has not fully converged to the curve's asymptote at this
+beta, which pulls the solved floor down a little to fit both points exactly.
+
+The fitted curve reproduces both points to solver tolerance (<1e-9): 1.800 at 450, 1.4587 at 1.0e6.
 The central curve gives 1.816 and 1.482 at those same two N. The fitted curve is essentially on the
 central curve at the rural median (rho 3.39 vs 3.39 at N=2.3 households) and slightly below it at the
 urban median (1.66 vs 1.68 at N=1925).
 
-This is an exactly-determined alternative calibration, not a statistical fit: two anchors, two
-parameters, zero residual by construction. Its value is that it is independent of the Lorenzoni
+This is an exactly-determined alternative calibration, not a statistical fit: two reference points,
+two parameters, zero residual by construction. Its value is that it is independent of the Lorenzoni
 "Flat" archetype and of the N_mid assumption — the paper's one stated free parameter disappears.
 
     python scripts/s17_run_fitted_anchors.py             # one R1 arm; compares to final R0
@@ -62,19 +82,23 @@ YEAR      = 2030
 
 RHO_1 = 3.98   # kept: Lorenzoni "Peak" archetype at N = 1
 
-# The two independent validation anchors. rho_inf and beta below are SOLVED from these,
-# not read off either anchor directly (see WHY above for why that shortcut no longer holds).
-ANCHOR_ETHIOPIA = (450.0, 1.80)      # Wassie & Ahlgren 2024, Tum mini-grid, residential
-ANCHOR_ZAMBIA   = (1.0e6, 1.4587)    # IRP Demand Assessment and Forecast Report, Table 3.01,
-                                     # 2020 column: 769 MW / 4,618 GWh -> 769 / (4,618/8760) = 1.4587
+# The two calibration points. rho_inf and beta below are SOLVED from these, not read off either
+# one directly (see WHY above for why that shortcut no longer holds). Only the first is a
+# measurement; the second is Zambia's own planning assumption, not an independent observation.
+ANCHOR_TUM_MEASURED         = (450.0, 1.80)      # Wassie & Ahlgren 2024, Tum mini-grid, residential
+ANCHOR_ZAMBIA_LOAD_FACTOR   = (1.0e6, 1.4587)    # IRP Demand Assessment and Forecast Report,
+                                                 # Table 3.01, 2020: 769 MW / 4,618 GWh, both
+                                                 # generated from the IRP's stated 68.5% assumed
+                                                 # national residential load factor (1/0.685 = 1.4599)
+                                                 # -> NOT an independent measurement.
 
 
 def calibrate_curve():
-    """Solve rho_inf and beta simultaneously so the curve fits both anchors exactly."""
+    """Solve rho_inf and beta simultaneously so the curve fits both calibration points exactly."""
     def equations(params):
         rho_inf, beta = params
-        n1, r1 = ANCHOR_ETHIOPIA
-        n2, r2 = ANCHOR_ZAMBIA
+        n1, r1 = ANCHOR_TUM_MEASURED
+        n2, r2 = ANCHOR_ZAMBIA_LOAD_FACTOR
         return [rho_inf + (RHO_1 - rho_inf) * n1 ** (-beta) - r1,
                 rho_inf + (RHO_1 - rho_inf) * n2 ** (-beta) - r2]
 
@@ -93,10 +117,10 @@ def rho_fitted(N):
 
 
 def self_test():
-    print("Self-test: the fitted curve must reproduce the two independent anchors exactly\n")
+    print("Self-test: the fitted curve must reproduce both calibration points exactly\n")
     print(f"  solved rho_inf = {RHO_INF:.5f}   solved beta = {BETA:.5f}")
-    checks = [("Ethiopian residential mini-grid", *ANCHOR_ETHIOPIA, 1e-6),
-              ("Zambian national aggregate", *ANCHOR_ZAMBIA, 1e-6),
+    checks = [("Ethiopian residential mini-grid (measured)", *ANCHOR_TUM_MEASURED, 5e-3),
+              ("Zambia IRP load-factor assumption", *ANCHOR_ZAMBIA_LOAD_FACTOR, 5e-3),
               ("Lorenzoni Peak archetype (kept)", 1.0, 3.98, 1e-9)]
     ok = True
     for name, n, expect, tol in checks:
