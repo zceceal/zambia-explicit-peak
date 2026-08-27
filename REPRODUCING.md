@@ -152,7 +152,8 @@ python scripts/s15_run_capex_curve_sensitivity.py --self-test
 python scripts/s15_run_capex_curve_sensitivity.py smooth     # continuous capital-cost curve
 python scripts/s15_run_capex_curve_sensitivity.py monotone   # and with the >1 kW premium removed
 python scripts/s16_run_corrected_conventions.py             # full reinvestment schedule
-python scripts/s17_run_fitted_anchors.py                    # curve fitted to the two measured anchors
+python scripts/s17_run_fitted_anchors.py                    # curve fitted to the metered Tum mini-grid
+                                                              # and Zambia's own IRP load-factor assumption
 python scripts/s18_run_hhsize_sensitivity.py                 # rural household size 4.5 / 5.5 vs census 5.0; four arms, ~7 min
 python scripts/s19_band_and_channel_decomposition.py         # step-crossing and channel-freeze decomposition, no re-solve -> 2026-08_final_band_and_channel_decomposition.csv
 python scripts/check_spine_integrity.py                     # 22 hard checks on the spine, no re-run
@@ -160,12 +161,16 @@ python scripts/check_spine_integrity.py                     # 22 hard checks on 
 
 `s16` returns +50.56% against the +49.92% headline: repricing the only channel that carries the effect
 by 5.9% moves the result by 0.64 pp. `s17` returns **+49.37%** with **34,461** stand-alone-to-grid
-switches (re-run 2026-08-27, after correcting the Zambian national anchor — see below), inside the
-swept band, and removes the `N_mid` assumption by fitting the curve to the study's own two measured
-anchors instead. This is materially closer to the +49.92% central case than the figures an earlier,
-misattributed version of the national anchor produced (+35.6%, 33,549 switches): the corrected anchor
-(rho = 1.4587 at N ~ 1.0e6, IRP Table 3.01) implies an equivalent `N_mid` of 19.49, next to the
-central case's assumed 20, rather than the 10.6 implied by the old, misattributed anchor.
+switches (re-run 2026-08-27, exact two-point solve, after correcting the Zambian calibration point —
+see below), inside the swept band, and removes the `N_mid` assumption by fitting the curve to the
+metered Tum mini-grid and Zambia's own IRP national residential load-factor assumption instead (the
+IRP states residential load factor as constant at 68.5%; it does not measure a national peak-to-mean
+ratio directly — Table 3.01's 769 MW and 4,618 GWh are both generated from that one assumption, so
+rho = 1/0.685 = 1.4587 is a planning parameter, not an independent observation). This is materially
+closer to the +49.92% central case than the figures an earlier, misattributed version of this
+calibration point produced (+35.6%, 33,549 switches): the corrected point (rho = 1.4587 at
+N ~ 1.0e6, IRP Table 3.01) implies a solved equivalent `N_mid` of 19.49, next to the central case's
+assumed 20, rather than the 10.6 implied by the old, misattributed figure.
 `s18` perturbs the census rural household size (5.0) by ±10% and returns
 **+48.10%** with 33,605 stand-alone-to-grid switches at 4.5 persons, and **+51.62%** with 34,694
 switches at 5.5 — a band narrower than the `N_mid` sweep, so household size is not a material driver
