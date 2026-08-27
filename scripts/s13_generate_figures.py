@@ -226,8 +226,8 @@ def fig_validation():
                label=r"Tum mini-grid, $N$ = 450 (residential): 1.80")
     ax.scatter([443], [2.88], color=RED, marker="s", s=55, zorder=5,
                label=r"Omorate mini-grid, $N$ = 443 (incl. productive): 2.88")
-    ax.scatter([1.3e6], [1.67], color=GREEN, marker="o", s=65, zorder=5,
-               label=r"Zambia residential system 2020, $N \approx 1.3$M: 1.67")
+    ax.scatter([1.0e6], [1.4587], color=GREEN, marker="o", s=65, zorder=5,
+               label=r"Zambia residential system 2020, $N \approx 1.0$M: 1.46")
     ax.axhline(P_INF_DEFAULT, color="k", ls="--", lw=0.8, alpha=0.5)
     ax.axhline(P_1_DEFAULT,   color="k", ls=":",  lw=0.8, alpha=0.5)
     ax.set_xscale("log")
