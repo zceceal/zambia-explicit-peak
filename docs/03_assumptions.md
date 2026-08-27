@@ -62,9 +62,16 @@ The peak anchors come from 61 mini-grids worldwide, not from Zambia.
 
 - **Test:** the calibrated curve was checked against three independently measured systems — two
   Ethiopian mini-grids (443 and 450 connections) and the Zambian national residential system
-  (~1.3 million). At **every** tested point the measured value sat on or above the model curve.
-- **Consequence:** the borrowed anchors behave **conservatively** in Zambia. The transfer error runs
-  in the direction that weakens the finding, not strengthens it.
+  (~1.0 million meter points, IRP Demand Assessment and Forecast Report, Table 3.01, 2020 column:
+  769 MW / 4,618 GWh → rho = 1.4587). The Omorate mini-grid (443 connections, 2.88) sits well above
+  the central curve (1.818); the Tum mini-grid (450 connections, 1.80) and the Zambian national
+  aggregate both sit fractionally **below** it (central curve 1.816 and 1.482 respectively) — not
+  "on or above" at every point, as an earlier, misattributed version of the national anchor
+  (rho ≈ 1.67, pairing a 2020 IRP peak with 2019 ERB energy) had implied.
+- **Consequence:** two of the three anchors sit essentially on the curve (within ~1.5%) and one sits
+  materially above it; the borrowed anchors are not uniformly conservative in Zambia the way an
+  earlier draft of this document stated. The direction of the headline result does not depend on
+  this — see Group 1 — but the calibration should not be described as one-sidedly conservative.
 - **Gap:** the small-settlement regime that dominates the country is not directly metered. It rests on
   the measured single-household archetype plus the physical argument.
 
