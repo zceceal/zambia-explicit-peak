@@ -158,7 +158,7 @@ def fig0_workflow():
 
     # ── Column 3: engine (spans both arm levels; arrows meet its left edge) ──
     box(c3x, 0.170, c3w, 0.500,
-        "OnSSET least-cost\nengine (unmodified;\nMentis et al. 2017)\n\n"
+        "OnSSET least-cost\nengine (patched;\nMentis et al. 2017)\n\n"
         "7-technology LCOE\ncomparison per\nsettlement, 2030/2035\n\nrun once per arm", REUSED)
 
     # ── Column 4: outputs and treatment effect ───────────────────────────
