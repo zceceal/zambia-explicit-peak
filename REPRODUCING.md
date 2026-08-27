@@ -159,9 +159,14 @@ python scripts/check_spine_integrity.py                     # 22 hard checks on 
 ```
 
 `s16` returns +50.56% against the +49.92% headline: repricing the only channel that carries the effect
-by 5.9% moves the result by 0.64 pp. `s17` returns +35.6% with 33,549 stand-alone-to-grid switches,
-inside the swept band, and removes the `N_mid` assumption by fitting the curve to the study's own two
-measured anchors instead. `s18` perturbs the census rural household size (5.0) by ±10% and returns
+by 5.9% moves the result by 0.64 pp. `s17` returns **+49.37%** with **34,461** stand-alone-to-grid
+switches (re-run 2026-08-27, after correcting the Zambian national anchor — see below), inside the
+swept band, and removes the `N_mid` assumption by fitting the curve to the study's own two measured
+anchors instead. This is materially closer to the +49.92% central case than the figures an earlier,
+misattributed version of the national anchor produced (+35.6%, 33,549 switches): the corrected anchor
+(rho = 1.4587 at N ~ 1.0e6, IRP Table 3.01) implies an equivalent `N_mid` of 19.49, next to the
+central case's assumed 20, rather than the 10.6 implied by the old, misattributed anchor.
+`s18` perturbs the census rural household size (5.0) by ±10% and returns
 **+48.10%** with 33,605 stand-alone-to-grid switches at 4.5 persons, and **+51.62%** with 34,694
 switches at 5.5 — a band narrower than the `N_mid` sweep, so household size is not a material driver
 of the headline.
