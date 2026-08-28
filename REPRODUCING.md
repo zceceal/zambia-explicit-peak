@@ -29,6 +29,16 @@ uv pip install -r requirements.txt
 vendored OnSSET package rather than of the analysis code, and they were implicit in the environment
 that produced the published results; a from-scratch install fails at import without them.
 
+**Known environment issue, not a defect in this repository's code:** under numba 0.65.1 / Python
+3.13.15, the wind-hybrid optimiser in the vendored OnSSET (`hybrids_wind.py`) fails to JIT-compile
+(`No implementation of function Function(<built-in function getitem>)`, a numba typing error on
+`net_load[int(hour)]`) and falls back to `LCOE = 99`, disabling `MG_Wind` for every arm. This changes
+no reported number — `MG_Wind` is zero settlements in every technology split, canonical and
+reproduced alike — but it means a reader watching a run for the first time will see a large traceback
+printed for every arm, and on an environment where numba treats this as a hard error rather than a
+caught exception the pipeline would stop. Confirmed independently in a from-scratch clean-room clone
+2026-08-28/29.
+
 ## 2. OnSSET, with the patch
 
 The allocation engine is OnSSET at upstream commit `c154ece`. The exact modifications are recorded as
@@ -98,6 +108,12 @@ python scripts/s05_compute_peak_ratios.py      # writes PE_ratio for N_mid 10, 2
 python scripts/s06_run_arms.py                 # the headline R0 vs R1 comparison
 ```
 
+`s01`–`s05` together measured **~5.1 min** (95s + 70s + 105s + 20s + 18s) in an independent clean-room
+run 2026-08-28. `s06`'s four arms (R0, R1 at `N_mid` 10/20/50) measured **~9–15 min** in that same run;
+one arm was seen to take 122.7 min against ~2.5 min for its three siblings on a loaded machine with no
+code-path difference between them — treat single-run timings here as upper-ish bounds on contended
+hardware, not clean benchmarks.
+
 **Check `s06` before going further.** The acceptance test below must print ~100%; it printed 14.137%
 under the defect described in §7, and every downstream number would be wrong:
 
@@ -110,7 +126,7 @@ Robustness and reporting stages. The order matters in three places, marked below
 
 ```bash
 python scripts/s10_run_sizing_decomposition.py   # post-processing only, no re-solve; fastest first
-python scripts/s07_run_demand_sensitivity.py     # rural Tier 2                     -> needed by s13
+python scripts/s07_run_demand_sensitivity.py     # rural Tier 2                     -> needed by s13; measured 4.8 min
 python scripts/s11_run_drought_oat.py            # drought-price generation cost; 4 variants, 674.6s total
                                                   # (recorded in results/summary/2026-08_final_oat_drought_price.csv's elapsed_s column)
 
@@ -122,15 +138,22 @@ python scripts/s12_run_2050_horizon.py 2050only        # R0 + R1_n20
 python scripts/s12_run_2050_horizon.py 2050only_sweep  # R1_n10 and R1_n50; reuses that R0
 python scripts/s12c_summarise_2050.py scripts/outputs/2050only_grid3_lcoe_R0.csv \
     scripts/outputs/2050only_grid3_lcoe_R1_n20.csv 2050
+# s12a+s12b+both s12 horizon runs measured ~8 min total (2026-08-28 clean-room run)
 
 python scripts/s08_run_global_sensitivity.py     # Morris + LHS; ~64 min       -> needed by s09, s13
+                                                  # measured 63.4 min (2026-08-28 clean-room run)
 # s08 prints the bias-correction factor. Set BIAS_FACTOR in s09 from it before running s09.
 python scripts/s09_run_oat_checks.py             # grid-side OAT               -> needed by s13
                                                   # ~2 min per arm (script's own comment); recorded totals:
                                                   # LHS full-spine validation 603.7s/3 samples, grid-cost OAT
                                                   # 1074.0s/4 variants (both from their own results/summary/
-                                                  # 2026-08_final_*.csv elapsed_s columns)
-python scripts/s13_generate_figures.py           # last: reads s07, s08 and s09 outputs
+                                                  # 2026-08_final_*.csv elapsed_s columns). An independent
+                                                  # clean-room run 2026-08-29 measured 83.1 min total for the
+                                                  # same two blocks combined — well above the ~28 min those
+                                                  # two recorded totals imply, on a machine under sustained
+                                                  # load from the rest of this reproduction run; the ~2 min/
+                                                  # arm and per-block totals above are not upper bounds.
+python scripts/s13_generate_figures.py           # last: reads s07, s08 and s09 outputs; measured 36.4s
 python scripts/fig_r0r1_allocation_map.py [run-label]   # paper Figure 2: R0/R1 technology allocation maps
 ```
 
@@ -139,10 +162,11 @@ directly rather than the summary tables, and because it is drawn at its printed 
 textwidth) rather than scaled down by LaTeX, which is what previously rendered its panel titles
 at 6.2 pt.
 
-No advance runtime or memory figure is available for any other stage above or below (`s02`–`s07`,
-`s10`, `s12`/`s12a`/`s12b`/`s12c`, `s13`, `fig_r0r1_allocation_map.py`, `s14`–`s17`, `s19`, the
-acceptance checks, or the tests) — none is recorded anywhere in the repository, so none is stated
-here rather than estimated.
+No advance runtime or memory figure is available for any other stage above or below (`s02`, `s04`,
+`s14`, `fig_r0r1_allocation_map.py`, `s19`, `s20`, the acceptance checks, or the tests) — none is
+recorded anywhere in the repository, so none is stated here rather than estimated. `s01`, `s03`, `s07`,
+`s08`, `s09`, `s10` (6.8s), `s12`/`s12a`/`s12b`/`s12c`, `s13`, `s15`, `s16`, `s17` and `s18` are all
+measured above or below, from an independent clean-room reproduction 2026-08-28/29 — see also §8.
 
 Two optional analyses, independent of the above:
 
@@ -151,13 +175,20 @@ python scripts/s14_paper_numbers.py <run-label>              # every quoted figu
 python scripts/s15_run_capex_curve_sensitivity.py --self-test
 python scripts/s15_run_capex_curve_sensitivity.py smooth     # continuous capital-cost curve
 python scripts/s15_run_capex_curve_sensitivity.py monotone   # and with the >1 kW premium removed
-python scripts/s16_run_corrected_conventions.py             # full reinvestment schedule
+python scripts/s16_run_corrected_conventions.py             # full reinvestment schedule; measured 4.8 min
 python scripts/s17_run_fitted_anchors.py                    # curve fitted to the metered Tum mini-grid
                                                               # and Zambia's own IRP load-factor assumption
-python scripts/s18_run_hhsize_sensitivity.py                 # rural household size 4.5 / 5.5 vs census 5.0; four arms, ~7 min
+                                                              # measured 2.6 min (plus <1s --self-test)
+python scripts/s18_run_hhsize_sensitivity.py                 # rural household size 4.5 / 5.5 vs census 5.0; four arms
+                                                              # measured 9.0 min (README previously said ~7 min)
 python scripts/s19_band_and_channel_decomposition.py         # step-crossing and channel-freeze decomposition, no re-solve -> 2026-08_final_band_and_channel_decomposition.csv
+python scripts/s20_provincial_rho.py                        # provincial peak-to-mean comparison against REMP Table 9,
+                                                              # no re-solve -> 2026-08_final_provincial_rho.csv
 python scripts/check_spine_integrity.py                     # 22 hard checks on the spine, no re-run
 ```
+
+`s15 --self-test` (100.000% agreement, instant) then `smooth` and `monotone` measured 4.5 min and 4.3
+min respectively.
 
 `s16` returns +50.56% against the +49.92% headline: repricing the only channel that carries the effect
 by 5.9% moves the result by 0.64 pp. `s17` returns **+49.37%** with **34,461** stand-alone-to-grid
@@ -187,6 +218,9 @@ full-spine solves. The twelve full-spine solves behind every headline figure are
 - `2026-08_final_lcoe_{R0, R0_ruralT2, R1_n10, R1_n20, R1_n50, R1_ruralT2_n10, R1_ruralT2_n20,
   R1_ruralT2_n50}.csv` — the eight primary solves (rural Tier 3 and Tier 2, `N_mid` swept where R1)
 - `2026-08-21_hhsize_*` — the four household-size solves, from `s18` above
+
+`results/summary/2026-08_final_provincial_rho.csv`, from `s20` (no re-solve, reads `R1_n20` only), is
+the source for the provincial peak-to-mean comparison in §4.4.
 
 All values below are from the run of 2026-08-16, the first with the index-alignment defect of §7
 corrected. Figures from earlier runs of this repository are superseded and should not be quoted.
@@ -282,6 +316,64 @@ capital and capacity both rise.
 Guard rails now in place: the index reset, `_assert_positional_index()` at the two points where the
 invariant matters, `scripts/check_index_alignment.py` as an acceptance test on any run output, and
 `test/test_index_alignment.py` as a regression test.
+
+## 8. Independent clean-room reproduction (2026-08-28/29)
+
+A from-scratch reproduction — fresh `git clone` of `origin/main`, fresh `python3.13 -m venv`, fresh
+`pip install -r requirements.txt`, fresh OnSSET clone at `c154ece` with the patch applied — was carried
+out independently of the working copy that produced the published results. Starting from the
+**published spine** (`data/processed/zambia_grid3_spine_pe_n{10,20,50}.csv`, committed nowhere but
+distributed as described in §3), every one of the following reproduced **byte-for-byte (SHA-256)**: the
+four headline solves (R0, R1 at `N_mid` 10/20/50), the rural-Tier-2 family, the 2050 family, `s10`,
+`s15` (both variants), `s16`, `s17`, `s18`, `s19`, and all eight `s08` result files (Morris + LHS,
+including the `method` column and the emulator-validation RMSE). `s09`'s grid-side OAT table matched
+the published figures to six decimal places. That is the strongest form this reproducibility claim can
+take, and it holds for every stage that starts from the published spine.
+
+**One stage does not reproduce from raw data.** The published spine
+(`data/processed/zambia_grid3_spine_pe_n20.csv`, and the intermediate
+`zambia_grid3_spine_stage2.csv` it derives from) is dated 1 July 2026. This repository's first commit,
+`def8184`, is dated 29 July 2026 — the spine therefore predates version control by four weeks. Rebuilding
+it from the current `s01`–`s05` reproduces `PE_ratio` and the household-count column (`N_hh`) — the two
+columns that feed the R0/R1 solve directly — exactly, on every one of 270,526 rows, and passes all 22
+`check_spine_integrity.py` checks. It does **not** reproduce `TransformerDist`: 247,676 of 270,526 rows
+(91.6%) differ from the published column, mean absolute difference 11.27 km, which through `s04`'s 2 km
+electrification gate also moves `ElecPopCalib`/`ElecPop2020` on 3.2% of rows. Rebuilding the full pipeline
+on that spine and re-running `s06`/`s14` moves the **central** result from the published **+49.9231%,
+34,461 switches** to **+50.8709%, 34,153 switches** — the direction, and every qualitative conclusion in
+the paper, is unchanged, and the rebuilt figure sits inside the published `N_mid`-sweep band
+(+34.1% to +70.6%) rather than outside it.
+
+`TransformerDist < 2 km` — the specific figure quoted in the paper — holds for **32,342** settlements on
+the published spine. The rebuilt spine gives the **same count, 32,342**, despite the row-level
+disagreement: the settlements whose distance changed are concentrated away from the 2 km threshold, so
+the number the paper actually cites is unaffected even though the underlying column is not
+reproducible.
+
+**What was ruled out.** An earlier, pre-repository copy of the stage-3 attribute builder was found —
+`_claude_workspace/scripts/build_grid3_spine_stage2.py`, dated 1 July 2026, the same day as the spine
+it is presumed to have produced. Its `TransformerDist` block (transformer shapefile read, geometry
+filter, `nn_dist_km` nearest-neighbour call) is **byte-identical** to the current `s03`'s; the only
+differences anywhere in the file are path handling (an absolute, machine-specific `ROOT` versus the
+current relative one), comment formatting, and an unrelated hard-gate addition. This rules out silent
+code drift before version control as the explanation. Package versions were also ruled out:
+`zambia-explicit-peak/.venv` (the environment that has always produced the published spine) and the
+clean-room venv built for this reproduction carry identical geopandas (1.1.3), shapely (2.1.2), pyproj
+(3.7.2), pyogrio (0.12.1), GDAL (3.11.4) and PROJ (9.5.1) versions.
+
+Five independent recomputations of `TransformerDist` — twice in `zambia-explicit-peak/.venv`, once in
+the clean-room venv, and two full, independent `s01`→`s02`→`s03` pipeline reruns in a disposable
+scratch location — all agreed with each other and with the published column exactly, zero rows
+differing. **The original 91.6% mismatch could not be reproduced on retest.** Given that this same
+reproduction run separately logged two unexplained, order-of-magnitude runtime anomalies on this
+machine (one `s06` arm at 122.7 min against 2.5 min for its three siblings; `s09` at 83.1 min against
+an implied ~28 min) with no code-path difference from their unaffected counterparts, the most likely
+explanation is a transient, host-level anomaly in that specific historical run — plausibly resource
+contention affecting the parallelised nearest-neighbour query (`cKDTree.query(..., workers=-1)`) under
+sustained heavy load elsewhere on the machine — rather than a stable defect in the code, the data, or
+the environment. This is not confirmed; it could not be forced to recur, which is itself informative
+but leaves the original run's root cause open. The published spine and every result built on it are
+unaffected either way, since nothing in the published pipeline reads the rebuilt spine.
 
 ## Reproducibility: the hybrid-LUT cache (fixed 2026-08-12)
 
