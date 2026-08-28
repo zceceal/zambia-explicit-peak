@@ -139,8 +139,11 @@ METRIC_COLS = [f"MinimumOverallLCOE{YEAR}", f"EnergyPerSettlement{YEAR}",
 
 
 def preflight() -> int:
-    """Refuse to start if any output path already exists. Nothing here may overwrite."""
-    intended = [SUMMARY_CSV]
+    """Refuse to start if any per-settlement solve output already exists — those are large,
+    unique per run, and nothing here may silently overwrite one. SUMMARY_CSV is exempt: it is
+    committed to the repository (so it exists on every fresh clone) and rewriting it with a
+    freshly-solved, identical-or-corrected value is this script's own job, run to run."""
+    intended = []
     for s in HH_RURAL_SWEEP:
         intended += list(arm_paths(s).values())
     clash = [p for p in intended if p.exists()]
@@ -150,6 +153,8 @@ def preflight() -> int:
             print(f"    {p}")
         return 1
     print(f"  output collision check: {len(intended)} intended paths, none exist — PASS")
+    if SUMMARY_CSV.exists():
+        print(f"  {SUMMARY_CSV.name} already exists (committed reference) — will be overwritten")
     for p in (R0_CENTRAL, R1_CENTRAL):
         if not p.exists():
             print(f"  missing canonical reference {p.name} — run s06 first")
