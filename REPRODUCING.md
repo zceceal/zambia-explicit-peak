@@ -171,7 +171,8 @@ measured above or below, from an independent clean-room reproduction 2026-08-28/
 Two optional analyses, independent of the above:
 
 ```bash
-python scripts/s14_paper_numbers.py <run-label>              # every quoted figure, in one table
+python scripts/s14_paper_numbers.py <run-label>              # every quoted figure, in one table;
+                                                              # also writes results/summary/<run-label>_paper_numbers.csv
 python scripts/s15_run_capex_curve_sensitivity.py --self-test
 python scripts/s15_run_capex_curve_sensitivity.py smooth     # continuous capital-cost curve
 python scripts/s15_run_capex_curve_sensitivity.py monotone   # and with the >1 kW premium removed
@@ -197,7 +198,9 @@ see below), inside the swept band, and removes the `N_mid` assumption by fitting
 metered Tum mini-grid and Zambia's own IRP national residential load-factor assumption instead (the
 IRP states residential load factor as constant at 68.5%; it does not measure a national peak-to-mean
 ratio directly — Table 3.01's 769 MW and 4,618 GWh are both generated from that one assumption, so
-rho = 1/0.685 = 1.4587 is a planning parameter, not an independent observation). This is materially
+rho = 769 / (4,618,000 / 8,760) = 1.4587 — the table's own peak over its own mean, not 1/0.685 (which
+gives 1.4599; the two differ only because 769 MW is itself rounded in the source table) — is a
+planning parameter, not an independent observation). This is materially
 closer to the +49.92% central case than the figures an earlier, misattributed version of this
 calibration point produced (+35.6%, 33,549 switches): the corrected point (rho = 1.4587 at
 N ~ 1.0e6, IRP Table 3.01) implies a solved equivalent `N_mid` of 19.49, next to the central case's
@@ -221,6 +224,14 @@ full-spine solves. The twelve full-spine solves behind every headline figure are
 
 `results/summary/2026-08_final_provincial_rho.csv`, from `s20` (no re-solve, reads `R1_n20` only), is
 the source for the provincial peak-to-mean comparison in §4.4.
+
+`results/summary/2026-08_final_lcoe_paper_numbers.csv`, from `s14`, is the machine-readable source for
+every number in this section and in the paper's Table 2, §3.1 and §3.2. **Do not use
+`results/summary/2026-08_final_lcoe_tech_split.csv`'s `population` column for a population share of the
+2030 allocation** — that column is base-year (`Pop`, ~18.38 M total), not the projected 2030 population
+(`Pop2030`, 24.38 M total) the paper quotes; using it gives, for example, a grid share of 58.35% where
+the paper states 62.8%. `s14`'s own technology-split table and `2026-08_final_lcoe_paper_numbers.csv`
+use `Pop2030` throughout and reproduce the paper's figures exactly.
 
 All values below are from the run of 2026-08-16, the first with the index-alignment defect of §7
 corrected. Figures from earlier runs of this repository are superseded and should not be quoted.
@@ -350,13 +361,13 @@ disagreement: the settlements whose distance changed are concentrated away from 
 the number the paper actually cites is unaffected even though the underlying column is not
 reproducible.
 
-**What was ruled out.** An earlier, pre-repository copy of the stage-3 attribute builder was found —
-`_claude_workspace/scripts/build_grid3_spine_stage2.py`, dated 1 July 2026, the same day as the spine
-it is presumed to have produced. Its `TransformerDist` block (transformer shapefile read, geometry
-filter, `nn_dist_km` nearest-neighbour call) is **byte-identical** to the current `s03`'s; the only
-differences anywhere in the file are path handling (an absolute, machine-specific `ROOT` versus the
-current relative one), comment formatting, and an unrelated hard-gate addition. This rules out silent
-code drift before version control as the explanation. Package versions were also ruled out:
+**What was ruled out.** An earlier, pre-repository copy of the stage-3 attribute builder, dated 1 July
+2026 and kept outside version control, was located — the same day as the spine it is presumed to have
+produced. Its `TransformerDist` block (transformer shapefile read, geometry filter, `nn_dist_km`
+nearest-neighbour call) is **byte-identical** to the current `s03`'s; the only differences anywhere in
+the file are path handling (an absolute, machine-specific `ROOT` versus the current relative one),
+comment formatting, and an unrelated hard-gate addition. This rules out silent code drift before
+version control as the explanation. Package versions were also ruled out:
 `zambia-explicit-peak/.venv` (the environment that has always produced the published spine) and the
 clean-room venv built for this reproduction carry identical geopandas (1.1.3), shapely (2.1.2), pyproj
 (3.7.2), pyogrio (0.12.1), GDAL (3.11.4) and PROJ (9.5.1) versions.
