@@ -1,3 +1,18 @@
+"""
+s12a_build_2050_peak_ratios.py — how much does population growth to 2050 erode the peak-to-energy
+signal, and what does the central (uniform-growth) 2050 peak ratio look like per settlement?
+
+Reads:  data/processed/zambia_grid3_spine_pe_n20.csv (central N_mid=20 spine, PE_ratio at 2030)
+        data/processed/zambia_grid3_calib_distgate.csv (for IsUrban, to split urban/rural growth)
+Writes (to the current working directory, not data/processed/):
+  zambia_settlements_PE_2050_uniform.csv — the central-case (uniform growth) 2050 PE_ratio/N_hh,
+    consumed by s12b to build the 2050 spine
+  pe_2050_erosion_summary.csv — median/rural-median/pop-weighted PE_ratio and the "signal excess"
+    (population-weighted mean of max(PE_ratio-2, 0)) under four growth scenarios: the 2035-static
+    baseline, uniform 2050 growth, and two urban-share sensitivities (60%/63% of 2050 growth urban)
+
+Usage:  python scripts/s12a_build_2050_peak_ratios.py [POP2050_total]   # default 34.5e6
+"""
 import pandas as pd, numpy as np, sys
 from pathlib import Path
 BASE = str(Path(__file__).resolve().parent.parent / "data" / "processed") + "/"
