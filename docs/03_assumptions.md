@@ -63,9 +63,10 @@ The peak anchors come from 61 mini-grids worldwide, not from Zambia.
 - **Test:** the calibrated curve was checked against two metered Ethiopian mini-grids (443 and 450
   connections) and one national planning parameter, **not** a third measurement — Zambia's own IRP
   assumes a constant 68.5% residential load factor nationally (Demand Assessment and Forecast
-  Report), giving rho = 1/0.685 = 1.4587 at ~1.0 million meter points; Table 3.01's 769 MW and
-  4,618 GWh (2020) are both generated from that one assumption, not measured independently of each
-  other. The comparison is still informative — it shows what this model implies at national scale
+  Report). Table 3.01's 769 MW and 4,618 GWh (2020) are both generated from that one assumption, not
+  measured independently of each other, giving rho = 769 / (4,618,000 / 8,760) = 1.4587 at
+  ~1.0 million meter points — the table's own peak over its own mean, not 1/0.685 (which gives
+  1.4599; the two differ only because 769 MW is itself rounded in the source table). The comparison is still informative — it shows what this model implies at national scale
   next to what Zambia's own planner assumes — but it is not external validation by measurement, and
   should not be called one. The Omorate mini-grid (443 connections, 2.88) sits well above the central
   curve (1.818); the Tum mini-grid (450 connections, 1.80) and the Zambian load-factor point both sit
