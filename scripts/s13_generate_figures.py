@@ -202,7 +202,7 @@ def fig_curve():
     ax.axhline(P_INF_DEFAULT, color="k", ls="--", lw=0.7, alpha=0.6)
     ax.axhline(P_1_DEFAULT,   color="k", ls=":",  lw=0.7, alpha=0.6)
     ax.set_xscale("log")
-    ax.set_xlabel("Number of connected households, $N$", fontsize=8.5)
+    ax.set_xlabel("Number of connections, $N$", fontsize=8.5)
     ax.set_ylabel(r"Peak-to-mean ratio $\rho$", fontsize=8.5)
     ax.tick_params(labelsize=7.5)
     ax.set_ylim(1.0, 4.6)
@@ -223,15 +223,15 @@ def fig_validation():
     ax.plot(N, pe_from_n(N, N_mid=10), color=BLUE, lw=1.2, ls="--", label=r"$N_\mathrm{mid}$ = 10")
     ax.plot(N, pe_from_n(N, N_mid=50), color=BLUE, lw=1.2, ls=":",  label=r"$N_\mathrm{mid}$ = 50")
     ax.scatter([450], [1.80], color=RED, marker="^", s=60, zorder=5,
-               label=r"Tum mini-grid, $N$ = 450 (residential): 1.80")
+               label=r"Tum mini-grid, $N$ = 450 (9% productive): 1.80")
     ax.scatter([443], [2.88], color=RED, marker="s", s=55, zorder=5,
-               label=r"Omorate mini-grid, $N$ = 443 (incl. productive): 2.88")
+               label=r"Omorate mini-grid, $N$ = 443 (25% productive): 2.88")
     ax.scatter([1.0e6], [1.4587], color=GREEN, marker="o", s=65, zorder=5,
                label=r"Zambia IRP residential load factor (68.5%): 1.46")
     ax.axhline(P_INF_DEFAULT, color="k", ls="--", lw=0.8, alpha=0.5)
     ax.axhline(P_1_DEFAULT,   color="k", ls=":",  lw=0.8, alpha=0.5)
     ax.set_xscale("log")
-    ax.set_xlabel("Number of connected households, $N$")
+    ax.set_xlabel("Number of connections, $N$")
     ax.set_ylabel(r"Peak-to-mean ratio $\rho$")
     ax.set_ylim(1.0, 4.6)
     ax.grid(ls="--", alpha=0.35)
