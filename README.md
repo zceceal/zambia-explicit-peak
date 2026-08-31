@@ -23,8 +23,10 @@ in `patches/`, verified against upstream `c154ece`; the acceptance and regressio
 `results/summary/` — the committed, machine-readable CSVs behind the numbers this README and the paper
 report. In particular, `results/summary/2026-08_final_lcoe_paper_numbers.csv` (from `s14`) carries every
 figure in the paper's Table 2 and §3.1-3.2, and `2026-08_final_provincial_rho.csv` (from `s20`) carries
-§4.4's provincial comparison. This is enough to read the code, run the tests, and check any reported
-number without obtaining anything else.
+§4.4's provincial comparison. This is enough to read the code, run the tests, and check the headline
+results, the `N_mid` sweep, the sizing-convention decomposition, the OAT and drought variants and the
+household-size sensitivity. The Tier-2, 2050-horizon and anchor-fitted variants report numbers from
+per-settlement solves that are not committed here, for size. Those require the input data.
 
 **2. With the input data, obtained separately, the full pipeline solves.** `docs/04_data_sources.md`
 lists every source, its vintage and its licence. The data are not redistributed here because their
