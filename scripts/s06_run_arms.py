@@ -32,7 +32,11 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-warnings.filterwarnings("ignore")
+# Scoped to third-party deprecation noise only. RuntimeWarning (divide-by-zero,
+# overflow, invalid value) and every other category stay visible, so a numerical
+# fault surfaces rather than being silently discarded.
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent
@@ -423,12 +427,13 @@ def main():
     print(f"  Mean wind (corrected to 20m): {wind_profile.mean():.2f} m/s")
 
     print(f"\nLoading transmission network …")
-    try:
-        x_tx, y_tx = SettlementProcessor.start_extension_points(str(TX_SHP))
-        print(f"  Starting points: {len(x_tx):,}")
-    except Exception as e:
-        print(f"  ERROR loading TX network: {e}")
-        x_tx, y_tx = np.array([]), np.array([])
+    x_tx, y_tx = SettlementProcessor.start_extension_points(str(TX_SHP))
+    print(f"  Starting points: {len(x_tx):,}")
+    if len(x_tx) == 0:
+        raise RuntimeError(
+            f"transmission network at {TX_SHP} yielded zero starting points; "
+            "grid extension would be silently disabled and the run would be wrong"
+        )
 
     years = cfg["scenario"]["years_of_analysis"]
 

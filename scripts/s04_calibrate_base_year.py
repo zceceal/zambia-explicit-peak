@@ -36,6 +36,12 @@ Thresholds used for Variant B (NTL proxy):
 
 Both variants share the same urban/population calibration step:
   PopStartYear = 18,383,956 (WorldPop 2020 UN-adj; from specs_zambia.xlsx)
+    This is the input CONTROL TOTAL handed to the calibration. The REALISED
+    total the spine carries afterwards is 18,383,608, a ~0.002% difference
+    arising from per-settlement rounding in the calibration step. The realised
+    figure is the one reported in the paper and is written to
+    results/summary/<run>_paper_numbers.csv by s14 as
+    base_year_population_realised.
   UrbanRatioStartYear = 0.437 (UN WPP 2024)
 
 Do NOT run LCOE. Do NOT modify stage2 spine.
@@ -45,7 +51,6 @@ import sys
 from pathlib import Path
 import pandas as pd
 import numpy as np
-import shutil
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent

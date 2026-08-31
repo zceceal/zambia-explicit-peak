@@ -1,6 +1,17 @@
 """
 test_onsset_install.py — end-to-end sanity check that the OnSSET install works.
 
+Standalone script, not a pytest module: run it directly as
+`python test/test_onsset_install.py`. It has no test_-prefixed functions, so
+`pytest test/` collects nothing from it by design.
+
+Known limitation: against the bundled upstream Djibouti fixture this check
+currently raises KeyError: 'MGDist'. The same failure reproduces on plain,
+unpatched upstream OnSSET at c154ece, so it originates upstream and is
+unrelated to the patch in patches/. It does not touch any Zambia result. The
+Zambia pipeline is verified instead by test/test_pe_diversity.py,
+test/test_index_alignment.py and scripts/s14_paper_numbers.py.
+
 Gate criteria:
   1. onsset.SettlementProcessor loads and processes the Djibouti test CSV without error
   2. Calibration step runs to completion (population, urban ratio, electrification calibrated)

@@ -9,14 +9,17 @@ Task 5: Trace InvestmentCost2030 and NewConnections2030 definitions; determine w
 aggregate reads ~$20k/HH; state correct formula for defensible per-connection metric.
 """
 
-import sys
 import warnings
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-warnings.filterwarnings("ignore")
+# Scoped to third-party deprecation noise only. RuntimeWarning (divide-by-zero,
+# overflow, invalid value) and every other category stay visible, so a numerical
+# fault surfaces rather than being silently discarded.
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 HERE   = Path(__file__).resolve().parent
 REPO   = HERE.parent

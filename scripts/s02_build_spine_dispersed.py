@@ -12,7 +12,11 @@ Run with the project venv:
 """
 
 import warnings
-warnings.filterwarnings('ignore')
+# Scoped to third-party deprecation noise only. RuntimeWarning (divide-by-zero,
+# overflow, invalid value) and every other category stay visible, so a numerical
+# fault surfaces rather than being silently discarded.
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 import time
 from pathlib import Path
