@@ -4,7 +4,6 @@ Unit tests for pe_diversity.py.
 Run with:  python -m pytest test_pe_diversity.py -v
 Or standalone:  python test_pe_diversity.py
 """
-import math
 import sys
 import os
 import numpy as np

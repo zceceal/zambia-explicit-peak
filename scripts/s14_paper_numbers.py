@@ -63,6 +63,10 @@ def main(run_label):
         return 1
 
     rows = [{"n_mid": "", "quantity": "index_alignment_r0_pct", "value": a0}]
+    # Realised post-calibration base-year population: the sum the spine actually
+    # carries, distinct from the control total in specs_zambia.xlsx (see s04).
+    rows.append({"n_mid": "", "quantity": "base_year_population_realised",
+                 "value": float(r0["Pop"].sum())})
 
     for n_mid in (20, 10, 50):
         path = OUT / f"{run_label}_R1_n{n_mid}.csv"

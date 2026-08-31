@@ -29,14 +29,17 @@ Profile source: renewables.ninja, Lusaka (−15.42, 28.28), year 2025, MERRA-2.
 import sys
 import time
 import warnings
-from datetime import datetime
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import yaml
 
-warnings.filterwarnings("ignore")
+# Scoped to third-party deprecation noise only. RuntimeWarning (divide-by-zero,
+# overflow, invalid value) and every other category stay visible, so a numerical
+# fault surfaces rather than being silently discarded.
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent

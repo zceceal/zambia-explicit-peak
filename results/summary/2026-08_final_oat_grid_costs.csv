@@ -1,5 +1,5 @@
 variant,grid_cap_cost,grid_gen_cost,delta_lcoe_pct,switch_count,elapsed_s,note
-central,1441.1,0.013,49.923139018903605,34461,281.098680973053,Gate check — must reproduce +49.7%/34461
-cap-30pct,1008.7699999999999,0.013,49.923139018903605,34461,282.97508931159973,Grid cap cost −30% (lower bound Egli 2023 cross-country range)
-cap+30pct,1873.4299999999998,0.013,49.923139018903605,34461,261.38290190696716,Grid cap cost +30% (upper bound Egli 2023 cross-country range)
-gen-drought,1441.1,0.05,45.649719657443285,35092,248.5601978302002,Grid gen cost 0.05 USD/kWh (drought / new-build proxy)
+central,1441.1,0.013,49.923139018903605,34461,234.27649402618408,Gate check — must reproduce +49.9%/34461
+cap-30pct,1008.7699999999999,0.013,49.923139018903605,34461,2379.5420269966125,Grid cap cost −30% (lower bound Egli 2023 cross-country range)
+cap+30pct,1873.4299999999998,0.013,49.923139018903605,34461,255.5684700012207,Grid cap cost +30% (upper bound Egli 2023 cross-country range)
+gen-drought,1441.1,0.05,45.649719657443285,35092,237.79117107391357,Grid gen cost 0.05 USD/kWh (drought / new-build proxy)
