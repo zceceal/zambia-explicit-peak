@@ -191,6 +191,9 @@ python scripts/check_mv_sources.py                          # which layer sets e
                                                               # -> 2026-09-02_mv_distance_sources.csv
 python scripts/s22_run_mv_layer_sensitivity.py              # ZESCO record as the only MV layer vs the published minimum
                                                               # over ZESCO, Meta, OSM; two arms -> 2026-09-02_mv_layer_sensitivity.csv
+python scripts/s23_summarise_variants.py                    # Tier-2, 2050, anchor-fitted, schedule, reinvestment and
+                                                              # single-household summaries from existing outputs, no re-solve
+                                                              # -> 2026-09-02_variant_summaries.csv
 python scripts/check_spine_integrity.py                     # 22 hard checks on the spine, no re-run
 ```
 

@@ -22,17 +22,17 @@ Three tiers, stated as a boundary rather than left implicit.
 in `patches/`, verified against upstream `c154ece`; the acceptance and regression tests in `test/`; and
 `results/summary/` — the committed, machine-readable CSVs behind the numbers this README and the paper
 report. In particular, `results/summary/2026-08_final_lcoe_paper_numbers.csv` (from `s14`) carries every
-figure in the paper's Table 2 and §3.1-3.2, and `2026-08_final_provincial_rho.csv` (from `s20`) carries
-§4.4's provincial comparison. This is enough to read the code, run the tests, and check the headline
-results, the `N_mid` sweep, the sizing-convention decomposition, the OAT and drought variants and the
-household-size sensitivity. The Tier-2, 2050-horizon and anchor-fitted variants report numbers from
-per-settlement solves that are not committed here, for size. Those require the input data.
+figure in the paper's Table 2 and §3.1-3.2, `2026-09-02_variant_summaries.csv` (from `s23`) the
+Tier-2, 2050-horizon, anchor-fitted, capital-cost-schedule, replacement-schedule and single-household
+variants, and `2026-08_final_provincial_rho.csv` (from `s20`) §4.4's provincial comparison. This is
+enough to read the code, run the tests, and check every number the paper reports. The per-settlement
+solves behind them are not committed, for size; regenerating them requires the input data.
 
 **2. With the input data, obtained separately, the full pipeline solves.** `docs/04_data_sources.md`
 lists every source, its vintage and its licence. The data are not redistributed here because their
 licences do not permit it — GRID3 is CC BY-SA 4.0 (share-alike), the renewables.ninja profiles are
 CC BY-NC (non-commercial), and several others carry their own terms — not because the roughly 17 GB was
-simply left out. With the data in place as `docs/04_data_sources.md` describes, `s01` through `s22` run
+simply left out. With the data in place as `docs/04_data_sources.md` describes, `s01` through `s23` run
 end to end and reproduce every committed number byte-for-byte (§8 of `REPRODUCING.md`). The
 per-settlement outputs behind the two allocation/switching maps (`fig_results_switching_map.pdf`,
 `fig_results_r0_r1_allocation_map.pdf`; ~11 GB, gitignored) are not committed either, for size rather
@@ -136,7 +136,7 @@ docs/                    pipeline, variables, assumptions, data sources
 patches/                 the changes to the OnSSET core, and why
 peak_preprocessor/       the study's contribution: the peak-to-energy sub-model
 scripts/                 the pipeline, in run order (s01 … s13), the standalone
-                         analyses s14 … s22, and the three acceptance checks
+                         analyses s14 … s23, and the three acceptance checks
                          (check_index_alignment.py, check_spine_integrity.py,
                          check_mv_sources.py)
 test/                    unit tests for the sub-model; OnSSET install check;
