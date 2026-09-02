@@ -377,7 +377,7 @@ def task0_lhs_validation(spine_n20, cfg_base, x_tx, y_tx,
         label = ["P5", "P50", "P95"][i]
         print(f"\n  [{i+1}/3] Sample {int(row['sample'])} ({label}):")
         print(f"    P1={p1_s:.3f}  Pinf={p_inf_s:.3f}  Pstep={p_step_s:.3f}")
-        print(f"    discount_rate={dr_s:.3f}  diesel={dp_s:.2f}  N_mid={nm_s:.0f}")
+        print(f"    discount_rate={dr_s:.3f}  diesel={dp_s:.2f}  N_mid={nm_s:.1f}")
         print(f"    Subsample: raw={sub_raw:+.2f}%  corrected={sub_cor:+.2f}%  sw={sub_sw:.0f}")
 
         cfg_s = copy.deepcopy(cfg_base)
@@ -385,11 +385,10 @@ def task0_lhs_validation(spine_n20, cfg_base, x_tx, y_tx,
             cfg_s["discount_rates"][k] = float(dr_s)
         cfg_s["diesel_price_usd_per_l"] = float(dp_s)
 
-        nm_int = int(round(nm_s / 10.0) * 10)
-        nm_int = max(10, min(50, nm_int))
+        nm = max(10.0, min(50.0, float(nm_s)))      # the sampled value, as s08 solved it
 
         spine_r0, spine_r1 = make_full_pair(
-            spine_n20, n_mid=nm_int,
+            spine_n20, n_mid=nm,
             p1=p1_s, p_inf=p_inf_s, p_step=p_step_s
         )
 
@@ -397,11 +396,11 @@ def task0_lhs_validation(spine_n20, cfg_base, x_tx, y_tx,
         print(f"    Running R0 on full spine …")
         df_r0 = run_arm_full("LHS_val_R0", spine_r0, cfg_s, x_tx, y_tx,
                               ghi_profile, temp_profile, wind_profile,
-                              n_mid=None, pv_lut_cache=pv_lut_cache, silent=True)
+                              n_mid=None, pv_lut_cache=None, silent=True)
         print(f"    Running R1 on full spine …")
         df_r1 = run_arm_full("LHS_val_R1", spine_r1, cfg_s, x_tx, y_tx,
                               ghi_profile, temp_profile, wind_profile,
-                              n_mid=nm_int, pv_lut_cache=pv_lut_cache, silent=True)
+                              n_mid=nm, pv_lut_cache=None, silent=True)
 
         full_delta = compute_delta_lcoe_pct(df_r0, df_r1)
         full_sw    = count_sapv_to_grid(df_r0, df_r1)
@@ -430,7 +429,7 @@ def task0_lhs_validation(spine_n20, cfg_base, x_tx, y_tx,
         })
 
     df_out = pd.DataFrame(results)
-    out_path = OUTDIR / "2026-08_final_lhs_fullspine_validation.csv"
+    out_path = OUTDIR / "2026-09-02_lhs_fullspine_validation.csv"
     df_out.to_csv(out_path, index=False)
     print(f"\n  Saved: {out_path.name}")
     return df_out
@@ -590,14 +589,9 @@ def main():
             )
     print(f"  Loaded: {len(spine_n20):,} settlements")
 
-    # Shared PV-hybrid lookup cache — built lazily on first run_arm_full call.
-    # The cache is populated by the first R0 arm run (central case params for the
-    # MG_PVHybrid diesel range; subsequent arms with different diesel prices or grid
-    # costs reuse the cache, introducing a small approximation for MG_PVHybrid only
-    # (~0.3% of settlements, <0.5pp on ΔLCOE% — same documented approximation as
-    # the Stage-5 GSA subsample approach).
-    print("\n[3/5] PV-hybrid lookup cache will be built on first arm run (central diesel price).")
-    pv_lut_cache = {}
+    # The PV-hybrid lookup table is rebuilt inside every arm (pv_lut_cache=None), as s06 does.
+    print("\n[3/5] PV-hybrid lookup table rebuilt per arm.")
+    pv_lut_cache = None
 
     # Task 0 addendum: LHS full-spine validation
     print("\n[4/5] Task 0 addendum — LHS full-spine validation …")
@@ -605,6 +599,13 @@ def main():
         spine_n20, cfg_base, x_tx, y_tx,
         ghi_profile, temp_profile, wind_profile, pv_lut_cache
     )
+
+    if "--lhs-only" in sys.argv:
+        print("\n  --lhs-only: grid-side OAT block skipped")
+        print(lhs_val_df[["label", "N_mid", "fullspine_delta", "subsample_corrected",
+                          "diff_corrected_pp", "fullspine_switch", "subsample_switch"]].to_string(index=False))
+        print(f"\nOutputs in: {OUTDIR}")
+        return
 
     # Task 1: Grid-side OAT
     print("\n[5/5] Task 1 — Grid-side OAT …")

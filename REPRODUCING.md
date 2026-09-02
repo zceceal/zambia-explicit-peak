@@ -145,7 +145,7 @@ python scripts/s08_run_global_sensitivity.py     # Morris + LHS; ~64 min       -
 # s08 prints the bias-correction factor. Set BIAS_FACTOR in s09 from it before running s09.
 python scripts/s09_run_oat_checks.py             # grid-side OAT               -> needed by s13
                                                   # ~2 min per arm (script's own comment); recorded totals:
-                                                  # LHS full-spine validation 603.7s/3 samples, grid-cost OAT
+                                                  # LHS full-spine validation 3 samples (--lhs-only runs this block alone), grid-cost OAT
                                                   # 1074.0s/4 variants (both from their own results/summary/
                                                   # 2026-08_final_*.csv elapsed_s columns). An independent
                                                   # clean-room run 2026-08-29 measured 83.1 min total for the
@@ -387,9 +387,9 @@ differed marginally, and that was enough to flip one settlement at the grid-exte
 
 **Fix.** The OAT block now passes `pv_lut_cache=None`, so each arm rebuilds the table exactly as `s06`
 does. The switch-count gate is correspondingly tightened to require an exact match
-(`OAT_SWITCH_TOL = 0`). The LHS validation block still uses the cache: its comparison is internal to
-itself (subsample-corrected versus full-spine for the same sample), so cache reuse is consistent there
-and its published values are unaffected.
+(`OAT_SWITCH_TOL = 0`). The LHS validation block rebuilds the table per arm as well, and solves each
+sample at its sampled `N_mid` rather than the nearest multiple of ten (both changed 2026-09-02; the
+re-solved values are in `2026-09-02_lhs_fullspine_validation.csv`).
 
 **Cost.** Rebuilding the table adds roughly two minutes per arm, so the OAT block runs in about 35
 minutes rather than 19.
