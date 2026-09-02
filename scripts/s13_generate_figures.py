@@ -403,7 +403,7 @@ def fig_uncertainty():
     ax.axvline(p5,  color=BLUE, ls="--", lw=1.4, label=f"Indicative 5th percentile: +{p5:.1f}%")
     ax.axvline(p50, color=BLUE, ls="-",  lw=1.8, label=f"Median (anchored): +{p50:.1f}%")
     ax.axvline(p95, color=BLUE, ls="--", lw=1.4, label=f"Indicative 95th percentile: +{p95:.1f}%")
-    fs_path = OUTDIR / "2026-08_final_lhs_fullspine_validation.csv"
+    fs_path = OUTDIR / "2026-09-02_lhs_fullspine_validation.csv"
     if fs_path.exists():
         fs = pd.read_csv(fs_path)
         for _, row in fs.iterrows():
