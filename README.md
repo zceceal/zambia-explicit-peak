@@ -32,20 +32,18 @@ per-settlement solves that are not committed here, for size. Those require the i
 lists every source, its vintage and its licence. The data are not redistributed here because their
 licences do not permit it — GRID3 is CC BY-SA 4.0 (share-alike), the renewables.ninja profiles are
 CC BY-NC (non-commercial), and several others carry their own terms — not because the roughly 17 GB was
-simply left out. With the data in place as `docs/04_data_sources.md` describes, `s01` through `s20` run
+simply left out. With the data in place as `docs/04_data_sources.md` describes, `s01` through `s22` run
 end to end and reproduce every committed number byte-for-byte (§8 of `REPRODUCING.md`). The
 per-settlement outputs behind the two allocation/switching maps (`fig_results_switching_map.pdf`,
 `fig_results_r0_r1_allocation_map.pdf`; ~11 GB, gitignored) are not committed either, for size rather
 than licence reasons, and are available from the author on request.
 
-**3. Not currently reproducible, even with the data: the published settlement spine.** It is dated four
-weeks before this repository's first commit and was built by a version of the stage-3 attribute builder
-that no longer exists on disk. Rebuilding it from raw data with the current `s01`-`s05` reproduces every
-column that feeds the R0/R1 solve exactly, except one (`TransformerDist`), and moves the central result
-by 0.95 percentage points — still inside the reported `N_mid` sweep band, with every qualitative
-conclusion unchanged. `REPRODUCING.md` §8 has the full account, including what was ruled out as the
-cause. Every result reported anywhere in this repository is built on the published spine, not a
-rebuilt one.
+**3. The published settlement spine.** It is dated four weeks before this repository's first commit.
+Rebuilding it from raw data with the current `s01`-`s05` reproduces every column that feeds the R0/R1
+solve. An earlier rebuild differed in `TransformerDist` on 247,676 rows because `s04` at that time
+applied a transformer-or-MV base-year gate, which overwrites that column, whereas the published spine
+was calibrated on the 2 km transformer gate. `s04` now runs the published gate, and the wider gate is
+the sensitivity in `s21` (`REPRODUCING.md` §8).
 
 ---
 
@@ -138,8 +136,9 @@ docs/                    pipeline, variables, assumptions, data sources
 patches/                 the changes to the OnSSET core, and why
 peak_preprocessor/       the study's contribution: the peak-to-energy sub-model
 scripts/                 the pipeline, in run order (s01 … s13), the standalone
-                         analyses s14 … s20, and the two acceptance checks
-                         (check_index_alignment.py, check_spine_integrity.py)
+                         analyses s14 … s22, and the three acceptance checks
+                         (check_index_alignment.py, check_spine_integrity.py,
+                         check_mv_sources.py)
 test/                    unit tests for the sub-model; OnSSET install check;
                          index-alignment regression test
 resources/               small reference inputs (specs templates)

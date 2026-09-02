@@ -185,6 +185,12 @@ python scripts/s18_run_hhsize_sensitivity.py                 # rural household s
 python scripts/s19_band_and_channel_decomposition.py         # step-crossing and channel-freeze decomposition, no re-solve -> 2026-08_final_band_and_channel_decomposition.csv
 python scripts/s20_provincial_rho.py                        # provincial peak-to-mean comparison against REMP Table 9,
                                                               # no re-solve -> 2026-08_final_provincial_rho.csv
+python scripts/s21_run_calibration_gate_sensitivity.py      # base-year gate transformer OR MV < 2 km vs the published
+                                                              # transformer gate; two arms -> 2026-09-02_calibration_gate_sensitivity.csv
+python scripts/check_mv_sources.py                          # which layer sets each settlement's MV distance, no re-solve
+                                                              # -> 2026-09-02_mv_distance_sources.csv
+python scripts/s22_run_mv_layer_sensitivity.py              # ZESCO record as the only MV layer vs the published minimum
+                                                              # over ZESCO, Meta, OSM; two arms -> 2026-09-02_mv_layer_sensitivity.csv
 python scripts/check_spine_integrity.py                     # 22 hard checks on the spine, no re-run
 ```
 
@@ -221,6 +227,8 @@ full-spine solves. The twelve full-spine solves behind every headline figure are
 - `2026-08_final_lcoe_{R0, R0_ruralT2, R1_n10, R1_n20, R1_n50, R1_ruralT2_n10, R1_ruralT2_n20,
   R1_ruralT2_n50}.csv` — the eight primary solves (rural Tier 3 and Tier 2, `N_mid` swept where R1)
 - `2026-08-21_hhsize_*` — the four household-size solves, from `s18` above
+- `2026-09-02_txormv_*` — the two solves on the transformer-or-MV base-year gate, from `s21`
+- `2026-09-02_mvzesco_*` — the two solves on the ZESCO-only MV layer, from `s22`
 
 `results/summary/2026-08_final_provincial_rho.csv`, from `s20` (no re-solve, reads `R1_n20` only), is
 the source for the provincial peak-to-mean comparison in §4.4.
@@ -341,50 +349,24 @@ including the `method` column and the emulator-validation RMSE). `s09`'s grid-si
 the published figures to six decimal places. That is the strongest form this reproducibility claim can
 take, and it holds for every stage that starts from the published spine.
 
-**One stage does not reproduce from raw data.** The published spine
-(`data/processed/zambia_grid3_spine_pe_n20.csv`, and the intermediate
-`zambia_grid3_spine_stage2.csv` it derives from) is dated 1 July 2026. This repository's first commit,
-`def8184`, is dated 29 July 2026 — the spine therefore predates version control by four weeks. Rebuilding
-it from the current `s01`–`s05` reproduces `PE_ratio` and the household-count column (`N_hh`) — the two
-columns that feed the R0/R1 solve directly — exactly, on every one of 270,526 rows, and passes all 22
-`check_spine_integrity.py` checks. It does **not** reproduce `TransformerDist`: 247,676 of 270,526 rows
-(91.6%) differ from the published column, mean absolute difference 11.27 km, which through `s04`'s 2 km
-electrification gate also moves `ElecPopCalib`/`ElecPop2020` on 3.2% of rows. Rebuilding the full pipeline
-on that spine and re-running `s06`/`s14` moves the **central** result from the published **+49.9231%,
-34,461 switches** to **+50.8709%, 34,153 switches** — the direction, and every qualitative conclusion in
-the paper, is unchanged, and the rebuilt figure sits inside the published `N_mid`-sweep band
-(+34.1% to +70.6%) rather than outside it.
+**The spine rebuild, resolved.** The published spine (`data/processed/zambia_grid3_spine_pe_n20.csv`,
+and the `zambia_grid3_calib_distgate.csv` it derives from) is dated 1 July 2026; the repository's first
+commit, `def8184`, is dated 29 July. The clean-room rebuild from the current `s01`–`s05` reproduced
+`PE_ratio` and `N_hh` exactly on all 270,526 rows but not `TransformerDist`: 247,676 rows (91.6%)
+differed, `ElecPopCalib`/`ElecPop2020` moved on 3.2% of rows, and re-solving on the rebuilt spine gave
+**+50.8709%, 34,153 switches** against the published **+49.9231%, 34,461**.
 
-`TransformerDist < 2 km` — the specific figure quoted in the paper — holds for **32,342** settlements on
-the published spine. The rebuilt spine gives the **same count, 32,342**, despite the row-level
-disagreement: the settlements whose distance changed are concentrated away from the 2 km threshold, so
-the number the paper actually cites is unaffected even though the underlying column is not
-reproducible.
-
-**What was ruled out.** An earlier, pre-repository copy of the stage-3 attribute builder, dated 1 July
-2026 and kept outside version control, was located — the same day as the spine it is presumed to have
-produced. Its `TransformerDist` block (transformer shapefile read, geometry filter, `nn_dist_km`
-nearest-neighbour call) is **byte-identical** to the current `s03`'s; the only differences anywhere in
-the file are path handling (an absolute, machine-specific `ROOT` versus the current relative one),
-comment formatting, and an unrelated hard-gate addition. This rules out silent code drift before
-version control as the explanation. Package versions were also ruled out:
-`zambia-explicit-peak/.venv` (the environment that has always produced the published spine) and the
-clean-room venv built for this reproduction carry identical geopandas (1.1.3), shapely (2.1.2), pyproj
-(3.7.2), pyogrio (0.12.1), GDAL (3.11.4) and PROJ (9.5.1) versions.
-
-Five independent recomputations of `TransformerDist` — twice in `zambia-explicit-peak/.venv`, once in
-the clean-room venv, and two full, independent `s01`→`s02`→`s03` pipeline reruns in a disposable
-scratch location — all agreed with each other and with the published column exactly, zero rows
-differing. **The original 91.6% mismatch could not be reproduced on retest.** Given that this same
-reproduction run separately logged two unexplained, order-of-magnitude runtime anomalies on this
-machine (one `s06` arm at 122.7 min against 2.5 min for its three siblings; `s09` at 83.1 min against
-an implied ~28 min) with no code-path difference from their unaffected counterparts, the most likely
-explanation is a transient, host-level anomaly in that specific historical run — plausibly resource
-contention affecting the parallelised nearest-neighbour query (`cKDTree.query(..., workers=-1)`) under
-sustained heavy load elsewhere on the machine — rather than a stable defect in the code, the data, or
-the environment. This is not confirmed; it could not be forced to recur, which is itself informative
-but leaves the original run's root cause open. The published spine and every result built on it are
-unaffected either way, since nothing in the published pipeline reads the rebuilt spine.
+The cause is the base-year gate. The published calibration used the 2 km transformer gate
+(`ElecStart = 1` on 7,476 settlements; `TransformerDist` unchanged), the procedure OnSSET applies when
+a transformer layer is supplied. The `s04` in the repository at the time ran a transformer-or-MV gate,
+implemented by overwriting `TransformerDist` with `min(TransformerDist, CurrentMVLineDist)`: that
+overwrite changes exactly 247,676 rows of the stage-2 spine, and the gate admits 1,186 further lit
+settlements (8,662). The calibration file for that gate is on disk beside the published one
+(`zambia_grid3_calib_distgate_txORmv_REJECTED.csv`, 8,662 settlements); the published file is
+byte-identical to `zambia_grid3_calib_distgate_v1.csv`, the transformer-gate run. `s04` now runs the
+transformer gate, and its re-run reproduces the published `ElecStart` and `ElecPopCalib` on every
+settlement (`s21 --self-test`). The transformer-or-MV gate is kept as `run_variant(mv_or_gate=True)`
+and solved as a sensitivity by `s21`; the +50.87% / 34,153 above is that sensitivity.
 
 ## Reproducibility: the hybrid-LUT cache (fixed 2026-08-12)
 

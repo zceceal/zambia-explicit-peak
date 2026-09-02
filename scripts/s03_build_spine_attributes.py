@@ -370,8 +370,8 @@ fb_xy    = np.column_stack([mv_fb_gdf.geometry.x, mv_fb_gdf.geometry.y])
 fb_dist  = nn_dist_km(sett_xy, fb_xy)
 print(f"    FB predictive MV points: {len(fb_xy):,}")
 
-# Combine: take minimum distance across all three MV sources
-# ZESCO is primary/most authoritative; others improve coverage in its gaps
+# Minimum over the three MV sources. The Meta layer is closer for 65% of
+# settlements (check_mv_sources.py); s22 re-solves on the ZESCO record alone.
 mv_dist = np.minimum(np.minimum(zesco_dist, osm_mv_dist), fb_dist)
 print(f"\n  [3.2d] CurrentMVLineDist (min of ZESCO, OSM-MV, FB-predictive):")
 mv_stats = dist_stats(mv_dist, "CurrentMVLineDist")
@@ -389,14 +389,11 @@ if n_sample > 0:
           f"should be < 20 km in this subsample — not a constant offset ~300 m)")
 
 # ── S3.3: PlannedMVLineDist — NEP planned extensions ─────────────────────
-# NOTE: The NEP extensions are the adopted national plan; they are also a
-# shared input into the OnSSET base-case arm, creating mild circularity, but
-# this is the same as the nationally published plan.
+# Stored for reference only; s06 sets PlannedMVLineDist = CurrentMVLineDist.
 print("\n  [3.3] PlannedMVLineDist — NEP planned MV extensions")
 nep_gdf  = gpd.read_file(str(NEP_MV_GEO)).to_crs(UTM)
 nep_gdf  = nep_gdf[nep_gdf.geometry.notna() & nep_gdf.geometry.is_valid]
 print(f"    NEP features: {len(nep_gdf)} (51 LineStrings, NEP least-cost-derived plan)")
-print(f"    Note: mild circularity — NEP plan is a shared input across OnSSET arms")
 nep_pts  = densify_lines(nep_gdf, spacing_m=500)
 nep_dist = nn_dist_km(sett_xy, nep_pts)
 nep_stats = dist_stats(nep_dist, "PlannedMVLineDist")
