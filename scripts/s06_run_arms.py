@@ -176,6 +176,8 @@ def run_arm(arm_label: str, spine_df: pd.DataFrame, cfg: dict,
     if "ElectrificationOrder" not in onsseter.df.columns:
         onsseter.df["ElectrificationOrder"] = 0
 
+    # OnSSET's planned-line field must include the existing network (it is
+    # tested against MaxGridDist). No qualifying planned layer: planned = current.
     onsseter.df[SET_MV_DIST_PLANNED] = onsseter.df[SET_MV_DIST_CURRENT]
     onsseter.df[SET_HV_DIST_PLANNED] = onsseter.df[SET_HV_DIST_CURRENT]
 

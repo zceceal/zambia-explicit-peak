@@ -632,6 +632,7 @@ def run_arm(arm: str, spine_path: Path, cfg: dict,
     onsseter.df["PerHouseholdDemand"]    = 0
     onsseter.df["ElectrificationOrder"]  = onsseter.df.get("ElectrificationOrder", 0)
 
+    # No qualifying planned layer: planned = current (as in s06).
     onsseter.df[SET_MV_DIST_PLANNED] = onsseter.df[SET_MV_DIST_CURRENT]
     onsseter.df[SET_HV_DIST_PLANNED] = onsseter.df[SET_HV_DIST_CURRENT]
 

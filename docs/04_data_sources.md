@@ -10,8 +10,8 @@ carries its own licence. This file lists what is needed, where it comes from, an
 | GRID3 Zambia settlement extents v3.0 | The settlement dataset (stage 01) | CIESIN, Columbia University (2024), doi:10.7916/0pet-p051 | **CC BY-SA 4.0 — share-alike** |
 | WorldPop population, 100 m | Population per settlement (stages 01–02) | worldpop.org | CC BY 4.0 |
 | ZESCO MV distribution lines | Grid distances (stage 03) | World Bank Group (2022), *Zambia — Electrical Lines*, ENERGYDATA.INFO | CC BY 4.0 |
-| NEP planned MV extensions | Planned-grid distances (stage 03) | Rural Electrification Authority | terms not published with the layer — see note below |
-| Facebook/Meta MV predictive grid | Additional MV-line distance signal (stage 03) | Meta Data for Good (Gershenson, Rohrer, Lerner) (2019), via energydata.info / HDX | CC BY 4.0 |
+| NEP planned MV extensions | Stored at stage 03; not used by the solve (planned distance = current) | Rural Electrification Authority | terms not published with the layer — see note below |
+| Facebook/Meta MV predictive grid | MV distance where closer than the ZESCO record: 65% of settlements, 40% of population (stage 03; `check_mv_sources.py`) | Meta Data for Good (Gershenson, Rohrer, Lerner) (2019), via energydata.info / HDX | CC BY 4.0 |
 | MV / MVLV transformers, substations | Base-year electrification gate (stage 04) | World Bank / EnergyData.info | terms not published with the layer — see note below |
 | Transmission network | Grid distances (stage 03) | World Bank | terms not published with the layer — see note below |
 | Global Solar Atlas GHI | Solar resource (stage 03) | globalsolaratlas.info | CC BY 4.0 |

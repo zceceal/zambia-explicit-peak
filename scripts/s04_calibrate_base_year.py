@@ -5,7 +5,7 @@ Inputs  : data/processed/zambia_grid3_spine_stage2.csv  (270,526 settlements)
           data/onsset_inputs/specs_zambia.xlsx           (pop/urban targets)
 
 Outputs :
-  Variant A (NEAS-2023 grid access, refined OR gate):
+  Variant A (NEAS-2023 grid access, 2 km transformer gate):
     data/processed/zambia_grid3_calib_distgate.csv
   Variant B (WB-2020 any-access, NTL-proxy):
     data/processed/zambia_grid3_calib_wb2020.csv
@@ -14,18 +14,13 @@ Calibration targets:
   Variant A — NEAS-2023: national 34%, urban 70%, rural 7.6%
   Variant B — WB-2020:   national 44.52%, urban 82.6%, rural 14.0%
 
-Stage 3.5 change (Variant A): gate updated from
-  TransformerDist < 2 km AND NTL > 0
-to:
-  (TransformerDist < 2 km OR CurrentMVLineDist < 2 km) AND NTL > 0
-Rationale: grid reach is MV+LV, not only mapped transformers. The transformer
-  layer is incomplete relative to the ZESCO MV network. 1,186 lit settlements
-  are within 2 km of MV but not a mapped transformer and were being wrongly
-  excluded. 155 truly isolated lit points (>5 km from any MV) remain excluded.
-Implementation: before calling onsset, replace TransformerDist with
-  min(TransformerDist, CurrentMVLineDist) in the working df. The onsset
-  calibrate_grid_elec_current function then uses this effective distance with
-  the standard 2 km gate.
+Variant A gate: TransformerDist < 2 km AND NTL > 0. This is the calibration OnSSET applies
+  when a transformer layer is supplied (calibrate_grid_elec_current uses transformers, then MV,
+  then HV, whichever is available first). The published spine and every result rest on it.
+  A wider gate, (TransformerDist < 2 km OR CurrentMVLineDist < 2 km) AND NTL > 0, admits 1,186
+  further lit settlements; run_variant(mv_or_gate=True) implements it by replacing
+  TransformerDist with min(TransformerDist, CurrentMVLineDist) before calibration. It is not
+  used here; s21_run_calibration_gate_sensitivity.py solves both arms on it.
 
 Thresholds used for Variant B (NTL proxy):
   max_transformer_dist = 999 km (unbounded — NTL is operative criterion)
@@ -243,8 +238,8 @@ def run_variant(label, spine_path, national, urban_r, rural_r,
 
 def main():
     print("=" * 68)
-    print("  GRID3 SPINE — STAGE 3.5 CALIBRATION REFINEMENT")
-    print("  Variant A: refined OR gate (Transformer OR MV < 2 km)")
+    print("  GRID3 SPINE — BASE-YEAR CALIBRATION")
+    print("  Variant A: 2 km transformer gate (NEAS-2023)")
     print("  Variant B: unchanged (NTL-proxy, WB-2020)")
     print("=" * 68)
 
@@ -257,15 +252,15 @@ def main():
     print(f"  Settlements: 270,526  (from stage 2)")
     print(f"  Pop sum (raw): {pop_total:,.0f}  (expect ~18.38M)")
 
-    # ── Run Variant A (refined: OR gate) ─────────────────────────────────────
+    # ── Run Variant A ─────────────────────────────────────────────────────────
     res_a = run_variant(
-        label="VARIANT A — NEAS-2023 targets, refined (Transformer OR MV) < 2 km gate",
+        label="VARIANT A — NEAS-2023 targets, 2 km transformer gate",
         spine_path=SPINE_IN,
         national=A_NATIONAL, urban_r=A_URBAN, rural_r=A_RURAL,
         max_trans=A_MAX_TRANS, max_mv=A_MAX_MV, max_hv=A_MAX_HV,
         min_ntl=A_MIN_NTL, min_pop=A_MIN_POP,
         out_path=OUT_A,
-        mv_or_gate=True,
+        mv_or_gate=False,
     )
 
     # ── Run Variant B ─────────────────────────────────────────────────────────

@@ -139,7 +139,7 @@ def fig0_workflow():
     box(c1x+0.012, 0.715, c1w-0.024, 0.145,
         "Settlements & population\nGRID3 extents + WorldPop\n(270,526 settlements)", REUSED)
     box(c1x+0.012, 0.535, c1w-0.024, 0.145,
-        "Grid infrastructure\nZESCO MV network,\nNEP planned extensions", REUSED)
+        "Grid infrastructure\nZESCO MV network,\ntransformers, substations", REUSED)
     box(c1x+0.012, 0.355, c1w-0.024, 0.145,
         "Resources & access\nsolar atlas, roads, hydro,\nNEAS-2023 calibration", REUSED)
     box(c1x+0.012, 0.175, c1w-0.024, 0.145,
@@ -159,11 +159,11 @@ def fig0_workflow():
     # ── Column 3: engine (spans both arm levels; arrows meet its left edge) ──
     box(c3x, 0.170, c3w, 0.500,
         "OnSSET least-cost\nengine (patched;\nMentis et al. 2017)\n\n"
-        "7-technology LCOE\ncomparison per\nsettlement, 2030/2035\n\nrun once per arm", REUSED)
+        "7-technology LCOE\ncomparison per\nsettlement, 2030/2035\n\nrun once per case", REUSED)
 
     # ── Column 4: outputs and treatment effect ───────────────────────────
     box(c4x, 0.520, c4w, 0.240,
-        "Outputs (per arm)\ntechnology allocation,\nLCOE, investment,\ncapacity", REUSED)
+        "Outputs (per case)\ntechnology allocation,\nLCOE, investment,\ncapacity", REUSED)
     box(c4x, 0.200, c4w, 0.210,
         "R1 − R0\n= effect of explicit\npeak representation", REUSED, bold=False)
 

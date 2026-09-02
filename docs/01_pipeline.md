@@ -13,10 +13,10 @@ itself numbers only its notebooks and leaves its package modules unnumbered.
 |---|---|---|---|
 | 01 | `s01_build_spine_clusters.py` | Builds settlement polygons from GRID3: geometry, WorldPop population, urban/rural class, admin-1 | cluster spine |
 | 02 | `s02_build_spine_dispersed.py` | Recovers the ~18% of population living outside any GRID3 polygon by aggregating residual pixels to ~2.8 km cells, so the spine reconciles to the national total | **combined spine, 270,526 settlements** |
-| 03 | `s03_build_spine_attributes.py` | Computes every OnSSET spatial column: solar and wind resource, travel time, road and grid distances (ZESCO MV lines, NEP planned extensions, transformers) | spine with attributes |
-| 04 | `s04_calibrate_base_year.py` | Calibrates who is already electrified in the base year against the national survey. Variant A (2 km transformer gate, NEAS-2023) is the one used | calibrated spine |
+| 03 | `s03_build_spine_attributes.py` | Computes every OnSSET spatial column: solar and wind resource, travel time, road and grid distances (MV distance = minimum over ZESCO, Meta predictive and OSM layers; transformers; the NEP distance is stored but not used) | spine with attributes |
+| 04 | `s04_calibrate_base_year.py` | Calibrates who is already electrified in the base year against the national survey. Variant A (2 km transformer gate plus night lights, NEAS-2023) is the one used; a transformer-or-MV gate is the sensitivity in `s21` | calibrated spine |
 | 05 | `s05_compute_peak_ratios.py` | **The intervention.** Adds `N_hh` and `PE_ratio` per settlement using `peak_preprocessor/`. Writes one spine per swept `N_mid` ∈ {10, 20, 50} | PE-augmented spines |
-| 06 | `s06_run_arms.py` | The main event: solves R0 and R1 through OnSSET and compares them | R0/R1 outputs |
+| 06 | `s06_run_arms.py` | The main event: solves R0 and R1 through OnSSET (planned distance = current distance) and compares them | R0/R1 outputs |
 | 07 | `s07_run_demand_sensitivity.py` | Repeats the comparison at rural Tier 2 (219 kWh/HH/yr). One changed value; everything else identical | Tier-2 outputs |
 | 08 | `s08_run_global_sensitivity.py` | Morris elementary-effects screen (6 parameters, 8 trajectories, 56 paired evaluations) plus Latin-hypercube uncertainty propagation | sensitivity results |
 | 09 | `s09_run_oat_checks.py` | One-at-a-time checks on the grid side, and full-spine validation of the sensitivity subsample bias correction | OAT results |
