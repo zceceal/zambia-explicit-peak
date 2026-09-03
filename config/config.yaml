@@ -28,8 +28,8 @@ discount_rates:
   standalone: 0.08
 
 battery_capex_usd_per_kwh: 300
-# NREL ATB 2025, Li-ion BESS (334 in 2024 falling to 247 by 2035). Swept [247, 300, 334].
-# Table 1 of the paper quotes the same trajectory; the 2035 mid-point is 247.
+# NREL (2025) utility-scale battery cost projections, mid case: 334 in 2024 falling to 243 by
+# 2035 (paper Table 1). Not swept directly; s08 sweeps a stand-alone PV/battery capex multiplier.
 
 diesel_price_usd_per_l: 1.9
 # Zambia Energy Regulation Board pump-price bulletin, May 2026. Swept +/-20%.

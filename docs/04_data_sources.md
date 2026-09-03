@@ -109,5 +109,5 @@ specifically, because it is exactly what would let `N_mid` be measured rather th
 substantial commercial dataset is proprietary.
 
 This is not a gap left by omission — it is the reason the peak sub-model is calibrated on transferred
-archetypes and then externally validated against three independently measured systems, rather than
+archetypes and then externally validated against two independently metered systems, rather than
 fitted directly to Zambian data. It is stated in the paper as the primary future-work item.

@@ -26,7 +26,7 @@ of the design: only the peak representation differs, so anything shared cancels 
 | Grid generation cost | 0.013 | USD/kWh | Egli et al. 2023, Table S8 (Zambia) |
 | Grid T&D losses | 15 | % | Egli et al. 2023, Table S8 (Zambia) |
 | Stand-alone PV capital cost | 4,470–9,620 | USD/kW, size-banded | OnSSET/GEP default set |
-| Battery storage | 300 | USD/kWh | NREL ATB 2025. Swept [247, 300, 334] |
+| Battery storage | 300 | USD/kWh | NREL (2025) mid case; capex multiplier swept ±20% in `s08` |
 | Mini-grid PV capital cost | 1,400 | USD/kW | OnSSET/GEP default |
 | Diesel price | 1.90 | USD/litre | Zambia ERB, May 2026. Swept ±20% |
 | Technology lives | SA-PV 5 yr, mini-grid 20 yr | years | OnSSET/GEP default |
@@ -67,12 +67,14 @@ same source, so the two are consistent.
 | Layer | Source |
 |---|---|
 | Settlement spine (270,526 settlements) | GRID3 |
-| Transformers, MV/HV lines | World Bank / EnergyData |
+| Transformers, HV lines | World Bank / EnergyData |
+| MV lines | ZESCO record, Meta predictive grid and OpenStreetMap (minimum distance) |
 | Base-year electrification target | NEAS 2023 — 34% national, 70% urban, 7.6% rural |
 | Solar resource | Global Solar Atlas |
 | PV-hybrid hourly profiles | renewables.ninja (MERRA-2, 5 points, 2025) |
 | Population projection | UN WPP 2024 |
 
-The base year is calibrated with a **2 km transformer-distance gate** — the standard criterion. An
-earlier calibration used night-lights only; it was rejected because it over-counted urban access and
-under-counted rural. Documented in the paper's supplementary material.
+The base year is calibrated with a **2 km transformer-distance gate** plus a night-lights signal —
+the criterion OnSSET applies when a transformer layer is supplied. A calibration to the World Bank
+any-access rate was rejected because the night-lights layer covers about a tenth of the rural
+population. Documented in the paper's supplementary material.

@@ -33,7 +33,8 @@ lists every source, its vintage and its licence. The data are not redistributed 
 licences do not permit it — GRID3 is CC BY-SA 4.0 (share-alike), the renewables.ninja profiles are
 CC BY-NC (non-commercial), and several others carry their own terms — not because the roughly 17 GB was
 simply left out. With the data in place as `docs/04_data_sources.md` describes, `s01` through `s23` run
-end to end and reproduce every committed number byte-for-byte (§8 of `REPRODUCING.md`). The
+end to end. §8 of `REPRODUCING.md` records which stages reproduce byte-for-byte from the published
+spine. The
 per-settlement outputs behind the two allocation/switching maps (`fig_results_switching_map.pdf`,
 `fig_results_r0_r1_allocation_map.pdf`; ~11 GB, gitignored) are not committed either, for size rather
 than licence reasons, and are available from the author on request.
@@ -183,7 +184,7 @@ After any run of `s06`, before trusting anything downstream:
 
 ```bash
 python scripts/check_index_alignment.py data/onsset_outputs/<run>_R0.csv   # must report ~100%
-python scripts/check_spine_integrity.py                                    # 22 checks on the spine
+python scripts/check_spine_integrity.py                                    # 21 checks on the spine
 ```
 
 ## Reading order for a reviewer

@@ -139,7 +139,7 @@ def fig0_workflow():
     box(c1x+0.012, 0.715, c1w-0.024, 0.145,
         "Settlements & population\nGRID3 extents + WorldPop\n(270,526 settlements)", REUSED)
     box(c1x+0.012, 0.535, c1w-0.024, 0.145,
-        "Grid infrastructure\nZESCO MV network,\ntransformers, substations", REUSED)
+        "Grid infrastructure\nZESCO and predicted MV,\ntransformers, substations", REUSED)
     box(c1x+0.012, 0.355, c1w-0.024, 0.145,
         "Resources & access\nsolar atlas, roads, hydro,\nNEAS-2023 calibration", REUSED)
     box(c1x+0.012, 0.175, c1w-0.024, 0.145,
