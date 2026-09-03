@@ -136,7 +136,7 @@ in the comparison that carries the contribution.
 | Grid reliability at OnSSET default (0.963) | No cost of non-served energy |
 | Residential demand only | Productive and institutional loads not separately modelled |
 | Per-household demand held flat | Total demand grows only through population |
-| Wind mini-grids disabled | A one-line bug in the OnSSET core. Zambian wind capacity factor ≈ 0.10, so immaterial |
+| Wind mini-grids disabled | The wind-hybrid optimiser fails to JIT-compile under numba (an environment issue, not a defect in this repository; see REPRODUCING.md). Zambian wind capacity factor ≈ 0.10, so immaterial |
 | Hydro mini-grids allocate to zero | 162 settlements sit within 5 km of hydro; most (156) fall below the 100-connection viability threshold |
 | Single diesel price bin | Diesel is never least-cost in any reported outcome |
 | GRID3 natural-cluster settlement geometry | Inherits a single-household tail (55,157 settlements, N_hh<=1) from the published GRID3 building-footprint product — 50,880 of the 55,157 (92%) are GRID3 clusters (chiefly the Hamlet class), not cells of the model's own dispersed-rural grid; the tail is a property of the source data, not manufactured by the aggregation choice. Excluding it moves the headline by −2.5 pp (+49.9% -> +47.4%) |
