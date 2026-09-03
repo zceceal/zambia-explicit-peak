@@ -150,7 +150,7 @@ present-day values**, changing only the population and its urban/rural split.
 
 Real 2050 conditions would very likely include further solar and battery cost declines, which would
 push more settlements toward peak-tolerant technologies and **erode the peak penalty further**. The
-measured ~33% erosion is therefore a **lower bound**, not a central estimate.
+measured ~30% erosion of the cost penalty is therefore a **lower bound**, not a central estimate.
 
 ---
 
@@ -158,4 +158,4 @@ measured ~33% erosion is therefore a **lower bound**, not a central estimate.
 
 The model's direction rests on physics and survives every test applied. Its magnitude rests on a
 sizing convention inherited from the standard tool, and is reported as a range for that reason. Its
-one unmeasured parameter is swept across a full decade and ranks as a minor factor.
+one unmeasured parameter is swept across a full decade and ranks second of the six screened.

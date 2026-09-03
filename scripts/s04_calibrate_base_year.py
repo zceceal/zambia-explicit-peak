@@ -125,7 +125,7 @@ def run_variant(label, spine_path, national, urban_r, rural_r,
         n_trans_only = ((df_check["TransformerDist"] < max_trans) & (df_check["NightLights"] > min_ntl)).sum()
         n_mv_added   = n_cand - n_trans_only
         print(f"\n  Pre-calibration candidate set (OR gate):")
-        print(f"    Transformer<{max_trans}km AND NTL>0:            {n_trans_only:,}  (v1 gate)")
+        print(f"    Transformer<{max_trans}km AND NTL>0:            {n_trans_only:,}  (published gate)")
         print(f"    MV<{max_trans}km AND NTL>0, Transformer>={max_trans}km: {n_mv_added:,}  (newly added)")
         print(f"    Total candidate gate (OR):                {n_cand:,}")
         n_isolated = ((df_check["NightLights"] > min_ntl) &
@@ -273,7 +273,7 @@ def main():
         out_path=OUT_B,
     )
 
-    # ── D1 evidence table ─────────────────────────────────────────────────────
+    # ── Calibration comparison table ──────────────────────────────────────────
     print(f"\n{'='*68}")
     print(f"{'='*68}")
     hdr = f"{'Metric':<35}{'WB-2020':>12}{'NEAS-2023':>12}{'Var A (dist)':>14}{'Var B (NTL)':>14}"

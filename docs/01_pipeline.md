@@ -79,13 +79,14 @@ said the opposite of what is true.
 
 ## Which technologies actually compete
 
-Worth knowing before reading any allocation result. Of the five technologies OnSSET can choose, only
-three are ever costed, and for most settlements only one is:
+Worth knowing before reading any allocation result. Counts below are at 2030 in the R0 output
+(`2026-08_final_lcoe_R0.csv`); the two diesel options are omitted because they are never least-cost.
+Of the five remaining technologies, only three are ever costed, and for most settlements only one is:
 
 | Technology | Settlements with a finite LCOE (R0) | Why |
 |---|---|---|
 | Stand-alone PV | 263,050 (97.2%) | — |
-| Grid | 31,943 (11.8%) | limited by the extension algorithm's reach |
+| Grid | 31,943 (11.8%) | limited by the extension algorithm's reach. 32,058 settlements are allocated to grid: the extra 115 are base-year electrified, so they carry no extension cost |
 | Mini-grid PV hybrid | 2,258 (0.8%) | needs ≥ 100 households (`technology_options.min_mg_size`) |
 | Mini-grid wind | **0** | the wind-hybrid optimiser fails to compile under numba; excluded by that failure, not on cost. Median wind capacity factor is 0.103 against PV's 0.232, so it is very unlikely to be competitive, but this is an assumption rather than a result |
 | Mini-grid hydro | 6 | five identified hydro sites nationally, median 185 km away |

@@ -2,7 +2,7 @@
 s09_run_oat_checks.py — grid-side one-at-a-time checks and full-spine validation.
 
 Task 0 addendum §3: Re-run 3 LHS samples on the FULL spine (270,526 settlements) and
-compare against their ×1.439-corrected subsample values. This validates whether the
+compare against their bias-corrected subsample values. This validates whether the
 bias-correction factor transfers across the parameter space.
 
 Task 1 (option 1b): OAT at central case — grid capacity cost ±30% and generation cost
@@ -346,8 +346,8 @@ def task0_lhs_validation(spine_n20, cfg_base, x_tx, y_tx,
                           ghi_profile, temp_profile, wind_profile, pv_lut_cache):
     """
     Pick 3 LHS samples (P5, P50, P95 of corrected ΔLCOE% distribution) from the
-    Stage-5 LHS CSV and re-run on the FULL spine. Compare against ×1.439-corrected
-    subsample values.
+    Stage-5 LHS CSV and re-run on the FULL spine, at each sample's own N_mid. Compare against the
+    bias-corrected subsample values.
     """
     print("\n" + "="*70)
     print("  TASK 0 ADDENDUM — LHS Full-Spine Validation (3 samples)")

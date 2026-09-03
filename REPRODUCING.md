@@ -144,15 +144,10 @@ python scripts/s08_run_global_sensitivity.py     # Morris + LHS; ~64 min       -
                                                   # measured 63.4 min (2026-08-28 clean-room run)
 # s08 prints the bias-correction factor. Set BIAS_FACTOR in s09 from it before running s09.
 python scripts/s09_run_oat_checks.py             # grid-side OAT               -> needed by s13
-                                                  # ~2 min per arm (script's own comment); recorded totals:
-                                                  # LHS full-spine validation 3 samples (--lhs-only runs this block alone), grid-cost OAT
-                                                  # 1074.0s/4 variants (both from their own results/summary/
-                                                  # 2026-08_final_*.csv elapsed_s columns). An independent
-                                                  # clean-room run 2026-08-29 measured 83.1 min total for the
-                                                  # same two blocks combined — well above the ~28 min those
-                                                  # two recorded totals imply, on a machine under sustained
-                                                  # load from the rest of this reproduction run; the ~2 min/
-                                                  # arm and per-block totals above are not upper bounds.
+                                                  # ~2 min per arm; --lhs-only runs the LHS validation block
+                                                  # alone. Per-variant times are in the elapsed_s column of
+                                                  # each block's results/summary CSV; they are machine-load
+                                                  # dependent and are not upper bounds.
 python scripts/s13_generate_figures.py           # last: reads s07, s08 and s09 outputs; measured 36.4s
 python scripts/fig_r0r1_allocation_map.py [run-label]   # paper Figure 2: R0/R1 technology allocation maps
 ```
@@ -194,7 +189,7 @@ python scripts/s22_run_mv_layer_sensitivity.py              # ZESCO record as th
 python scripts/s23_summarise_variants.py                    # Tier-2, 2050, anchor-fitted, schedule, reinvestment and
                                                               # single-household summaries from existing outputs, no re-solve
                                                               # -> 2026-09-02_variant_summaries.csv
-python scripts/check_spine_integrity.py                     # 22 hard checks on the spine, no re-run
+python scripts/check_spine_integrity.py                     # 21 hard checks on the spine, no re-run
 ```
 
 `s15 --self-test` (100.000% agreement, instant) then `smooth` and `monotone` measured 4.5 min and 4.3
@@ -230,8 +225,11 @@ full-spine solves. The twelve full-spine solves behind every headline figure are
 - `2026-08_final_lcoe_{R0, R0_ruralT2, R1_n10, R1_n20, R1_n50, R1_ruralT2_n10, R1_ruralT2_n20,
   R1_ruralT2_n50}.csv` — the eight primary solves (rural Tier 3 and Tier 2, `N_mid` swept where R1)
 - `2026-08-21_hhsize_*` — the four household-size solves, from `s18` above
-- `2026-09-02_txormv_*` — the two solves on the transformer-or-MV base-year gate, from `s21`
-- `2026-09-02_mvzesco_*` — the two solves on the ZESCO-only MV layer, from `s22`
+
+Four further solves are the input sensitivities added on 2026-09-02, not part of the twelve:
+
+- `2026-09-02_txormv_*` — the transformer-or-MV base-year gate, from `s21`
+- `2026-09-02_mvzesco_*` — the ZESCO-only MV layer, from `s22`
 
 `results/summary/2026-08_final_provincial_rho.csv`, from `s20` (no re-solve, reads `R1_n20` only), is
 the source for the provincial peak-to-mean comparison in §4.4.
