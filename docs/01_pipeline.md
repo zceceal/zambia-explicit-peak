@@ -113,9 +113,10 @@ what the experiment measures:
 
 Holding the R0 allocation throughout (no settlement switches) and freezing stand-alone costs at their
 R0 values re-derives the headline as −0.5%: the entire
-measured effect travels through the stand-alone channel. Because the two missing channels would both
-*raise* costs under explicit peaks, the reported effect is a lower bound on what a model with explicit
-peaks in all three options would produce.
+measured effect travels through the stand-alone channel. The two missing channels pull in opposite
+directions: opening the grid channel would raise costs, while mini-grid-eligible settlements are
+large and therefore flatter under an explicit peak, so opening that channel could make mini-grids
+cheaper and attenuate the measured effect (paper §4.2).
 
 ## Reproducibility
 
