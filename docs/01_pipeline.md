@@ -93,7 +93,8 @@ Of the five remaining technologies, only three are ever costed, and for most set
 
 Counting technologies with a finite cost per settlement: **90.3% have exactly one**, 9.5% have two,
 0.2% have three. The genuine contest is grid versus stand-alone PV, which is also why every
-technology change in the results is stand-alone PV → grid and no other transition occurs.
+technology change in the central case is stand-alone PV → grid and no other transition occurs;
+the Tier-2 and N_mid=10 variants carry a small number of other transitions.
 
 ### Where explicit peaks reach the levelised cost
 

@@ -26,7 +26,7 @@ of the design: only the peak representation differs, so anything shared cancels 
 | Grid generation cost | 0.013 | USD/kWh | Egli et al. 2023, Table S8 (Zambia) |
 | Grid T&D losses | 15 | % | Egli et al. 2023, Table S8 (Zambia) |
 | Stand-alone PV capital cost | 4,470–9,620 | USD/kW, size-banded | OnSSET/GEP default set |
-| Battery storage | 300 | USD/kWh | NREL (2025) mid case; capex multiplier swept ±20% in `s08` |
+| Battery storage | 300 | USD/kWh | NREL (2025) mid case; not swept directly (`s08` sweeps a stand-alone PV capex multiplier) |
 | Mini-grid PV capital cost | 1,400 | USD/kW | OnSSET/GEP default |
 | Diesel price | 1.90 | USD/litre | Zambia ERB, May 2026. Swept ±20% |
 | Technology lives | SA-PV 5 yr, mini-grid 20 yr | years | OnSSET/GEP default |

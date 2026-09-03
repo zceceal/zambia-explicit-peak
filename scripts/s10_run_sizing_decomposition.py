@@ -48,12 +48,14 @@ def task2_f_band():
     f = fraction of SA_PV capex that scales with PEAK power (battery power rating +
     inverter + BOS), as opposed to ENERGY (PV panel array area). Under OnSSET's
     uniform peak-scaling convention, f=1.0 (all capex scales with peak); physically
-    only battery+inverter+BOS scale on peak, giving f ≈ 0.55–0.65 per ESMAP SHS
-    cost-breakdown data.
+    only battery+inverter+BOS scale on peak. Measured African solar-home-system cost
+    structures put the battery-and-charge-controller share near 0.31 (IRENA 2016,
+    "Solar PV in Africa: costs and markets"), so f = 0.4 already sits above the
+    peak-scaled share those structures support; see docs/03_assumptions.md.
 
-    f = {0.4, 0.6, 1.0}: covers a range from pessimistic (battery+inverter BOS only)
-    to OnSSET convention. f=0.6 is the central illustrative estimate
-    [source specific ESMAP/GOGLA SHS cost breakdown table].
+    f = {0.4, 0.6, 1.0}: spans that measured share, an intermediate value, and the
+    OnSSET convention (f = 1.0). f = 0.4 is the conservative bound reported in the
+    paper; f = 1.0 reproduces the headline.
 
     CAVEAT (label in all outputs): Fixed-assignment lower bound. In reality, at f < 1,
     some settlements currently switching SA_PV→Grid might stay SA_PV (grid advantage
