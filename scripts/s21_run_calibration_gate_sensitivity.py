@@ -73,13 +73,17 @@ def calibrate(out_path: Path, label: str, mv_or_gate: bool) -> dict:
 
 def pe_frame(calib_path: Path, cfg: dict) -> pd.DataFrame:
     """s05 for N_mid = 20: sliver reassignment, N_hh, PE_ratio."""
-    from s05_compute_peak_ratios import household_sizes, reassign_border_slivers
+    from s05_compute_peak_ratios import (household_sizes, reassign_border_slivers,
+                                         project_pop_2030, n_hh_from_pop)
     hh_urban, hh_rural = household_sizes(cfg)
     df = pd.read_csv(calib_path)
     df = df.drop(columns=["IsUrban_type"], errors="ignore")
     df = reassign_border_slivers(df)
     is_urban = (df["IsUrban"] > 1).to_numpy()
-    N_hh = np.maximum(df["Pop"].to_numpy() / np.where(is_urban, hh_urban, hh_rural), 1.0)
+    analysis_year = int(cfg["scenario"]["years_of_analysis"][0])
+    pop_ay = project_pop_2030(df, cfg)           # the engine's projection, as s05 does
+    df[f"Pop{analysis_year}"] = pop_ay
+    N_hh = n_hh_from_pop(pop_ay, is_urban, hh_urban, hh_rural)
     df["N_hh"] = N_hh
     df["PE_ratio"] = pe_from_n(N_hh, N_mid=N_MID)
     return df

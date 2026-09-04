@@ -320,8 +320,10 @@ def make_full_pair(spine_n20: pd.DataFrame, n_mid: int,
         is_u = (spine_n20["IsUrban"] > 1).values
         if "N_hh_val" in spine_n20.columns:
             N_hh = np.maximum(1, spine_n20["N_hh_val"].values)
+        elif "N_hh" in spine_n20.columns:
+            N_hh = np.maximum(1, spine_n20["N_hh"].values)   # s05's value, at the analysis-year population
         else:
-            N_hh = np.maximum(1, spine_n20["Pop"].values / np.where(is_u, 4.6, 5.0))
+            raise RuntimeError("spine carries no N_hh column; re-run s05 (2026-09-04 or later)")
         spine_r1 = spine_r0.copy()
         spine_r1["PE_ratio"] = pe_from_n(N_hh, N_mid=float(n_mid),
                                           P_1=p1, P_inf=p_inf, P_step=p_step)

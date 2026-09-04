@@ -636,7 +636,22 @@ def run_arm(arm: str, spine_path: Path, cfg: dict,
     onsseter.df[SET_MV_DIST_PLANNED] = onsseter.df[SET_MV_DIST_CURRENT]
     onsseter.df[SET_HV_DIST_PLANNED] = onsseter.df[SET_HV_DIST_CURRENT]
 
+    # GUARD (mirrors s06): the spine's Pop{year}, on which s05 evaluated N and PE_ratio, must
+    # equal the engine's own projection on every settlement.
+    ay_col = f"Pop{years[0]}"
+    spine_pop_ay = onsseter.df[ay_col].to_numpy().copy() if ay_col in onsseter.df.columns else None
+
     onsseter.project_pop_and_urban(pop_future, urb_future, start_year, years)
+
+    if spine_pop_ay is not None:
+        n_diff = int((~np.isclose(spine_pop_ay, onsseter.df[ay_col].to_numpy(),
+                                  rtol=0, atol=1e-6)).sum())
+        assert n_diff == 0, (
+            f"{ay_col} written by s05 differs from the engine's projection on {n_diff:,} "
+            f"settlements. Re-run s05.")
+    else:
+        raise RuntimeError(f"spine has no {ay_col} column; re-run s05 (2026-09-04 or later).")
+
     onsseter.current_mv_line_dist()
     onsseter.prepare_wtf_tier_columns(*[TIERS[i] for i in range(1, 6)])
 
