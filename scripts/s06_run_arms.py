@@ -181,7 +181,30 @@ def run_arm(arm_label: str, spine_df: pd.DataFrame, cfg: dict,
     onsseter.df[SET_MV_DIST_PLANNED] = onsseter.df[SET_MV_DIST_CURRENT]
     onsseter.df[SET_HV_DIST_PLANNED] = onsseter.df[SET_HV_DIST_CURRENT]
 
+    # GUARD: s05 evaluated the household count N (and therefore PE_ratio) on its own call to
+    # project_pop_and_urban(), and wrote that Pop{year} into the spine. The projection below
+    # overwrites the column. The two must agree on every settlement, or the peak would be
+    # sized on a different population from the energy it is paired with. The column has
+    # travelled with its row through condition_df()'s sort, so a positional compare is valid.
+    ay_col = f"Pop{years[0]}"
+    spine_pop_ay = onsseter.df[ay_col].to_numpy().copy() if ay_col in onsseter.df.columns else None
+
     onsseter.project_pop_and_urban(pop_future, urb_future, start_year, years)
+
+    if spine_pop_ay is not None:
+        engine_pop_ay = onsseter.df[ay_col].to_numpy()
+        n_diff = int((~np.isclose(spine_pop_ay, engine_pop_ay, rtol=0, atol=1e-6)).sum())
+        assert n_diff == 0, (
+            f"{ay_col} written by s05 differs from the engine's projection on {n_diff:,} "
+            f"settlements: N and PE_ratio were evaluated on a different population from the "
+            f"energy. Re-run s05 against the current config and calibration.")
+        print(f"  {ay_col}: s05 projection == engine projection on all "
+              f"{len(engine_pop_ay):,} settlements — PASS")
+    else:
+        raise RuntimeError(
+            f"spine has no {ay_col} column — it was built by a pre-2026-09-04 s05 that evaluated "
+            f"N at the base-year population. Re-run s05.")
+
     onsseter.current_mv_line_dist()
     onsseter.prepare_wtf_tier_columns(*[TIERS[i] for i in range(1, 6)])
 

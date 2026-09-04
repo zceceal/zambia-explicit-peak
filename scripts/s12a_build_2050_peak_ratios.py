@@ -15,22 +15,27 @@ Usage:  python scripts/s12a_build_2050_peak_ratios.py [POP2050_total]   # defaul
 """
 import pandas as pd, numpy as np, sys
 from pathlib import Path
-BASE = str(Path(__file__).resolve().parent.parent / "data" / "processed") + "/"
-pe_df=pd.read_csv(BASE+"zambia_grid3_spine_pe_n20.csv")
-cal=pd.read_csv(BASE+"zambia_grid3_calib_distgate.csv")[['id','IsUrban']].rename(columns={'IsUrban':'IsUrbanCal'})
-df=pe_df.merge(cal,on='id',how='left')
-urb=(df['IsUrbanCal']==2).values
-Nhh=df['N_hh'].values; pop=df['Pop'].values; pe35=df['PE_ratio'].values
+HERE = Path(__file__).resolve().parent
+REPO = HERE.parent
+sys.path.insert(0, str(REPO / "data" / "onsset_repo"))
+sys.path.insert(0, str(REPO / "peak_preprocessor"))
+sys.path.insert(0, str(HERE))
+from s05_compute_peak_ratios import load_config, household_sizes, project_pop, n_hh_from_pop
+BASE = str(REPO / "data" / "processed") + "/"
+cfg = load_config(); hh_u, hh_r = household_sizes(cfg)
+df=pd.read_csv(BASE+"zambia_grid3_spine_pe_n20.csv")
+urb=(df['IsUrban']>1).values
+pe35=df['PE_ratio'].values; pop=df[f"Pop{cfg['scenario']['years_of_analysis'][0]}"].values
 P1,PINF,PSTEP,NMID=3.98,1.45,2.43,20
 beta=-np.log((PSTEP-PINF)/(P1-PINF))/np.log(NMID)
 pe=lambda N: PINF+(P1-PINF)*np.power(np.maximum(N,1.0),-beta)
-pop2020=pop.sum(); up=pop[urb].sum(); rp=pop[~urb].sum()
 
-POP2050=float(sys.argv[1]) if len(sys.argv)>1 else 34.5e6
+POP2050=float(sys.argv[1]) if len(sys.argv)>1 else 38_083_385
+URB_BASE = df.loc[urb,'PopStartYear'].sum()/df['PopStartYear'].sum()
 def proj(us=None):
-    if us is None: r=np.full(len(df),POP2050/pop2020)
-    else: r=np.where(urb,(us*POP2050)/up,((1-us)*POP2050)/rp)
-    return Nhh*r, pop*r
+    # the engine's projection from PopStartYear; us=None keeps the base-year urban share
+    p50 = project_pop(df, POP2050, URB_BASE if us is None else us, 2020, [2050])
+    return n_hh_from_pop(p50, urb, hh_u, hh_r), p50
 rows=[]
 for name,us in [("2035_static",None),("2050_uniform",-1),("2050_urban60",0.60),("2050_urban63",0.63)]:
     if name=="2035_static":

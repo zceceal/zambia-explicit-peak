@@ -76,6 +76,16 @@ def main():
     agree = float(np.isclose(expect, df["PE_ratio"].to_numpy(), rtol=1e-6).mean())
     check("PE_ratio matches pe_from_n(N_hh, 20)", agree > 0.999, f"{100 * agree:.3f}% agree")
 
+    # N_hh must sit on the analysis-year population the energy is paired with, not the base year
+    if "Pop2030" in df.columns and "NumPeoplePerHH" not in df.columns:
+        is_u = (df["IsUrban"] > 1).to_numpy()
+        expect_n = np.maximum(df["Pop2030"].to_numpy() / np.where(is_u, 4.6, 5.0), 1.0)
+        agree_n = float(np.isclose(expect_n, df["N_hh"].to_numpy(), rtol=1e-9).mean())
+        check("N_hh evaluated at Pop2030", agree_n > 0.999, f"{100 * agree_n:.3f}% agree")
+    else:
+        check("N_hh evaluated at Pop2030", "Pop2030" in df.columns,
+              "Pop2030 column absent — spine built by a pre-2026-09-04 s05")
+
     # base-year urban classification: exactly two classes, urban count small and plausible
     if "IsUrban" in df.columns:
         n_urb = int((df["IsUrban"] > 1).sum())

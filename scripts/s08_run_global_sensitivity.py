@@ -523,9 +523,10 @@ def make_sub_pair(sub_full: pd.DataFrame,
         sub_r1 = sub_full.drop(columns=pe_cols + extra, errors="ignore").copy()
         if n_hh_col in sub_full.columns:
             N_hh = np.maximum(1, sub_full[n_hh_col].values)
+        elif "N_hh" in sub_full.columns:
+            N_hh = np.maximum(1, sub_full["N_hh"].values)   # s05's value, analysis-year population
         else:
-            is_u = (sub_full["IsUrban"] > 1).values
-            N_hh = np.maximum(1, sub_full["Pop"].values / np.where(is_u, 4.6, 5.0))
+            raise RuntimeError("subsample carries no N_hh column; re-run s05 (2026-09-04 or later)")
         sub_r1["PE_ratio"] = pe_from_n(N_hh, N_mid=float(n_mid_int))
 
     return sub_r0, sub_r1
@@ -773,9 +774,10 @@ def lhs_emulator_predict(
     r0_lcoe = r0_full[lc].values.copy()
     r0_fc   = r0_full[fc].values.copy()
 
-    # Recompute PE_ratio for sampled Lorenzoni params
-    is_u = (r0_full["IsUrban"] > 1).values
-    N_hh = np.maximum(1, r0_full["Pop"].values / np.where(is_u, 4.6, 5.0))
+    # Recompute PE_ratio for sampled Lorenzoni params, on s05's N (analysis-year population)
+    if "N_hh" not in r0_full.columns:
+        raise RuntimeError("R0 output carries no N_hh column; re-run s05 and s06")
+    N_hh = np.maximum(1, r0_full["N_hh"].values)
     pe_new  = pe_from_n(N_hh, N_mid=nm, P_1=p1, P_inf=p_inf, P_step=p_step)
     atr_new = np.clip(1.0 / np.clip(pe_new, 0.1, None), 0.0, 1.0)
 
@@ -1073,6 +1075,13 @@ def main():
         r1_n10_full = pd.read_csv(R1_N10_STAGE4)
         r1_n20_full = pd.read_csv(R1_N20_STAGE4)
         r1_n50_full = pd.read_csv(R1_N50_STAGE4)
+        # Neither arm output carries N_hh (s06 drops it before solving). The LHS full-dataset
+        # re-solve needs s05's N, at the analysis-year population, so take it from the spine,
+        # keyed on id.
+        if "N_hh" not in r0_full.columns:
+            n_hh_spine = pd.read_csv(PE_N20, usecols=["id", "N_hh"]).set_index("id")["N_hh"]
+            r0_full["N_hh"] = r0_full["id"].map(n_hh_spine).to_numpy()
+            assert not np.isnan(r0_full["N_hh"]).any(), "N_hh missing for some settlements after id merge"
         print(f"  Full-spine R0: {len(r0_full):,}  R1_n10: {len(r1_n10_full):,}  "
               f"R1_n20: {len(r1_n20_full):,}  R1_n50: {len(r1_n50_full):,}")
         emulator_available = True
