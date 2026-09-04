@@ -62,14 +62,14 @@ Outputs are per-settlement CSVs, one per arm. The columns that matter:
 99 sentinel). The same pathology applies to the 2050 incremental columns, which is why the 2050 result
 uses a single-year endpoint run (`time_step = 30`) instead.
 
-Two reporting cautions. **Both were rewritten on 2026-08-16**: they described symptoms of the
+Two reporting cautions. Both were corrected on 2026-08-16, having described symptoms of the
 index-alignment defect (`REPRODUCING.md` §7), not properties of the model, and the earlier versions
 said the opposite of what is true.
 
 - **Capital and lifetime cost move together.** Under explicit peaks investment rises 45.6% and
   capacity 2.9%, alongside the 49.9% rise in lifetime cost. This is the physically expected direction:
-  higher peaks require more capacity, which costs more to build. The previous version of this note
-  claimed capital *falls*; that was an artefact of misaligned capacity accounting.
+  higher peaks require more capacity, which costs more to build. Figures produced before the
+  2026-08-16 index-alignment fix showed capital falling; see REPRODUCING.md section 7.
 - **Per-connection cost is now quotable, with one caveat.** The outlier problem is gone: no settlement
   exceeds $1 bn of investment, and `InvestmentPerConnection2030` has a mean of \$7,170 against a median
   of \$7,120 — a ratio of 1.01, i.e. no skew. The aggregate is \$4,159 per new connection. The remaining

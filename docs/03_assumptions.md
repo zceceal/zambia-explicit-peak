@@ -9,7 +9,7 @@ second changes the size of the answer; the third does not affect the comparison 
 
 ## Group 1 — Assumptions that could threaten the finding
 
-**None were found.** This is the honest summary of the robustness work: no combination of tested
+**None were found.** No combination of tested
 assumptions makes explicit peaks *cheaper*, or leaves the technology allocation untouched at
 aspirational service levels. The direction of the result follows from a physical fact — small
 settlements do not diversify their peaks — rather than from any parameter choice.
@@ -71,12 +71,12 @@ The peak anchors come from 61 mini-grids worldwide, not from Zambia.
   should not be called one. The Omorate mini-grid (443 connections, 2.88) sits well above the central
   curve (1.818); the Tum mini-grid (450 connections, 1.80) and the Zambian load-factor point both sit
   fractionally **below** it (central curve 1.816 and 1.482 respectively) — not "on or above" at every
-  point, as an earlier, misattributed version of the national figure (rho ≈ 1.67, pairing a 2020 IRP
+  point, as a superseded version of the national figure (rho ≈ 1.67, pairing a 2020 IRP
   peak with 2019 ERB energy) had implied.
 - **Consequence:** of the two metered systems, one sits essentially on the curve (Tum, within ~1%)
   and one sits materially above it (Omorate); the national load-factor point also sits close to the
-  curve. The borrowed anchors are not uniformly conservative in Zambia the way an earlier draft of
-  this document stated. The direction of the headline result does not depend on this — see Group 1 —
+  curve. The borrowed anchors are therefore not uniformly conservative in Zambia. The direction of
+  the headline result does not depend on this — see Group 1 —
   but the calibration should not be described as one-sidedly conservative, and the national point
   should not be described as measured.
 - **Gap:** the small-settlement regime that dominates the country is not directly metered. It rests on

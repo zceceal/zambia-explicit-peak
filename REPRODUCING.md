@@ -176,7 +176,7 @@ python scripts/s17_run_fitted_anchors.py                    # curve fitted to th
                                                               # and Zambia's own IRP load-factor assumption
                                                               # measured 2.6 min (plus <1s --self-test)
 python scripts/s18_run_hhsize_sensitivity.py                 # rural household size 4.5 / 5.5 vs census 5.0; four arms
-                                                              # measured 9.0 min (README previously said ~7 min)
+                                                              # measured 9.0 min
 python scripts/s19_band_and_channel_decomposition.py         # step-crossing and channel-freeze decomposition, no re-solve -> 2026-08_final_band_and_channel_decomposition.csv
 python scripts/s20_provincial_rho.py                        # provincial peak-to-mean comparison against REMP Table 9,
                                                               # no re-solve -> 2026-08_final_provincial_rho.csv
@@ -207,7 +207,7 @@ ratio directly — Table 3.01's 769 MW and 4,618 GWh are both generated from tha
 rho = 769 / (4,618,000 / 8,760) = 1.4587 — the table's own peak over its own mean, not 1/0.685 (which
 gives 1.4599; the two differ only because 769 MW is itself rounded in the source table) — is a
 planning parameter, not an independent observation). This is materially
-closer to the +49.92% central case than the figures an earlier, misattributed version of this
+closer to the +49.92% central case than the figures a superseded version of this
 calibration point produced (+35.6%, 33,549 switches): the corrected point (rho = 1.4587 at
 N ~ 1.0e6, IRP Table 3.01) implies a solved equivalent `N_mid` of 19.49, next to the central case's
 assumed 20, rather than the 10.6 implied by the old, misattributed figure.
@@ -332,7 +332,7 @@ investment were wrong by orders of magnitude. Diagnosis and verification:
 | stand-alone-to-grid switches | 17,787 | 34,461 |
 
 The defect suppressed the effect being measured rather than creating it, and it produced the
-"capital falls while lifetime cost rises" result that earlier drafts had to explain; corrected,
+"capital falls while lifetime cost rises" result; corrected,
 capital and capacity both rise.
 
 Guard rails now in place: the index reset, `_assert_positional_index()` at the two points where the
@@ -349,8 +349,8 @@ distributed as described in §3), every one of the following reproduced **byte-f
 four headline solves (R0, R1 at `N_mid` 10/20/50), the rural-Tier-2 family, the 2050 family, `s10`,
 `s15` (both variants), `s16`, `s17`, `s18`, `s19`, and all eight `s08` result files (Morris + LHS,
 including the `method` column and the emulator-validation RMSE). `s09`'s grid-side OAT table matched
-the published figures to six decimal places. That is the strongest form this reproducibility claim can
-take, and it holds for every stage that starts from the published spine.
+the published figures to six decimal places. This holds for every stage that starts from the published
+spine.
 
 **The spine rebuild, resolved.** The published spine (`data/processed/zambia_grid3_spine_pe_n20.csv`,
 and the `zambia_grid3_calib_distgate.csv` it derives from) is dated 1 July 2026; the repository's first
