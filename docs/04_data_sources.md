@@ -1,7 +1,6 @@
 # Data sources
 
-None of the input data is stored in this repository. It totals roughly 17 GB, and every dataset
-carries its own licence. This file lists what is needed, where it comes from, and what the terms are.
+None of the input data is stored in this repository, and every dataset carries its own licence. This file lists what is needed, where it comes from, and what the terms are.
 
 ## Required inputs
 

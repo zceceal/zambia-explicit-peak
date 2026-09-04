@@ -57,8 +57,7 @@ it.** It makes six changes, all documented inline at the point of change:
 2. `SettlementProcessor._assert_positional_index()` is added and called at the two points where that
    invariant matters, so the failure can never again be silent.
 3. `no_of_mv_lines` is computed against the medium-voltage line's own amperage rating rather than a
-   75 kVA distribution-transformer rating it was previously (and mistakenly) derived from — applied at
-   both call sites. Affects 371 of 270,526 settlements (0.137%, ~0.09% of aggregate investment); not
+   75 kVA distribution-transformer rating, at both call sites. Affects 371 of 270,526 settlements (0.137%, ~0.09% of aggregate investment); not
    the source of the headline effect. See `patches/README.md`.
 4. Stand-alone PV reads the per-settlement `AverageToPeakLoadRatio` like every other technology,
    instead of a hard-coded load factor.
@@ -86,7 +85,7 @@ pip install -e . && cd ../..
 
 ## 3. Data
 
-Not distributed with this repository — roughly 17 GB, under third-party licences. `docs/04_data_sources.md`
+Not distributed with this repository, being held under third-party licences. `docs/04_data_sources.md`
 lists every source, its licence, and the directory layout the scripts expect under `data/`.
 
 ## 4. Run
@@ -154,8 +153,7 @@ python scripts/fig_r0r1_allocation_map.py [run-label]   # paper Figure 2: R0/R1 
 
 `fig_r0r1_allocation_map.py` is kept separate from `s13` because it reads the two arm outputs
 directly rather than the summary tables, and because it is drawn at its printed width (0.66x
-textwidth) rather than scaled down by LaTeX, which is what previously rendered its panel titles
-at 6.2 pt.
+textwidth) rather than scaled down by LaTeX.
 
 No advance runtime or memory figure is available for any other stage above or below (`s02`, `s04`,
 `s14`, `fig_r0r1_allocation_map.py`, `s19`, `s20`, the acceptance checks, or the tests) — none is
@@ -206,9 +204,7 @@ IRP states residential load factor as constant at 68.5%; it does not measure a n
 ratio directly — Table 3.01's 769 MW and 4,618 GWh are both generated from that one assumption, so
 rho = 769 / (4,618,000 / 8,760) = 1.4587 — the table's own peak over its own mean, not 1/0.685 (which
 gives 1.4599; the two differ only because 769 MW is itself rounded in the source table) — is a
-planning parameter, not an independent observation). This is materially
-closer to the +49.92% central case than the figures a superseded version of this
-calibration point produced (+35.6%, 33,549 switches): the corrected point (rho = 1.4587 at
+planning parameter, not an independent observation). The point (rho = 1.4587 at
 N ~ 1.0e6, IRP Table 3.01) implies a solved equivalent `N_mid` of 19.49, next to the central case's
 assumed 20, rather than the 10.6 implied by the old, misattributed figure.
 `s18` perturbs the census rural household size (5.0) by ±10% and returns
@@ -245,7 +241,7 @@ the paper states 62.8%. `s14`'s own technology-split table and `2026-08_final_lc
 use `Pop2030` throughout and reproduce the paper's figures exactly.
 
 All values below are from the run of 2026-08-16, the first with the index-alignment defect of §7
-corrected. Figures from earlier runs of this repository are superseded and should not be quoted.
+corrected.
 
 From `s06`, on the 2030 columns, at rural Tier 3 and `N_mid = 20`, over 270,526 settlements:
 
@@ -352,30 +348,26 @@ including the `method` column and the emulator-validation RMSE). `s09`'s grid-si
 the published figures to six decimal places. This holds for every stage that starts from the published
 spine.
 
-**The spine rebuild, resolved.** The published spine (`data/processed/zambia_grid3_spine_pe_n20.csv`,
-and the `zambia_grid3_calib_distgate.csv` it derives from) is dated 1 July 2026; the repository's first
-commit, `def8184`, is dated 29 July. The clean-room rebuild from the current `s01`–`s05` reproduced
-`PE_ratio` and `N_hh` exactly on all 270,526 rows but not `TransformerDist`: 247,676 rows (91.6%)
-differed, `ElecPopCalib`/`ElecPop2020` moved on 3.2% of rows, and re-solving on the rebuilt spine gave
-**+50.8709%, 34,153 switches** against the published **+49.9231%, 34,461**.
+**The spine rebuild.** A clean-room rebuild from `s01`–`s05` reproduces the published spine
+(`data/processed/zambia_grid3_spine_pe_n20.csv`, and the `zambia_grid3_calib_distgate.csv` it derives
+from) on all 270,526 settlements: `PE_ratio`, `N_hh`, `TransformerDist`, `CurrentMVLineDist`,
+`ElecPopCalib` and `ElecStart` are identical once the two frames are aligned on `id`, the rebuild
+differing from the published file only in row order. Verified 2026-09-04.
 
-The cause is the base-year gate. The published calibration used the 2 km transformer gate
-(`ElecStart = 1` on 7,476 settlements; `TransformerDist` unchanged), the procedure OnSSET applies when
-a transformer layer is supplied. The `s04` in the repository at the time ran a transformer-or-MV gate,
-implemented by overwriting `TransformerDist` with `min(TransformerDist, CurrentMVLineDist)`: that
-overwrite changes exactly 247,676 rows of the stage-2 spine, and the gate admits 1,186 further lit
-settlements (8,662). The calibration file for that gate is on disk beside the published one
-(`zambia_grid3_calib_distgate_txORmv_REJECTED.csv`, 8,662 settlements); the published file is
-byte-identical to `zambia_grid3_calib_distgate_v1.csv`, the transformer-gate run. `s04` now runs the
-transformer gate, and its re-run reproduces the published `ElecStart` and `ElecPopCalib` on every
-settlement (`s21 --self-test`). The transformer-or-MV gate is kept as `run_variant(mv_or_gate=True)`
-and solved as a sensitivity by `s21`; the +50.87% / 34,153 above is that sensitivity.
+The base year is calibrated on the 2 km transformer gate (`ElecStart = 1` on 7,476 settlements),
+the procedure OnSSET applies when a transformer layer is supplied; `s04 --self-test` and
+`s21 --self-test` both check that `s04` reproduces the published `ElecStart` and `ElecPopCalib` on
+every settlement. The wider transformer-or-MV gate, which admits 1,186 further lit settlements
+(8,662) by replacing `TransformerDist` with `min(TransformerDist, CurrentMVLineDist)` on 247,676
+rows, is available as `run_variant(mv_or_gate=True)` and solved as a sensitivity by `s21`:
+**+50.8709%, 34,153 switches** against the published **+49.9231%, 34,461**. Its calibration file is
+committed beside the published one as `zambia_grid3_calib_distgate_txORmv_REJECTED.csv`.
 
 ## Reproducibility: the hybrid-LUT cache (fixed 2026-08-12)
 
-*Historical. The settlement counts in this section belong to the pre-2026-08-16 series and are
-superseded by §5 and §7; the section is retained because the fix it describes is still in force
-and explains why the OAT block rebuilds its lookup table per arm.*
+*The settlement counts in this section predate the index-alignment correction of §7; §5 carries the
+current values. The section documents a fix that is still in force and explains why the OAT block
+rebuilds its lookup table per arm.*
 
 `s06_run_arms.py` rebuilds the PV-hybrid differential-evolution lookup table inside each arm,
 immediately after `np.random.seed(42)`. `s09_run_oat_checks.py` originally built the table once at the
@@ -399,10 +391,8 @@ minutes rather than 19.
 
 **Re-run completed, 2026-08-16**, after the index-alignment fix of §7. The central variant reproduced
 `s06` to six decimal places and **exactly 34,461** switches — the switch-count gate passed with zero
-residual. *Updated 2026-08-23: the values below are read from
-`results/summary/2026-08_final_oat_grid_costs.csv`, the canonical run. An earlier version of this
-table carried values from the intermediate `2026-08-16_grid3fix` run, which differ by about 0.24 pp
-on ΔLCOE% (see §7).*
+residual. The values below are read from
+`results/summary/2026-08_final_oat_grid_costs.csv`, the canonical run.
 
 | variant | grid_cap_cost | grid_gen_cost | ΔLCOE% | switches |
 |---|---|---|---|---|

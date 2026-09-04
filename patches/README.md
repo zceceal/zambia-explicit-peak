@@ -83,9 +83,7 @@ The new module-level dict `CORRECTED_CONVENTIONS = {"full_reinvestment": False}`
 reproducing unmodified OnSSET (the central case and every other reported number). Setting
 `onsset.CORRECTED_CONVENTIONS["full_reinvestment"] = True` — as `scripts/s16_run_corrected_conventions.py`
 does — switches to the full schedule for a labelled robustness variant. This dict and the branch it
-takes were part of the working engine from the outset but were missing from this patch file until
-2026-08-24, so a reader who applied only the earlier version of the patch could reproduce the headline
-but not `s16`, which raised `AttributeError` on the missing name.
+takes are part of the engine this patch produces; `s16` requires them.
 
 ## Worth reporting upstream
 
