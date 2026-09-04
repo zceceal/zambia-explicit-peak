@@ -62,9 +62,7 @@ Outputs are per-settlement CSVs, one per arm. The columns that matter:
 99 sentinel). The same pathology applies to the 2050 incremental columns, which is why the 2050 result
 uses a single-year endpoint run (`time_step = 30`) instead.
 
-Two reporting cautions. Both were corrected on 2026-08-16, having described symptoms of the
-index-alignment defect (`REPRODUCING.md` §7), not properties of the model, and the earlier versions
-said the opposite of what is true.
+Two reporting cautions.
 
 - **Capital and lifetime cost move together.** Under explicit peaks investment rises 45.6% and
   capacity 2.9%, alongside the 49.9% rise in lifetime cost. This is the physically expected direction:

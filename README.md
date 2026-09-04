@@ -31,8 +31,7 @@ solves behind them are not committed, for size; regenerating them requires the i
 **2. With the input data, obtained separately, the full pipeline solves.** `docs/04_data_sources.md`
 lists every source, its vintage and its licence. The data are not redistributed here because their
 licences do not permit it — GRID3 is CC BY-SA 4.0 (share-alike), the renewables.ninja profiles are
-CC BY-NC (non-commercial), and several others carry their own terms — not because the roughly 17 GB was
-simply left out. With the data in place as `docs/04_data_sources.md` describes, `s01` through `s24` run
+CC BY-NC (non-commercial), and several others carry their own terms. With the data in place as `docs/04_data_sources.md` describes, `s01` through `s24` run
 end to end. §8 of `REPRODUCING.md` records which stages reproduce byte-for-byte from the published
 spine. The
 per-settlement outputs behind the two allocation/switching maps (`fig_results_switching_map.pdf`,
@@ -72,7 +71,7 @@ demand pre-processor is the only difference, which is what makes the comparison 
 ## Headline results
 
 Run of 2026-08-16, the first with the index-alignment defect corrected (see
-[`REPRODUCING.md`](REPRODUCING.md) §7). **Earlier figures from this repository are superseded.**
+[`REPRODUCING.md`](REPRODUCING.md) §7).
 Every number below is drawn from `results/summary/2026-08_final_*.csv`, committed to this repository
 — readable directly, with no data download and no engine to build, for anyone who wants to check a
 number without reproducing the full run.
@@ -123,7 +122,7 @@ create the result. See [`patches/README.md`](patches/README.md) for all six and 
 Methodology (§2.2.1) for the three — the index-alignment fix, the medium-voltage line-count
 correction (371 settlements, 0.14%, 0.24 pp), and the peak-symmetry fix — that it discloses.
 
-The input data is **not** in this repository: roughly 17 GB under third-party licences. See
+The input data is **not** in this repository; it is held under third-party licences. See
 [`docs/04_data_sources.md`](docs/04_data_sources.md) for every source and the expected layout.
 
 Full step-by-step instructions, pinned versions and expected outputs are in

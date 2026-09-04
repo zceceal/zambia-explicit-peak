@@ -70,9 +70,8 @@ The peak anchors come from 61 mini-grids worldwide, not from Zambia.
   next to what Zambia's own planner assumes — but it is not external validation by measurement, and
   should not be called one. The Omorate mini-grid (443 connections, 2.88) sits well above the central
   curve (1.818); the Tum mini-grid (450 connections, 1.80) and the Zambian load-factor point both sit
-  fractionally **below** it (central curve 1.816 and 1.482 respectively) — not "on or above" at every
-  point, as a superseded version of the national figure (rho ≈ 1.67, pairing a 2020 IRP
-  peak with 2019 ERB energy) had implied.
+  fractionally **below** it (central curve 1.816 and 1.482 respectively), rather than on or above it at
+  every point.
 - **Consequence:** of the two metered systems, one sits essentially on the curve (Tum, within ~1%)
   and one sits materially above it (Omorate); the national load-factor point also sits close to the
   curve. The borrowed anchors are therefore not uniformly conservative in Zambia. The direction of
