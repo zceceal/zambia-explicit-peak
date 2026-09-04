@@ -71,7 +71,12 @@ def test_condition_df_resets_index():
     try:
         from onsset import SettlementProcessor
     except Exception as exc:                                    # pragma: no cover
-        print(f"  SKIP  onsset not importable in this environment ({type(exc).__name__})")
+        msg = f"onsset not importable in this environment ({type(exc).__name__})"
+        print(f"  SKIP  {msg}")
+        import os
+        if "PYTEST_CURRENT_TEST" in os.environ:   # under pytest, report a real skip,
+            import pytest                         # not a green pass for a check that
+            pytest.skip(msg)                      # never executed
         return
     assert hasattr(SettlementProcessor, "_assert_positional_index"), \
         "the positional-index guard is missing from SettlementProcessor"

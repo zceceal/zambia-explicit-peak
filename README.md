@@ -170,6 +170,14 @@ quantity, `N_mid`, is swept over {10, 20, 50} and every result is reported as a 
 ## Tests
 
 ```bash
+pytest test/                                                      # 10 checks; see the note below
+```
+
+`conftest.py` puts `peak_preprocessor` on `sys.path` and excludes
+`test/test_onsset_install.py`, which is a standalone script rather than a pytest module. Each
+file also runs on its own:
+
+```bash
 PYTHONPATH=peak_preprocessor python test/test_pe_diversity.py     # 8 tests on the sub-model
 python test/test_onsset_install.py                                # end-to-end OnSSET install check
 python test/test_index_alignment.py                               # regression test for the 2026-08-16 defect
