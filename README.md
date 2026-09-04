@@ -32,7 +32,7 @@ solves behind them are not committed, for size; regenerating them requires the i
 lists every source, its vintage and its licence. The data are not redistributed here because their
 licences do not permit it — GRID3 is CC BY-SA 4.0 (share-alike), the renewables.ninja profiles are
 CC BY-NC (non-commercial), and several others carry their own terms — not because the roughly 17 GB was
-simply left out. With the data in place as `docs/04_data_sources.md` describes, `s01` through `s23` run
+simply left out. With the data in place as `docs/04_data_sources.md` describes, `s01` through `s24` run
 end to end. §8 of `REPRODUCING.md` records which stages reproduce byte-for-byte from the published
 spine. The
 per-settlement outputs behind the two allocation/switching maps (`fig_results_switching_map.pdf`,
@@ -137,7 +137,7 @@ docs/                    pipeline, variables, assumptions, data sources
 patches/                 the changes to the OnSSET core, and why
 peak_preprocessor/       the study's contribution: the peak-to-energy sub-model
 scripts/                 the pipeline, in run order (s01 … s13), the standalone
-                         analyses s14 … s23, and the three acceptance checks
+                         analyses s14 … s24, and the three acceptance checks
                          (check_index_alignment.py, check_spine_integrity.py,
                          check_mv_sources.py)
 test/                    unit tests for the sub-model; OnSSET install check;
