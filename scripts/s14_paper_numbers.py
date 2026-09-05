@@ -200,6 +200,89 @@ def main(run_label):
                 {"n_mid": n_mid, "quantity": "n_settlements_at_floor", "value": n_floor},
             ]
 
+        # ── Derived quantities the paper quotes in §3.1–§3.4 ──────────────────────
+        # Each of these was previously computed at run time or by hand; committed here
+        # so results/summary/ carries a machine-readable source for every one.
+        # N is Pop/NumPeoplePerHH floored at 1: OnSSET prices a settlement as at least
+        # one connection, so the floored count is what the model actually costs.
+        if central:
+            pop30 = r1["Pop2030"].to_numpy()
+            pph = r1["NumPeoplePerHH"].to_numpy()
+            n_hh_30 = pop30 / pph
+            n_hh_20 = r1["Pop"].to_numpy() / pph
+            hh30 = float(np.maximum(n_hh_30, 1.0).sum())
+            hh20 = float(np.maximum(n_hh_20, 1.0).sum())
+            floor_share = 100.0 * pop30[n_hh_30 <= 1.0].sum() / pop30.sum()
+            urban_share = 100.0 * pop30[r1["IsUrban"].to_numpy() > 1].sum() / pop30.sum()
+            print(f"\n  households (N floored at 1)  {YEAR} {hh30/1e6:.2f} M   base year {hh20/1e6:.2f} M")
+            print(f"  Pop{YEAR} share at the N = 1 floor : {floor_share:.1f}%")
+            print(f"  Pop{YEAR} urban share (IsUrban > 1) : {urban_share:.1f}%")
+            rows += [
+                {"n_mid": n_mid, "quantity": "n_hh_sum_2030", "value": hh30},
+                {"n_mid": n_mid, "quantity": "n_hh_sum_2020", "value": hh20},
+                {"n_mid": n_mid, "quantity": "floor_pop_share_2030", "value": floor_share},
+                {"n_mid": n_mid, "quantity": "urban_pop_share_2030", "value": urban_share},
+            ]
+
+            # Grid households newly connected in the R0 arm over the 2020-2030 step.
+            new_grid = float(r0.loc[f0 == 1, f"NewConnections{YEAR}"].sum())
+            print(f"  R0 households newly connected to the grid  : {new_grid/1e6:.2f} M")
+            rows.append({"n_mid": n_mid, "quantity": "r0_new_grid_connections_2030", "value": new_grid})
+
+            # Share of national energy carried by stand-alone settlements, R0 arm.
+            e0_all = r0[ec].to_numpy()
+            sa_share_t3 = 100.0 * e0_all[f0 == 3].sum() / e0_all.sum()
+            print(f"  stand-alone share of national energy (R0, Tier 3) : {sa_share_t3:.1f}%")
+            rows.append({"n_mid": n_mid, "quantity": "sa_energy_share_r0_tier3", "value": sa_share_t3})
+            t2_path = OUT / f"{run_label}_R0_ruralT2.csv"
+            if t2_path.exists():
+                t2 = pd.read_csv(t2_path, usecols=[code, ec])
+                e_t2 = t2[ec].to_numpy()
+                sa_share_t2 = 100.0 * e_t2[t2[code].to_numpy() == 3].sum() / e_t2.sum()
+                print(f"  stand-alone share of national energy (R0, Tier 2) : {sa_share_t2:.1f}%")
+                rows.append({"n_mid": n_mid, "quantity": "sa_energy_share_r0_tier2", "value": sa_share_t2})
+            else:
+                print(f"  (rural Tier 2 R0 arm not found — sa_energy_share_r0_tier2 skipped)")
+
+            # Mini-grid eligibility: technology_options.min_mg_size is 100 households,
+            # so a settlement below it has no mini-grid option costed at all.
+            if "PE_ratio" in r1.columns:
+                rho_all = r1["PE_ratio"].to_numpy()
+                elig = n_hh_30 >= 100
+                lt2 = elig & (rho_all < 2.0)
+                e1_all = r1[ec].to_numpy()
+                med_atr = float(np.median(1.0 / rho_all[elig]))
+                share_lt2 = 100.0 * lt2.sum() / elig.sum()
+                energy_lt2 = 100.0 * e1_all[lt2].sum() / e1_all[elig].sum()
+                print(f"\n  mini-grid-eligible settlements (N >= 100)  : {int(elig.sum()):,}")
+                print(f"    median ATR (1/rho)                       : {med_atr:.3f}")
+                print(f"    share with rho < 2                       : {share_lt2:.1f}%")
+                print(f"    their share of eligible energy           : {energy_lt2:.1f}%")
+                rows += [
+                    {"n_mid": n_mid, "quantity": "mg_eligible_n", "value": int(elig.sum())},
+                    {"n_mid": n_mid, "quantity": "mg_eligible_median_atr", "value": med_atr},
+                    {"n_mid": n_mid, "quantity": "mg_eligible_share_rho_lt2", "value": share_lt2},
+                    {"n_mid": n_mid, "quantity": "mg_eligible_energy_share_rho_lt2", "value": energy_lt2},
+                ]
+
+            # Allocation-shape figures: the median stand-alone settlement, and how each
+            # technology's total capacity moves between the arms.
+            sa_med_pop = float(np.median(r1.loc[f1 == 3, "Pop2030"]))
+            k0_arr, k1_arr = r0[cap].to_numpy(), r1[cap].to_numpy()
+            sa_cap_pct = 100.0 * (k1_arr[f1 == 3].sum() / k0_arr[f0 == 3].sum() - 1.0)
+            grid_cap_pct = 100.0 * (k1_arr[f1 == 1].sum() / k0_arr[f0 == 1].sum() - 1.0)
+            retained = int((f0 == f1).sum())
+            print(f"\n  median Pop{YEAR} of stand-alone settlements : {sa_med_pop:.1f}")
+            print(f"  stand-alone capacity R0 -> R1 : {sa_cap_pct:+.1f}%")
+            print(f"  grid capacity        R0 -> R1 : {grid_cap_pct:+.1f}%")
+            print(f"  settlements retaining their technology : {retained:,}")
+            rows += [
+                {"n_mid": n_mid, "quantity": "sa_median_pop_2030", "value": sa_med_pop},
+                {"n_mid": n_mid, "quantity": "sa_capacity_r1_pct_change", "value": sa_cap_pct},
+                {"n_mid": n_mid, "quantity": "grid_capacity_r1_pct_change", "value": grid_cap_pct},
+                {"n_mid": n_mid, "quantity": "retained_technology_n", "value": retained},
+            ]
+
     SUM.mkdir(parents=True, exist_ok=True)
     out_path = SUM / f"{run_label}_paper_numbers.csv"
     pd.DataFrame(rows).to_csv(out_path, index=False)

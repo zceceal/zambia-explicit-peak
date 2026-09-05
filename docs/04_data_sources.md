@@ -39,6 +39,23 @@ transformer/substation records and the transmission network were obtained withou
 licence statement. They are used here for academic analysis and are not redistributed. Anyone reusing
 them should confirm terms with the publisher first.
 
+The **ZESCO record holds 69,167 medium-voltage overhead-line segments** (all LineString
+geometries), published in **Arc 1950 / UTM zone 35S**. `s03` reprojects it to EPSG:32735 with a full
+Helmert datum transform rather than reinterpreting the same projected coordinates under a new datum.
+The two readings differ by a **median 288.6 m** (mean 295.9 m, min 9.1 m, max 5.9 km) across the
+69,167 segments: roughly 300 m of displacement that, uncorrected, would be carried straight into every
+settlement's `CurrentMVLineDist` and so into the grid-extension decision. `s03` checks the
+post-transform bounds fall inside Zambia and raises `RuntimeError` if they do not
+(`s03_build_spine_attributes.py`, step S3.2a).
+
+The night-lights raster is EOG's VNL v2.1 annual `average_masked` product. That masking is EOG's own
+removal of background noise and ephemeral lights; it is **not** a water mask, and no water-body or
+lake layer is among the inputs listed above. 1.53% of the clipped pixels are lit (> 0), and `s04`
+uses `NightLights > 0` as one term of its base-year gate alongside the 2 km transformer distance. The
+repository therefore cannot attribute any lit pixel to a water surface, and states no share of
+population affected by lake-surface night-lights artefacts; deriving one would require a water-body
+layer this pipeline does not carry.
+
 The hydro layer lists five existing grid-scale stations (Kafue Gorge 990 MW, Kariba 930 MW,
 Itezhi-Tezhi 120 MW, Victoria Falls 108 MW, Lusiwasi 12 MW), not a mini-hydro potential assessment —
 there is no sixth site waiting to be found in it. This is why `docs/01_pipeline.md` and the paper
