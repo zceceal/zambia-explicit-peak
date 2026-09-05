@@ -12,6 +12,15 @@ key in that file is inert.
 Python 3.13 specifically — several pins (numpy 2.4.6, pandas 3.0.3, scipy 1.17.1) have no wheels for
 other minor versions.
 
+**Memory: `s08` and `s09` need more than 8 GB of RAM.** Both were killed by the operating system's
+memory manager on a 6-core, 8 GB machine with a 9 GB swap file (626 MB of that swap still free at the
+time), running with nothing else on the machine. `s08` reaches the limit in its LHS block, after
+completing the Morris screen in full (56/56 evaluations, 14.6 min, μ* ranking reproduced exactly);
+`s09` in its own LHS validation block. The peak requirement was not measured, so no figure is stated
+here: what is recorded is that 8 GB of RAM plus 9 GB of swap did not finish either stage. Every other
+stage in §4 completed on that machine, including all four `s06` arms and the four-arm `s18`. Observed
+2026-09-05.
+
 ```bash
 python3.13 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
@@ -124,6 +133,13 @@ python scripts/s08_run_global_sensitivity.py     # Morris + LHS; ~64 min       -
 # s08's bias-correction factor and every gate in s08 and s09 read the central headline at run time
 # from the s06 outputs, via onsset_helpers.central_headline() — no manual step.
 python scripts/s09_run_oat_checks.py             # grid-side OAT               -> needed by s13
+                                                  # REQUIRES s08 to have completed: task0_lhs_validation
+                                                  # reads 2026-08_final_lhs_uncertainty.csv, and it runs
+                                                  # unconditionally before the grid-side OAT block, so
+                                                  # without s08 this script raises FileNotFoundError
+                                                  # before reaching the OAT block at all. --lhs-only
+                                                  # skips the OAT block; there is no flag for the
+                                                  # reverse, so the OAT table cannot be produced alone.
                                                   # ~2 min per arm; --lhs-only runs the LHS validation block
                                                   # alone. Per-variant times are in the elapsed_s column of
                                                   # each block's results/summary CSV; they are machine-load
@@ -167,6 +183,10 @@ python scripts/s24_switcher_profile.py                      # switcher profile: 
                                                             # distribution, population at 2030 (paper §3.3)
 python scripts/s23_summarise_variants.py                    # Tier-2, 2050, anchor-fitted, schedule, reinvestment and
                                                               # single-household summaries from existing outputs, no re-solve
+                                                              # REQUIRES s15 and s16: it reads their per-settlement
+                                                              # outputs by name — 2026-08-16_capex-smooth_lcoe_{R0,
+                                                              # R1_n20}.csv, 2026-08-16_capex-monotone_lcoe_{R0,
+                                                              # R1_n20}.csv and 2026-08-16_reinvest_lcoe_{R0,R1_n20}.csv
                                                               # -> 2026-09-02_variant_summaries.csv
 python scripts/check_spine_integrity.py                     # 22 hard checks on the spine, no re-run
 ```
