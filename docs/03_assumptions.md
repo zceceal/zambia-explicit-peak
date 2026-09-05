@@ -12,14 +12,13 @@ second changes the size of the answer; the third does not affect the comparison 
 **None were found at the aspirational (Tier 3+) service levels the study is framed on.** No
 combination of tested assumptions there makes explicit peaks *cheaper*, or leaves the technology
 allocation untouched. At Tier 2 the sign is not fixed — see Section 2.4, which is a boundary
-condition on the finding rather than a threat to it. The direction of the result follows from a physical fact — small
-settlements do not diversify their peaks — rather than from any parameter choice.
+condition on the finding rather than a threat to it.
 
 ---
 
 ## Group 2 — Assumptions that affect the size of the result
 
-### 2.1 The peak-to-capacity sizing convention  ← the biggest one
+### 2.1 The peak-to-capacity sizing convention
 
 OnSSET sizes installed capacity as peak divided by capacity factor, and scales the **whole** capital
 schedule with it. Physically, for a battery-based stand-alone system only the battery, inverter and
@@ -43,9 +42,9 @@ balance-of-system should scale with peak; the solar panels scale with energy.
 
 ### 2.2 `N_mid` — the one free parameter in the peak sub-model
 
-The measured anchors report peak-to-energy by *load-shape archetype*, not by *connection count*. So
-mapping them onto settlement sizes requires assuming at what connection count a load looks like the
-intermediate archetype. That is `N_mid`.
+The anchors (`docs/02_variables.md` §1) report peak-to-energy by *load-shape archetype*, not by
+*connection count*, so mapping them onto settlement sizes requires assuming at what connection count
+a load looks like the intermediate archetype. That is `N_mid`.
 
 - **Handling:** central value 20 households, swept over a full decade {10, 20, 50}, with the entire
   pipeline re-solved at each. Every headline is reported as a band.
@@ -111,11 +110,9 @@ Household size is a measured 2022 census enumeration (ZamStats 2022, Section 4.3
 borrowed value: urban 4.6, rural 5.0, applied identically to both cases. It sits in Group 2 not
 because the figure is uncertain, but because it feeds an asymmetric channel: the demand-side effect
 (fewer, larger households means less energy per settlement) is common to both R0 and R1 and cancels
-out of the stand-alone levelised cost, while the connection count `N_hh = max(1, Pop2030/s)` — with
-`Pop2030` the engine's own projection from `PopStartYear`, asserted against the spine's own column
-before every solve (`docs/01_pipeline.md`) — which it also sets, feeds the coincidence model, which
-only the explicit-peak case uses. A change in household size
-can therefore move the R1–R0 contrast even though its demand-side effect cancels.
+out of the stand-alone levelised cost, while the connection count `N_hh` (`docs/01_pipeline.md`),
+which it also sets, feeds the coincidence model, which only the explicit-peak case uses. A change in
+household size can therefore move the R1–R0 contrast even though its demand-side effect cancels.
 
 - **Handling:** as a stress test far wider than the real uncertainty in an enumerated census figure,
   the rural value is perturbed by ±10% (4.5 and 5.5 against the census 5.0) and both cases re-solved
@@ -133,7 +130,7 @@ in the comparison that carries the contribution.
 
 | Assumption | Note |
 |---|---|
-| Grid build rate unconstrained | Overstates the absolute grid share versus a rate-limited plan. Common to both runs. Set in the specs workbook; `config.yaml`'s two `annual_*_limit` keys record the intent but are read by no script |
+| Grid build rate unconstrained | Overstates the absolute grid share versus a rate-limited plan. Common to both runs. Set in the specs workbook |
 | 100% electrification by 2030 | A scenario choice, not a model error — it is the universal-access frame |
 | Grid reliability at OnSSET default (0.963) | No cost of non-served energy |
 | Residential demand only | Productive and institutional loads not separately modelled |

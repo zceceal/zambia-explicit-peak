@@ -5,9 +5,9 @@ than through one national load factor, changes the least-cost electrification pl
 
 **Headline: doing so raises the modelled lifetime cost of universal access by +45.4%, and changes
 the least-cost technology for 33,665 settlements (12.4%) — see [Headline results](#headline-results)
-below, or `results/summary/` for the committed numbers behind the reported figures, with no setup
-required. See [Reproducibility: what this clone gives you](#reproducibility-what-this-clone-gives-you)
-for exactly what that does and does not include.**
+below, or `results/summary/` for the committed numbers behind the reported figures. See
+[Reproducibility: what this clone gives you](#reproducibility-what-this-clone-gives-you) for exactly
+what that does and does not include.**
 
 Model and code behind the MSc research paper *Explicit peak demand representation in least-cost
 electrification modelling: evidence from Zambia* (Imperial College London, 2026).
@@ -19,7 +19,7 @@ electrification modelling: evidence from Zambia* (Imperial College London, 2026)
 The published state is the tag **`paper-2026-09-05`**, which is what the paper's Data availability
 statement cites, what `main` points at, and the only tag this repository carries.
 
-Three tiers, stated as a boundary rather than left implicit.
+Three tiers.
 
 **1. From the clone alone, no input data required.** Every script and its docstring; the OnSSET patch
 in `patches/`, verified against upstream `c154ece`; the acceptance and regression tests in `test/`; and
@@ -36,19 +36,16 @@ solves behind them are not committed, for size; regenerating them requires the i
 **2. With the input data, obtained separately, the full pipeline solves.** `docs/04_data_sources.md`
 lists every source, its vintage and its licence. The data are not redistributed here because their
 licences do not permit it — GRID3 is CC BY-SA 4.0 (share-alike), the renewables.ninja profiles are
-CC BY-NC (non-commercial), and several others carry their own terms. With the data in place as `docs/04_data_sources.md` describes, `s01` through `s24` run
-end to end. §8 of `REPRODUCING.md` records which stages reproduce byte-for-byte from the published
-spine. The
-per-settlement outputs behind the two allocation/switching maps (`fig_results_switching_map.pdf`,
+CC BY-NC (non-commercial), and several others carry their own terms. With the data in place as
+`docs/04_data_sources.md` describes, `s01` through `s25` run end to end. §8 of `REPRODUCING.md`
+records which stages reproduce byte-for-byte from the published spine. The per-settlement outputs
+behind the two allocation/switching maps (`fig_results_switching_map.pdf`,
 `fig_results_r0_r1_allocation_map.pdf`; gitignored) are not committed either, for size rather
-than licence reasons, and are available from the author on request: about 11 GB for every variant; the four central solves and the 2050 endpoint that the paper reports are about 3 GB, and are the set the paper's Data availability statement refers to.
+than licence reasons, and are available from the author on request (`results/README.md`).
 
-**3. The published settlement spine.** It is dated four weeks before this repository's first commit.
-Rebuilding it from raw data with the current `s01`-`s05` reproduces every column that feeds the R0/R1
-solve. An earlier rebuild differed in `TransformerDist` on 247,676 rows because `s04` at that time
-applied a transformer-or-MV base-year gate, which overwrites that column, whereas the published spine
-was calibrated on the 2 km transformer gate. `s04` now runs the published gate, and the wider gate is
-the sensitivity in `s21` (`REPRODUCING.md` §8).
+**3. The published settlement spine.** Rebuilding it from raw data with the current `s01`-`s05`
+reproduces every column that feeds the R0/R1 solve (`REPRODUCING.md` §8). It is calibrated on the
+2 km transformer gate; the wider transformer-or-MV gate is the sensitivity in `s21`.
 
 ---
 
@@ -77,13 +74,11 @@ demand pre-processor is the only difference, which is what makes the comparison 
 
 Run of 2026-09-05, with N evaluated at the analysis-year (2030) population throughout (see
 [`docs/01_pipeline.md`](docs/01_pipeline.md)).
-Every number below is drawn from `results/summary/2026-08_final_*.csv`, committed to this repository
-— readable directly, with no data download and no engine to build, for anyone who wants to check a
-number without reproducing the full run.
+Every number below is drawn from `results/summary/2026-08_final_*.csv`, committed to this repository.
 
 | Result | Value |
 |---|---|
-| Change in lifetime cost of universal access | **+45.4%** (+30.0% to +66.1% across the `N_mid` sweep — `N_mid` is the sub-model's one assumed parameter, swept over {10, 20, 50}; see [The experiment](#the-experiment) below) |
+| Change in lifetime cost of universal access | **+45.4%** (+30.0% to +66.1% across the `N_mid` sweep — `N_mid` is the sub-model's one assumed parameter, swept over {10, 20, 50}; see [`docs/02_variables.md`](docs/02_variables.md) §1) |
 | Change in upfront capital | **+41.2%**; new capacity +1.6% |
 | Settlements changing least-cost technology | **33,665** (12.4%); every one stand-alone solar → grid |
 | Same comparison at lower (Tier-2) demand | −3.7% to +7.2% — a boundary condition, not a confirmation |
@@ -114,19 +109,9 @@ conda env create -f environment.yml && conda activate zambia-peak
 ```
 
 The allocation engine is OnSSET at upstream commit `c154ece` with the patch in
-[`patches/`](patches/README.md) applied. **The results do not reproduce without it.** It does six
-things: resets the DataFrame index after `condition_df()` sorts, so that peak load and capacity factor
-are no longer mispaired across settlements; adds a runtime guard that raises if that invariant is ever
-broken again; corrects a medium-voltage line-count formula that over-counted feeders against a
-transformer rating instead of the line's own rating; makes stand-alone PV read the same per-settlement
-peak field every other technology already read; casts a capital-cost accumulator to float so it
-stops truncating non-integer costs; and adds an off-by-default switch to a full reinvestment schedule,
-used only by the labelled robustness variant in `scripts/s16_run_corrected_conventions.py`. The
-unpatched code *suppressed* the effect this study measures on both counts, so the patch does not
-create the result. See [`patches/README.md`](patches/README.md) for all six and the paper's
-Methodology (§2.2.1) for the three — the index-alignment fix, the medium-voltage line-count
-correction (371 settlements, 0.137%, ~0.09% of aggregate investment), and the peak-symmetry fix —
-that it discloses.
+[`patches/`](patches/README.md) applied. **The results do not reproduce without it.** It makes six
+changes, set out in [`patches/README.md`](patches/README.md); the paper's Methodology (§2.2.1)
+discloses three of them.
 
 The input data is **not** in this repository; it is held under third-party licences. See
 [`docs/04_data_sources.md`](docs/04_data_sources.md) for every source and the expected layout.
@@ -141,9 +126,9 @@ config/                  config.yaml — every contested value, with its source
 docs/                    pipeline, variables, assumptions, data sources
 patches/                 the changes to the OnSSET core, and why
 peak_preprocessor/       the study's contribution: the peak-to-energy sub-model
-scripts/                 the pipeline, in run order (s01 … s13), the standalone
-                         analyses s14 … s24, s25 (collects the summary CSVs into
-                         results/summary/, last step of every run), and the three
+scripts/                 the pipeline, in run order (s01 … s13), the reporting and
+                         robustness stages s14 … s24, s25 (collects the summary CSVs
+                         into results/summary/, always the last step), and the three
                          acceptance checks (check_index_alignment.py,
                          check_spine_integrity.py, check_mv_sources.py)
 test/                    unit tests for the sub-model; OnSSET install check;
@@ -154,11 +139,14 @@ results/                 summary outputs (committed); per-settlement CSVs gitign
 
 ## Running the pipeline
 
-Scripts run in numeric order. Each writes files the next one reads.
+Scripts run in numeric order. Each writes files the next one reads. `PYTHONPATH` must point at the
+repository root, or `peak_preprocessor` is not importable.
 
 ```bash
+export PYTHONPATH="$(pwd)"
 python scripts/s01_build_spine_clusters.py   # … through to …
 python scripts/s13_generate_figures.py
+python scripts/s25_collect_summaries.py      # always the last step
 ```
 
 Full description of every stage: [`docs/01_pipeline.md`](docs/01_pipeline.md).
@@ -169,20 +157,21 @@ The whole intervention is one equation, in `peak_preprocessor/pe_diversity.py` (
 P/E(N) = P_inf + (P_1 - P_inf) * N ** (-beta)
 ```
 
-`P_1 = 3.98`, `P_inf = 1.45` and the calibration anchor `P_step = 2.43` are all **measured** values
-(Lorenzoni et al. 2020, 61 metered mini-grids). `beta` is derived, not chosen. The one assumed
-quantity, `N_mid`, is swept over {10, 20, 50} and every result is reported as a band.
-
-`N` itself is `N_hh = max(1, Pop2030 / household_size)`, with `Pop2030` the engine's own projection
-(`SettlementProcessor.project_pop_and_urban`) from `PopStartYear`. `s05` writes `Pop2030`, `N_hh`
-and a reference column `N_hh_2020` to the settlement dataset, and every solve asserts, settlement by
-settlement, that the spine's `Pop2030` matches the engine's own projection before solving. See
+`N` is `N_hh = max(1, Pop2030 / household_size)`. The anchors, `beta` and `N_mid` are set out in
+[`docs/02_variables.md`](docs/02_variables.md) §1; how `N_hh` is built and checked, in
 [`docs/01_pipeline.md`](docs/01_pipeline.md).
 
 ## Tests
 
+With the input data and the patched engine in place, all 11 checks pass. On a clean checkout one of
+them fails by design: `test_index_alignment.py`'s third check,
+`test_stand_alone_capacity_closed_form`, needs `data/onsset_outputs/2026-08_final_lcoe_R0.csv` from a
+completed `s06` run, and it fails rather than skips so that a reviewer never sees a green suite for a
+check that never executed. Its own assertion message says so. (`test_condition_df_resets_index`
+skips, rather than fails, when OnSSET is not importable.)
+
 ```bash
-pytest test/                                                      # 11 checks; see the note below
+pytest test/                                                      # 11 checks
 ```
 
 `conftest.py` puts `peak_preprocessor` on `sys.path` and excludes
@@ -195,24 +184,20 @@ python test/test_onsset_install.py                                # end-to-end O
 python test/test_index_alignment.py                               # regression test for the 2026-08-16 defect
 ```
 
-`test_index_alignment.py`'s third check, `test_stand_alone_capacity_closed_form`, needs
-`data/onsset_outputs/2026-08_final_lcoe_R0.csv` — a completed `s06` run (see "Running the pipeline"
-above). Run before that, it FAILS by design, not skips: a reviewer on a clean checkout must not see a
-green suite for a check that never executed. Its own assertion message says so.
-
-After any run of `s06`, before trusting anything downstream:
+After any run of `s06`, before trusting anything downstream, run the two acceptance checks described
+in [`docs/01_pipeline.md`](docs/01_pipeline.md):
 
 ```bash
-python scripts/check_index_alignment.py data/onsset_outputs/<run>_R0.csv   # must report ~100%
-python scripts/check_spine_integrity.py                                    # 22 checks on the spine
+python scripts/check_index_alignment.py data/onsset_outputs/<run>_R0.csv
+python scripts/check_spine_integrity.py
 ```
 
 ## Reading order for a reviewer
 
 1. This file.
-2. [`docs/03_assumptions.md`](docs/03_assumptions.md) — what the model takes on trust, and how each is tested.
-3. [`docs/01_pipeline.md`](docs/01_pipeline.md) — what runs, in what order.
-4. [`docs/02_variables.md`](docs/02_variables.md) — every number, with its source.
+2. [`docs/01_pipeline.md`](docs/01_pipeline.md) — what runs, in what order.
+3. [`docs/02_variables.md`](docs/02_variables.md) — every number, with its source.
+4. [`docs/03_assumptions.md`](docs/03_assumptions.md) — what the model takes on trust, and how each is tested.
 5. `peak_preprocessor/pe_diversity.py` — the intervention itself.
 
 ## Licence

@@ -16,37 +16,20 @@ they can be used to fit the curve instead. Only one of them is a measurement:
     assumption (NOT a measurement — see below)                              Assessment and
                                                                               Forecast, Table 3.01)
 
-The second point is not an independent observation of national peak-to-mean behaviour. The IRP
-states it directly: "The load factor for demand from the residential sector is constant over the
-modelled period at 68.5%." Table 3.01's two 2020 figures are both generated FROM that one assumed
-load factor, not measured independently of each other: 1/0.685 = 1.4599 (the anchor value, up to
-rounding), and 4,618 GWh / 8,760 h / 0.685 = 769.59 MW, which is exactly the table's stated 769 MW
-peak. Dividing the table's peak by its energy therefore just returns the load-factor assumption the
-table was built from. `rho = 1.4587` is correct arithmetic and a correct reading of the source — it
-is simply Zambia's own planning assumption about national residential load shape, not a metered
-peak-to-mean ratio. It is still worth comparing against: it shows what this model implies at
-national scale next to what Zambia's own planner assumes. It is not external validation by
-measurement, and should never be described as "measured" or "independently validated".
+The second point is Zambia's own planning assumption about national residential load shape, not a
+metered peak-to-mean ratio; docs/03_assumptions.md §2.3 sets out what it is and is not.
 
-With rho_1 = 3.98 kept at N = 1, the Tum measurement and the IRP load-factor assumption pin the
-remaining two parameters — but NOT by setting rho_inf equal to the raw reading at the second point's
-N and deriving beta from Tum alone. That shortcut (the earlier version of this script) assumed the
-decaying term (rho_1 - rho_inf)*N^-beta is negligible by N = 1e6, which held for the old, faster-
-decaying fit (beta ~= 0.47, residual ~0.003) but does not hold here: fixing rho_inf = 1.4587 and
-solving beta from Tum alone gives beta = 0.32733, and at that beta the curve has NOT converged by
-N = 1e6 (it gives 1.4861, not 1.4587 — a 0.027 residual, 5x too large to call "negligible"). This
-also would have made the paper's own description of the method (§2.4: "the two anchors determine
-[rho_inf and beta] exactly") false. So both parameters are instead solved SIMULTANEOUSLY, as a 2x2
-nonlinear system fitting both points exactly (scipy.optimize.fsolve, done at runtime — see
-calibrate_curve() below):
+With rho_1 = 3.98 kept at N = 1, both remaining parameters are solved SIMULTANEOUSLY, as a 2x2
+nonlinear system fitting both points exactly (scipy.optimize.fsolve, at runtime — see
+calibrate_curve() below). Solving beta from Tum alone would not do: the decaying term
+(rho_1 - rho_inf)*N^-beta has not converged by N = 1e6 at this beta.
 
     rho_inf = 1.42545        (solved, not read directly off either anchor)
     beta    = 0.31426        (solved)
     equivalent N_mid = 19.49 (inside the swept 10-50 range)
 
-rho_inf comes out slightly below Lorenzoni's own "Flat" archetype of 1.45 — expected, not a defect:
-it reflects that the IRP point at N=1e6 has not fully converged to the curve's asymptote at this
-beta, which pulls the solved floor down a little to fit both points exactly.
+rho_inf comes out slightly below Lorenzoni's own "Flat" archetype of 1.45 because the IRP point at
+N = 1e6 has not fully converged to the curve's asymptote at this beta.
 
 The fitted curve reproduces both points to solver tolerance (<1e-9): 1.800 at 450, 1.4587 at 1.0e6.
 The central curve gives 1.816 and 1.482 at those same two N. The fitted curve is essentially on the
@@ -84,15 +67,10 @@ YEAR      = 2030
 
 RHO_1 = 3.98   # kept: Lorenzoni "Peak" archetype at N = 1
 
-# The two calibration points. rho_inf and beta below are SOLVED from these, not read off either
-# one directly (see WHY above for why that shortcut no longer holds). Only the first is a
-# measurement; the second is Zambia's own planning assumption, not an independent observation.
+# The two calibration points; rho_inf and beta are SOLVED from these, not read off either directly.
 ANCHOR_TUM_MEASURED         = (450.0, 1.80)      # Wassie & Ahlgren 2024, Tum mini-grid, residential
-ANCHOR_ZAMBIA_LOAD_FACTOR   = (1.0e6, 1.4587)    # IRP Demand Assessment and Forecast Report,
-                                                 # Table 3.01, 2020: 769 MW / 4,618 GWh, both
-                                                 # generated from the IRP's stated 68.5% assumed
-                                                 # national residential load factor (1/0.685 = 1.4599)
-                                                 # -> NOT an independent measurement.
+ANCHOR_ZAMBIA_LOAD_FACTOR   = (1.0e6, 1.4587)    # IRP Table 3.01 — a planning assumption, not a
+                                                 # measurement (docs/03_assumptions.md §2.3)
 
 
 def calibrate_curve():

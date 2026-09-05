@@ -27,9 +27,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-# Scoped to third-party deprecation noise only. RuntimeWarning (divide-by-zero,
-# overflow, invalid value) and every other category stay visible, so a numerical
-# fault surfaces rather than being silently discarded.
+# Third-party deprecation noise only; see onsset_helpers.py for the filter's scope.
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -84,7 +82,6 @@ WIND_PROFILE  = (REPO / "data" / "raw" / "zambia" / "renewables_hourly" /
 
 RUN_LABEL = "2026-08_final_lcoe"   # prefix for every file this script writes
 
-# Fix all seeds for reproducibility
 np.random.seed(42)
 
 
@@ -118,7 +115,7 @@ def run_arm(arm_label: str, spine_df: pd.DataFrame, cfg: dict,
     n_mid: if not None, apply PE_ratio from column 'PE_ratio' (already set on spine_df)
     Returns (onsseter, summary, hybrid_status)
     """
-    np.random.seed(42)  # re-seed before each arm for reproducibility
+    np.random.seed(42)
 
     print(f"\n{'='*65}")
     print(f"  ARM {arm_label}  (N_mid={n_mid if n_mid else 'N/A (R0)'})")
@@ -158,7 +155,7 @@ def run_arm(arm_label: str, spine_df: pd.DataFrame, cfg: dict,
     mg_pv_hybrid_params  = build_mg_pv_hybrid_params(cfg, min_mg_size)
     mg_wind_hybrid_params = build_mg_wind_hybrid_params(cfg, min_mg_size)
 
-    # F1: use in-memory DataFrame copy
+    # use the in-memory DataFrame copy
     onsseter = SettlementProcessor.__new__(SettlementProcessor)
     onsseter.df = spine_df.copy()
 
@@ -337,7 +334,6 @@ def run_arm(arm_label: str, spine_df: pd.DataFrame, cfg: dict,
                                         year, time_step, final_step)
         onsseter.apply_limitations(elec_target, year, time_step, 2)
 
-        # Year summary
         code_col = "FinalElecCode" + str(year)
         inv_col  = "InvestmentCost" + str(year)
         cap_col  = "NewCapacity" + str(year)
@@ -380,13 +376,13 @@ def compare_arms(df0: pd.DataFrame, df1: pd.DataFrame, years: list,
     tech_labels = {1: "Grid", 3: "SA_PV", 5: "MG_PVHybrid",
                    6: "MG_Wind", 7: "MG_Hydro", 99: "Unelectrified"}
 
-    # F1 byte-identity check
+    # byte-identity check
     common_cols = [c for c in df0.columns if c in df1.columns]
     pe_col_set  = set(pe_cols) | {"AverageToPeakLoadRatio"}
     diff_cols   = [c for c in common_cols if not df0[c].equals(df1[c])]
     phys_differ = [c for c in diff_cols if c in _PHYSICAL_INPUT_COLS]
     non_pe_diff = [c for c in diff_cols if c not in pe_col_set]
-    print(f"\n  F1 assertion ({label0} vs {label1}):")
+    print(f"\n  Byte-identity assertion ({label0} vs {label1}):")
     print(f"    Total differing columns:      {len(diff_cols)}")
     print(f"    Physical input cols differing: {phys_differ if phys_differ else 'none — PASS'}")
     print(f"    Non-PE differing (results):   {len(non_pe_diff)}")
@@ -417,7 +413,6 @@ def compare_arms(df0: pd.DataFrame, df1: pd.DataFrame, years: list,
               f"ΔInv = ${(inv1-inv0)/1e9:+.3f} bn  "
               f"(R0: ${inv0/1e9:.3f} bn, {label1}: ${inv1/1e9:.3f} bn)")
 
-    # Switch matrix for last year
     fc0 = df0["FinalElecCode" + str(last_year)]
     fc1 = df1["FinalElecCode" + str(last_year)]
     print(f"\n  Switch matrix {label0}→{label1} at {last_year}:")
@@ -457,7 +452,7 @@ def main():
 
     years = cfg["scenario"]["years_of_analysis"]
 
-    # ── F1: Load spines, merge all PE columns ──────────────────────────────────
+    # ── Load spines, merge all PE columns ──────────────────────────────────────
     print("\n" + "=" * 65)
     print("  Loading GRID3 PE spines (base for all arms)")
     print("=" * 65)

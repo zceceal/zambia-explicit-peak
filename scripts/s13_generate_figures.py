@@ -88,7 +88,7 @@ def save_fig(fig, name: str, dpi: int = 300):
     if PUBLICATION and not name.endswith("_bw.png"):
         pdf = str(path).rsplit(".", 1)[0] + ".pdf"
         try:
-            fig.savefig(pdf, bbox_inches="tight")   # vector for LaTeX
+            fig.savefig(pdf, bbox_inches="tight")
         except Exception as e:
             print(f"  (pdf skipped for {name}: {e})")
     plt.close(fig)
@@ -171,13 +171,13 @@ def fig0_workflow():
         "R1 − R0\n= effect of explicit\npeak representation", REUSED, bold=False)
 
     # ── Connectors (straight / orthogonal only) ──────────────────────────
-    harrow(c1x + c1w + 0.008, c2x - 0.006, 0.760)          # inputs -> demand assignment
-    varrow(c2x + 0.048 + (c2w - 0.048)/2, 0.660, 0.578)    # assignment -> R0
-    varrow(c2x + 0.022, 0.660, 0.318)                      # assignment -> R1 (left gutter, clear of R0)
-    harrow(c2x + c2w + 0.008, c3x - 0.006, 0.483)          # R0 -> engine
-    harrow(c2x + c2w + 0.008, c3x - 0.006, 0.222)          # R1 -> engine
-    harrow(c3x + c3w + 0.008, c4x - 0.006, 0.640)          # engine -> outputs
-    varrow(c4x + c4w/2, 0.520, 0.413)                      # outputs -> contrast
+    harrow(c1x + c1w + 0.008, c2x - 0.006, 0.760)
+    varrow(c2x + 0.048 + (c2w - 0.048)/2, 0.660, 0.578)
+    varrow(c2x + 0.022, 0.660, 0.318)
+    harrow(c2x + c2w + 0.008, c3x - 0.006, 0.483)
+    harrow(c2x + c2w + 0.008, c3x - 0.006, 0.222)
+    harrow(c3x + c3w + 0.008, c4x - 0.006, 0.640)
+    varrow(c4x + c4w/2, 0.520, 0.413)
     # shared inputs -> engine, routed orthogonally beneath the arm boxes
     ax.plot([c1x + c1w/2, c1x + c1w/2], [0.075, 0.038], color=EDGE, lw=1.2)
     ax.plot([c1x + c1w/2, c3x + c3w/2], [0.038, 0.038], color=EDGE, lw=1.2)
@@ -196,7 +196,7 @@ def fig_curve():
     lo = pe_from_n(N, N_mid=20, P_1=P_1_DEFAULT-2*SD_P_1, P_inf=max(1.0, P_INF_DEFAULT-2*SD_P_INF), P_step=P_STEP_DEFAULT-2*SD_P_STEP)
     hi = pe_from_n(N, N_mid=20, P_1=P_1_DEFAULT+2*SD_P_1, P_inf=P_INF_DEFAULT+2*SD_P_INF, P_step=P_STEP_DEFAULT+2*SD_P_STEP)
     # Drawn at the printed width (0.98 x column width = 3.08 in) so LaTeX applies no
-    # downscaling: at 6.3 in the 0.49x shrink rendered the legend at 4.2 pt.
+    # downscaling.
     fig, ax = plt.subplots(figsize=(3.08, 2.45))
     ax.fill_between(N, lo, hi, alpha=0.15, color=BLUE, label=r"Model envelope, $\pm$2 SD")
     ax.plot(N, pe_from_n(N, N_mid=10), color=BLUE, lw=1.0, ls="--", label=r"$N_\mathrm{mid}$ = 10")
@@ -581,7 +581,7 @@ def fig_switching_map():
         if variant == "colour":
             bg_col  = "#888888"
             mv_col  = "#1a1a1a"
-            sw_col  = RED       # "#d73027"
+            sw_col  = RED
             bd_col  = "#444444"
             sw_mrkr = "o"
             figname = "fig_results_switching_map.png"

@@ -13,9 +13,7 @@ Run with the project venv:
 """
 
 import warnings
-# Scoped to third-party deprecation noise only. RuntimeWarning (divide-by-zero,
-# overflow, invalid value) and every other category stay visible, so a numerical
-# fault surfaces rather than being silently discarded.
+# Third-party deprecation noise only; see onsset_helpers.py for the filter's scope.
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -69,7 +67,7 @@ print("  Loading WorldPop raster...")
 
 with rasterio.open(WP_TIF) as src:
     wp_data   = src.read(1).astype(np.float64)
-    wp_nodata = src.nodata          # -99999.0
+    wp_nodata = src.nodata
     wp_tf     = src.transform
     wp_crs    = src.crs
     wp_h, wp_w = src.height, src.width
@@ -85,21 +83,20 @@ print(f"  WorldPop national total (raster): {wp_total:,.0f}")
 # Rasterize polygons: each polygon → its 1-based integer ID
 # Memory: int32 at 14047×11826 = ~664 MB; wp_data float64 = ~1.3 GB total
 print("  Rasterizing GRID3 polygons onto WorldPop grid (may take ~60 s)...")
-shapes = ((geom, idx + 1) for idx, geom in enumerate(gdf.geometry))  # generator
+shapes = ((geom, idx + 1) for idx, geom in enumerate(gdf.geometry))
 
 label_raster = rasterio.features.rasterize(
     shapes,
     out_shape=(wp_h, wp_w),
     transform=wp_tf,
-    fill=0,           # background
+    fill=0,
     dtype=np.int32,
 )
 
-# Zonal sum: for each labelled pixel, add its population
 print("  Computing zonal sums...")
-valid_mask = label_raster > 0          # pixels inside a polygon
-poly_ids   = label_raster[valid_mask]  # 1-based polygon IDs
-pop_vals   = wp_data[valid_mask]       # WorldPop pixel values
+valid_mask = label_raster > 0
+poly_ids   = label_raster[valid_mask]
+pop_vals   = wp_data[valid_mask]
 
 # pop_per_poly[i] = sum of WorldPop pixels inside polygon i (0-based)
 pop_per_poly = np.zeros(n_raw, dtype=np.float64)
@@ -111,7 +108,6 @@ residual_pop = wp_total - covered_pop
 print(f"  Population inside GRID3 polygons: {covered_pop:,.0f}")
 print(f"  Residual (outside all polygons):  {residual_pop:,.0f}  ({100*residual_pop/wp_total:.2f}% of national total)")
 
-# Free large arrays
 del label_raster, valid_mask, poly_ids, pop_vals, wp_data
 
 # ── Filter zero-pop clusters ─────────────────────────────────────────────────
@@ -126,7 +122,6 @@ gdf = gdf[~zero_mask].copy()
 n_retained = len(gdf)
 print(f"  Retained clusters: {n_retained:,}")
 
-# Also trim UTM GDF to match
 gdf_utm = gdf_utm.loc[gdf.index].copy()
 
 # ── Centroid (representative point) + cell area ──────────────────────────────
@@ -139,7 +134,7 @@ gdf['Y_deg'] = rep_pts.y
 
 # Polygon area in km² (UTM 35S)
 gdf_utm = gdf_utm.loc[gdf.index]
-gdf['GridCellArea'] = gdf_utm.geometry.area / 1e6   # m² → km²
+gdf['GridCellArea'] = gdf_utm.geometry.area / 1e6
 
 print(f"  GridCellArea (km²): median={gdf.GridCellArea.median():.4f}  mean={gdf.GridCellArea.mean():.4f}  max={gdf.GridCellArea.max():.4f}")
 print(f"  Pop per cluster:    median={gdf.Pop.median():.1f}  mean={gdf.Pop.mean():.1f}  max={gdf.Pop.max():.0f}")
@@ -167,7 +162,7 @@ gdf['pop_density'] = gdf['Pop'] / gdf['GridCellArea'].replace(0, np.nan)
 
 # Binary search for density threshold that yields urban_share ≈ URBAN_SHARE_TARGET
 pop_total = gdf['Pop'].sum()
-thresholds = np.logspace(0, 5, 500)   # 1 → 100,000 persons/km²
+thresholds = np.logspace(0, 5, 500)
 best_thresh = None
 best_diff   = 1.0
 

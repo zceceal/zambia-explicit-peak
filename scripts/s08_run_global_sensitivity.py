@@ -37,9 +37,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats.qmc import LatinHypercube
 
-# Scoped to third-party deprecation noise only. RuntimeWarning (divide-by-zero,
-# overflow, invalid value) and every other category stay visible, so a numerical
-# fault surfaces rather than being silently discarded.
+# Third-party deprecation noise only; see onsset_helpers.py for the filter's scope.
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -96,17 +94,13 @@ SUBSAMPLE_N          = 50_000
 # observed and is not quoted as the cause. The correction applied to the results is therefore
 # empirical, not modelled.
 #
-# VALIDATION_TOL_PP is deliberately wide for that reason. Because the mechanism is unknown, there
-# is no principled basis for a tight bound on how far the subsample may legitimately sit from the
-# full spine, and a narrow gate would fail on the bias itself rather than on anything wrong. The
-# gate exists to catch a BROKEN run — a mis-stratified draw, a mis-parameterised arm, a subsample
-# that is not representative at all — not to bound the bias, which is handled by the correction
-# factor instead. At 22 pp it sits far outside the roughly 5 pp gap observed here, so a failure
-# means the subsample is genuinely unrepresentative.
+# VALIDATION_TOL_PP is wide because the mechanism is unknown: the gate is meant to catch a broken
+# subsample, not to bound the bias, which the correction factor handles. 22 pp sits far outside the
+# ~5 pp gap observed here.
 VALIDATION_TOL_PP    = 22.0     # wide by design; see the note above
-MORRIS_R             = 8        # trajectories
-MORRIS_K             = 6        # parameters
-MORRIS_P             = 4        # levels
+MORRIS_R             = 8
+MORRIS_K             = 6
+MORRIS_P             = 4
 MORRIS_DELTA         = MORRIS_P / (2 * (MORRIS_P - 1))   # = 2/3
 LHS_N_SAMPLES        = 200
 LHS_N_VAL            = 20       # full-OnSSET validation runs for emulator
@@ -480,7 +474,6 @@ def build_override_cfg(base_cfg: dict,
     """
     cfg = copy.deepcopy(base_cfg)
 
-    # Discretise
     n_mid_int     = int(_N_MID_OPTIONS[np.argmin(np.abs(_N_MID_OPTIONS - n_mid_raw))])
     rural_tier_int = int(_TIER_OPTIONS[np.argmin(np.abs(_TIER_OPTIONS - rural_tier_raw))])
 
@@ -513,7 +506,6 @@ def make_sub_pair(sub_full: pd.DataFrame,
     pe_cols = [c for c in sub_full.columns if c.startswith("PE_ratio")]
     extra   = ["N_hh_val"]
 
-    # R0: drop all PE cols
     sub_r0 = sub_full.drop(columns=pe_cols + extra, errors="ignore").copy()
 
     # R1: keep the target PE col, rename to "PE_ratio"
@@ -524,7 +516,6 @@ def make_sub_pair(sub_full: pd.DataFrame,
         ).copy()
         sub_r1 = sub_r1.rename(columns={pe_tag: "PE_ratio"})
     else:
-        # Compute analytically
         sub_r1 = sub_full.drop(columns=pe_cols + extra, errors="ignore").copy()
         if n_hh_col in sub_full.columns:
             N_hh = np.maximum(1, sub_full[n_hh_col].values)
@@ -917,8 +908,6 @@ def main():
     # Applied to all ΔLCOE% magnitudes reported from the subsample.
     # The factor preserves the RANKING and SIGN of Morris effects (which are the
     # primary outputs of the screen) while restoring comparability to §3.6.1 figures.
-    # Source of bias: grid relay paths are broken at sub-spine density, inflating
-    # MG_PVHybrid and reducing SA_PV→Grid switching.
     BIAS_CORRECTION_FACTOR = STAGE4_DELTA_LCOE_CENTRAL / val_delta if val_delta != 0 else 1.0
     print(f"\n  Bias-correction factor (full-spine / subsample) = {BIAS_CORRECTION_FACTOR:.4f}")
     print(f"  All ΔLCOE% results will be reported BOTH raw (subsample) and bias-corrected.")
@@ -958,9 +947,8 @@ def main():
         # Diesel_price has no effect: SA_diesel is never cost-competitive with
         # SA_PV or Grid in the GRID3 model at Tier-3 demand (high GHI → solar wins).
         # MG_PVHybrid diesel is frozen in the cached lookup (0.3% of settlements).
-        # This is a valid scientific finding: diesel_price μ* = 0 in Morris.
-        # We continue (not stop): the Morris screen correctly returns EE=0 for diesel_price,
-        # confirming it is not a driver of ΔLCOE%.
+        # The run continues: EE = 0 for diesel_price is the screen's own result, not a
+        # wiring bug.
         #
         # STOP only if a core structural parameter (N_mid, discount_rate, max_grid_ext,
         # rural_tier, or SA_PV_capex_mult) has no effect — that would indicate a wiring bug.
@@ -1102,7 +1090,7 @@ def main():
 
     # LHS design matrix
     sampler    = LatinHypercube(d=len(LHS_PARAM_BOUNDS), seed=SEED_LHS)
-    lhs_unit   = sampler.random(n=LHS_N_SAMPLES)   # (N, 6) in [0,1]
+    lhs_unit   = sampler.random(n=LHS_N_SAMPLES)
     lhs_scaled = np.zeros_like(lhs_unit)
     for i, (lo, hi) in enumerate(LHS_PARAM_BOUNDS):
         lhs_scaled[:, i] = lo + lhs_unit[:, i] * (hi - lo)
@@ -1400,7 +1388,7 @@ directly to `Technology.capital_cost` after `build_tech_objects()` — no monkey
 Root cause: (a) SA_diesel technology (code 4) is never cost-competitive with SA_PV or Grid at
 Tier-3 demand in high-GHI Zambia — the diesel generator fuel cost is irrelevant because SA_diesel
 is never chosen; (b) MG_PVHybrid diesel fraction is frozen in the cached PV-hybrid lookup
-(affecting ~0.3% of settlements). This is a valid scientific finding, not a wiring bug.
+(affecting ~0.3% of settlements).
 In Morris, Diesel_price_USDl will rank last with μ*≈0.
 
 ---

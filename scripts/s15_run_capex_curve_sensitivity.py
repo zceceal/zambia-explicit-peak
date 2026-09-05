@@ -11,14 +11,11 @@ OnSSET prices stand-alone PV from a five-step schedule keyed on system size per 
    0.10-1.00 kW : 4470
       > 1.00 kW : 6950        <- note the reversal: larger systems cost MORE per kW
 
-Explicit peak representation raises the per-household system from about 0.80 kW to about 1.21 kW
-at rural Tier 3, so roughly 149,000 settlements step across that last boundary and their capital
-cost jumps by a factor of 1.55 in one discrete move. Freezing the band at its R0 value puts the
-headline at +21.8% rather than +45.4%, i.e. more than half of the effect is that single step.
-At rural Tier 2 no settlement crosses any boundary and the effect is +1.9%.
+Explicit peak representation moves a large share of settlements across the last boundary; how many,
+and what freezing the band does to the headline, is in docs/03_assumptions.md §2.1.
 
-This script re-runs the central comparison with the schedule replaced by a continuous curve, so
-the discretisation can be separated from the physics with a measurement instead of an estimate.
+This script re-runs the central comparison with the schedule replaced by a continuous curve, so the
+discretisation is separated from the physics by measurement.
 
     python scripts/s15_run_capex_curve_sensitivity.py smooth     # continuous, keeps the >1 kW premium
     python scripts/s15_run_capex_curve_sensitivity.py monotone   # continuous, premium removed

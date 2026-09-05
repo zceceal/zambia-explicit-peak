@@ -47,9 +47,7 @@ OUT_N20    = REPO / "data" / "processed" / "zambia_grid3_spine_pe_n20.csv"
 OUT_N50    = REPO / "data" / "processed" / "zambia_grid3_spine_pe_n50.csv"
 CONFIG     = REPO / "config" / "config.yaml"
 
-# Household sizes are read from config.yaml (household_size.urban / .rural), NOT hard-coded here:
-# the same two values drive the OnSSET demand calculation in s06, so a config edit has to move the
-# connection count N as well.  Source: ZamStats 2022 Census, Section 4.3 (urban 4.6, rural 5.0).
+# Household sizes are read from config.yaml (household_size.urban / .rural), NOT hard-coded here.
 N_MID_VALS = [10, 20, 50]
 OUT_PATHS  = {10: OUT_N10, 20: OUT_N20, 50: OUT_N50}
 

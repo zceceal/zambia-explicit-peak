@@ -24,12 +24,8 @@ to +19.1% at f = 0.4 (`s10`).
 
 WHAT THIS SCRIPT DOES NOT DO
 ----------------------------
-It changes the reinvestment schedule only. The central case deliberately keeps unmodified OnSSET
-conventions so that it stays comparable with the GEP and Imasiku benchmarks the paper is measured
-against. Other known upstream issues are disclosed rather than altered: the mini-grid hour-of-day
-dispatch conflation (affects mini-grid levels only, and mini-grid LCOE is invariant between arms),
-the three different investment-cost conventions summed into one total, and the inert grid-penalty
-layer. See docs/01_pipeline.md.
+It changes the reinvestment schedule only; the central case keeps unmodified OnSSET conventions for
+comparability. Other disclosed upstream issues: see docs/01_pipeline.md.
 
     python scripts/s16_run_corrected_conventions.py            # R0 + R1_n20
     python scripts/s16_run_corrected_conventions.py --self-test

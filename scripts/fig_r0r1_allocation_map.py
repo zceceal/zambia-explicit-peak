@@ -5,8 +5,7 @@ allocation under the two cases (paper Figure 2).
 
 Kept separate from s13 because it reads the two arm outputs directly rather than the
 summary tables. The figure is drawn at the width it is printed at (0.66 x textwidth
-= 4.42 in); drawing it larger and letting LaTeX scale it down is what previously
-rendered the panel titles at 6.2 pt.
+= 4.42 in), so LaTeX applies no downscaling.
 
     python scripts/fig_r0r1_allocation_map.py [run-label]
 """

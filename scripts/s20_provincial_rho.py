@@ -21,20 +21,14 @@ WHAT THIS COMPUTES
   (1) Provincial peak-to-mean ratios, population-weighted at 2030:
           rho_province = sum_i(PE_ratio_i * Pop2030_i) / sum_i(Pop2030_i)      grouped by Admin_1
   (2) The same, household-weighted, with households = Pop2030 / NumPeoplePerHH.
-  (3) The spread, calculated against the AGGREGATE weighted mean over all settlements
-      (rho_national), not the unweighted mean of the ten provincial values:
+  (3) The spread, against the AGGREGATE weighted mean over all settlements (rho_national), not
+      the unweighted mean of the ten provincial values:
           spread_pct = 100 * ((rho_max - rho_min) / 2) / rho_national
-      The unweighted-mean-of-provinces variant is also emitted, clearly labelled, because the two
-      bases differ by about 1.1 pp here — the comparison against the Master Plan's own spread is
-      only valid if both sides use the aggregate-mean basis, and a reader should be able to see the
-      difference rather than have it hidden inside a silent choice of denominator.
+      The two bases differ by about 1.1 pp here, and only the aggregate basis is comparable with
+      the Master Plan's own spread. Both are emitted, labelled.
   (4) The Master Plan's own spread, on that same aggregate-mean basis, from the embedded REMP Table
       9 figures (watts per connection = Demand_kW * 1000 / Connections).
   (5) The ratio of the two spreads.
-
-This script does not aim at any expected value. It computes the quantities from their definitions
-and reports what it gets; a disagreement with a previously-quoted figure is the finding, not an
-error to be masked.
 
 Isolation: reads data/onsset_outputs/2026-08_final_lcoe_R1_n20.csv only. Writes only into
 results/summary/. Never touches data/processed/ or data/onsset_outputs/. No re-solve, no model
