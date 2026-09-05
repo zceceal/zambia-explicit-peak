@@ -43,6 +43,13 @@ n_mid,quantity,value
 20,median_sa_pv_lcoe_r1,2.6716772255693195
 20,median_grid_lcoe_r0,0.5387412728105476
 20,median_grid_lcoe_r1,0.4957891473566703
+20,rho_min,1.481381647904303
+20,rho_median,3.291099171713066
+20,rho_mean,3.247682872178382
+20,rho_max,3.98
+20,rural_median_N_hh_2030,2.726667635506359
+20,urban_median_N_hh_2030,2946.9740675120056
+20,n_settlements_at_floor,44022.0
 10,index_alignment_r1_pct,100.0
 10,delta_lcoe_pct,29.987564386560585
 10,energy_weighted_lcoe_r0_usd_per_kwh,0.2756854025614959
