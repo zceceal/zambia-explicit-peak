@@ -3,8 +3,8 @@
 A controlled OnSSET experiment testing whether representing **peak demand per settlement**, rather
 than through one national load factor, changes the least-cost electrification plan for Zambia.
 
-**Headline: doing so raises the modelled lifetime cost of universal access by +49.9%, and changes
-the least-cost technology for 34,461 settlements (12.7%) — see [Headline results](#headline-results)
+**Headline: doing so raises the modelled lifetime cost of universal access by +45.4%, and changes
+the least-cost technology for 33,665 settlements (12.4%) — see [Headline results](#headline-results)
 below, or `results/summary/` for the committed numbers behind the reported figures, with no setup
 required. See [Reproducibility: what this clone gives you](#reproducibility-what-this-clone-gives-you)
 for exactly what that does and does not include.**
@@ -70,21 +70,21 @@ demand pre-processor is the only difference, which is what makes the comparison 
 
 ## Headline results
 
-Run of 2026-08-16, the first with the index-alignment defect corrected (see
-[`REPRODUCING.md`](REPRODUCING.md) §7).
+Run of 2026-09-05, with N evaluated at the analysis-year (2030) population throughout (see
+[`docs/01_pipeline.md`](docs/01_pipeline.md)).
 Every number below is drawn from `results/summary/2026-08_final_*.csv`, committed to this repository
 — readable directly, with no data download and no engine to build, for anyone who wants to check a
 number without reproducing the full run.
 
 | Result | Value |
 |---|---|
-| Change in lifetime cost of universal access | **+49.9%** (+34.1% to +70.6% across the `N_mid` sweep) |
-| Change in upfront capital | **+45.6%**; new capacity +2.9% |
-| Settlements changing least-cost technology | **34,461** (12.7%); every one stand-alone solar → grid |
-| Same comparison at lower (Tier-2) demand | −2.2% to +8.4% — a boundary condition, not a confirmation |
-| Same comparison at projected 2050 population | Cost penalty falls to **+34.9%**; reallocation falls ~7% |
+| Change in lifetime cost of universal access | **+45.4%** (+30.0% to +66.1% across the `N_mid` sweep) |
+| Change in upfront capital | **+41.2%**; new capacity +1.6% |
+| Settlements changing least-cost technology | **33,665** (12.4%); every one stand-alone solar → grid |
+| Same comparison at lower (Tier-2) demand | −3.7% to +7.2% — a boundary condition, not a confirmation |
+| Same comparison at projected 2050 population | Cost penalty falls to **+34.9%**; reallocation falls ~4.5% |
 
-Two qualifications belong with the headline. About 26 of the 49.9 percentage points come from
+Two qualifications belong with the headline. About 24 of the 45.4 percentage points come from
 settlements crossing a step in OnSSET's stand-alone capital-cost schedule at 1 kW per household,
 rather than from the smooth capacity response; `scripts/s15_run_capex_curve_sensitivity.py` measures
 that split. And the effect reaches levelised cost through the stand-alone PV channel only — holding
@@ -136,9 +136,10 @@ docs/                    pipeline, variables, assumptions, data sources
 patches/                 the changes to the OnSSET core, and why
 peak_preprocessor/       the study's contribution: the peak-to-energy sub-model
 scripts/                 the pipeline, in run order (s01 … s13), the standalone
-                         analyses s14 … s24, and the three acceptance checks
-                         (check_index_alignment.py, check_spine_integrity.py,
-                         check_mv_sources.py)
+                         analyses s14 … s24, s25 (collects the summary CSVs into
+                         results/summary/, last step of every run), and the three
+                         acceptance checks (check_index_alignment.py,
+                         check_spine_integrity.py, check_mv_sources.py)
 test/                    unit tests for the sub-model; OnSSET install check;
                          index-alignment regression test
 resources/               small reference inputs (specs templates)
@@ -166,6 +167,12 @@ P/E(N) = P_inf + (P_1 - P_inf) * N ** (-beta)
 (Lorenzoni et al. 2020, 61 metered mini-grids). `beta` is derived, not chosen. The one assumed
 quantity, `N_mid`, is swept over {10, 20, 50} and every result is reported as a band.
 
+`N` itself is `N_hh = max(1, Pop2030 / household_size)`, with `Pop2030` the engine's own projection
+(`SettlementProcessor.project_pop_and_urban`) from `PopStartYear`. `s05` writes `Pop2030`, `N_hh`
+and a reference column `N_hh_2020` to the settlement dataset, and every solve asserts, settlement by
+settlement, that the spine's `Pop2030` matches the engine's own projection before solving. See
+[`docs/01_pipeline.md`](docs/01_pipeline.md).
+
 ## Tests
 
 ```bash
@@ -191,7 +198,7 @@ After any run of `s06`, before trusting anything downstream:
 
 ```bash
 python scripts/check_index_alignment.py data/onsset_outputs/<run>_R0.csv   # must report ~100%
-python scripts/check_spine_integrity.py                                    # 21 checks on the spine
+python scripts/check_spine_integrity.py                                    # 22 checks on the spine
 ```
 
 ## Reading order for a reviewer

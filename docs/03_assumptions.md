@@ -25,14 +25,14 @@ schedule with it. Physically, for a battery-based stand-alone system only the ba
 balance-of-system should scale with peak; the solar panels scale with energy.
 
 - **Effect:** the headline is an **upper bound**. Scaling only a fraction `f` of stand-alone capital
-  with peak gives **+21.0% at `f = 0.4` and +30.6% at `f = 0.6`, against +49.9% at `f = 1.0`**
-  (`s10`, run of 2026-08-16). Measured African solar-home-system cost structures suggest
+  with peak gives **+19.1% at `f = 0.4` and +27.9% at `f = 0.6`, against +45.4% at `f = 1.0`**
+  (`s10`, run of 2026-09-05). Measured African solar-home-system cost structures suggest
   `f ≈ 0.4–0.45`.
 - **A second, related convention.** OnSSET prices stand-alone PV from a five-step schedule keyed on
   system size per household, and that schedule is non-monotonic: \$4,470/kW between 100 W and 1 kW,
   rising to \$6,950/kW above 1 kW. Explicit peaks lift the median household system from 0.80 kW to
-  1.24 kW, so about 153,000 settlements cross that step. Holding the band fixed at its R0 value puts
-  the headline at +23.6% rather than +49.9% — more than half the effect is the discontinuity rather
+  1.21 kW, so 148,562 settlements cross that step. Holding the band fixed at its R0 value puts
+  the headline at +21.8% rather than +45.4% — more than half the effect is the discontinuity rather
   than the smooth capacity response. `scripts/s15_run_capex_curve_sensitivity.py` re-solves the
   central case against a continuous curve to measure this directly.
 - **Why it is kept:** it is unmodified OnSSET behaviour, shared with the GEP and Imasiku benchmarks.
@@ -48,10 +48,10 @@ intermediate archetype. That is `N_mid`.
 
 - **Handling:** central value 20 households, swept over a full decade {10, 20, 50}, with the entire
   pipeline re-solved at each. Every headline is reported as a band.
-- **Result:** the Tier-3 cost effect spans **+34.1% (`N_mid`=10) to +70.6% (`N_mid`=50)** around the
-  central-case +49.9% (`N_mid`=20) — a wide band, not a tight one. The corrected global sensitivity
-  screen ranks `N_mid` **2nd of six factors** (μ\* = 14.5, behind only the rural demand tier), **above**
-  the discount rate (5th, μ\* = 2.2). `N_mid` is one of the more influential parameters in the model,
+- **Result:** the Tier-3 cost effect spans **+30.0% (`N_mid`=10) to +66.1% (`N_mid`=50)** around the
+  central-case +45.4% (`N_mid`=20) — a wide band, not a tight one. The corrected global sensitivity
+  screen ranks `N_mid` **2nd of six factors** (μ\* = 15.1, behind only the rural demand tier), **above**
+  the discount rate (5th, μ\* = 2.1). `N_mid` is one of the more influential parameters in the model,
   which is the reason it is swept over a full decade rather than fixed.
 - **Why not measured:** no metered multi-site Zambian mini-grid load dataset is public. The one
   commercial dataset is proprietary. This is stated as future work.
@@ -88,8 +88,8 @@ study and the universal-access framing. This is aspirational for rural Zambia.
 
 - **Test:** the whole comparison is repeated at Tier 2, a 73% reduction.
 - **Result:** the cost effect does **not** simply persist at reduced magnitude — it reverses sign at
-  `N_mid`=10: **−2.2% (n10), +3.3% (n20), +8.4% (n50)**, against +34.1%/+49.9%/+70.6% at Tier 3. The
-  technology reallocation largely disappears (12/72/436 SA_PV→Grid switches at Tier 2, versus ~34,000
+  `N_mid`=10: **−3.7% (n10), +1.9% (n20), +7.2% (n50)**, against +30.0%/+45.4%/+66.1% at Tier 3. The
+  technology reallocation largely disappears (9/47/298 SA_PV→Grid switches at Tier 2, versus ~34,000
   at Tier 3). So the cost finding is Tier-3-dependent — it does not survive the demand reduction as a
   fixed-sign effect — while the reallocation finding requires Tier 3+ regardless.
 
@@ -110,15 +110,17 @@ Household size is a measured 2022 census enumeration (ZamStats 2022, Section 4.3
 borrowed value: urban 4.6, rural 5.0, applied identically to both cases. It sits in Group 2 not
 because the figure is uncertain, but because it feeds an asymmetric channel: the demand-side effect
 (fewer, larger households means less energy per settlement) is common to both R0 and R1 and cancels
-out of the stand-alone levelised cost, while the connection count N = max(1, Pop/s), which it also
-sets, feeds the coincidence model, which only the explicit-peak case uses. A change in household size
+out of the stand-alone levelised cost, while the connection count `N_hh = max(1, Pop2030/s)` — with
+`Pop2030` the engine's own projection from `PopStartYear`, asserted against the spine's own column
+before every solve (`docs/01_pipeline.md`) — which it also sets, feeds the coincidence model, which
+only the explicit-peak case uses. A change in household size
 can therefore move the R1–R0 contrast even though its demand-side effect cancels.
 
 - **Handling:** as a stress test far wider than the real uncertainty in an enumerated census figure,
   the rural value is perturbed by ±10% (4.5 and 5.5 against the census 5.0) and both cases re-solved
   at `N_mid` = 20 (`s18`).
-- **Result:** +48.10% at 4.5 persons (33,605 stand-alone-to-grid switches) and +51.62% at 5.5
-  (34,694 switches), against +49.9% at the census value — a band narrower than the `N_mid` sweep
+- **Result:** +43.58% at 4.5 persons (32,845 stand-alone-to-grid switches) and +46.95% at 5.5
+  (33,858 switches), against +45.4% at the census value — a band narrower than the `N_mid` sweep
   already reported (Section 2.2).
 
 ---
@@ -138,7 +140,7 @@ in the comparison that carries the contribution.
 | Wind mini-grids disabled | The wind-hybrid optimiser fails to JIT-compile under numba (an environment issue, not a defect in this repository; see REPRODUCING.md). Zambian wind capacity factor ≈ 0.10, so immaterial |
 | Hydro mini-grids allocate to zero | 162 settlements sit within 5 km of hydro; most (156) fall below the 100-connection viability threshold |
 | Single diesel price bin | Diesel is never least-cost in any reported outcome |
-| GRID3 natural-cluster settlement geometry | Inherits a single-household tail (55,157 settlements, N_hh<=1) from the published GRID3 building-footprint product — 50,880 of the 55,157 (92%) are GRID3 clusters (chiefly the Hamlet class), not cells of the model's own dispersed-rural grid; the tail is a property of the source data, not manufactured by the aggregation choice. Excluding it moves the headline by −2.5 pp (+49.9% -> +47.4%) |
+| GRID3 natural-cluster settlement geometry | Inherits a single-household tail (44,022 settlements, N_hh<=1) from the published GRID3 building-footprint product — 40,531 of the 44,022 (92%) are GRID3 clusters (chiefly the Hamlet class), not cells of the model's own dispersed-rural grid; the tail is a property of the source data, not manufactured by the aggregation choice. Excluding it moves the headline by −1.8 pp (+45.4% -> +43.6%) |
 
 ---
 
@@ -149,7 +151,7 @@ present-day values**, changing only the population and its urban/rural split.
 
 Real 2050 conditions would very likely include further solar and battery cost declines, which would
 push more settlements toward peak-tolerant technologies and **erode the peak penalty further**. The
-measured ~30% erosion of the cost penalty is therefore a **lower bound**, not a central estimate.
+measured erosion of the cost penalty — roughly a quarter — is therefore a **lower bound**, not a central estimate.
 
 ---
 
