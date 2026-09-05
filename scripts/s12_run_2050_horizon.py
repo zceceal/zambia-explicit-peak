@@ -5,7 +5,7 @@ Reuses run_arm() from s06_run_arms.py (the harness that produced the published
 2026-08_final outputs) unchanged. Modes:
 
   python run_2050_arms.py validate2035   # re-runs 2035 R0 + R1_n20 with the untouched config;
-                                         # headline must reproduce +49.9% / 34,461
+                                         # headline must reproduce the s06 central headline
   python run_2050_arms.py 2050           # same harness, only the 2050_RUN_INPUTS.md §A changes:
                                          #   end_year 2050, PopEndYear 38,083,385, urban 0.672,
                                          #   years_of_analysis [2030, 2050],
@@ -118,6 +118,16 @@ def main():
     print(f"  Profiles + TX network loaded ({len(x_tx):,} start points)")
 
     df_r0_base = pd.read_csv(PE_N20).drop(columns=["PE_ratio", "N_hh"], errors="ignore")
+    # R0 must carry the same analysis-year projection as the R1 2050 spine written by s12b, so
+    # that the base columns compare like for like and run_arm's guard finds Pop{year} in both arms.
+    ay = sc["years_of_analysis"][0]
+    if ay != 2030:
+        df_r0_base = df_r0_base.drop(
+            columns=[c for c in df_r0_base.columns if c.startswith("Pop20") and c != f"Pop{ay}"])
+        # Take the column as s12b wrote it (one projection, one CSV round-trip) so that the
+        # exact base-column comparison below holds; run_arm's guard then verifies it against
+        # the engine's own projection on every settlement.
+        df_r0_base[f"Pop{ay}"] = pd.read_csv(PE_2050[20], usecols=[f"Pop{ay}"])[f"Pop{ay}"].to_numpy()
 
     t0 = time.time()
     for label, spine_path, n_mid, out_path in runs:

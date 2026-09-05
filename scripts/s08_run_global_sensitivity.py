@@ -23,7 +23,8 @@ Hard rules
 • 2030 columns used for all cost metrics (2035 cols are incremental — never used).
 • Seeds fixed: reported in output.
 • SA_PV capex multiplier passed through cfg and Technology object — no monkey-patch.
-• Subsample validated against the full-spine +49.9% before any screen or LHS.
+• Subsample validated against the full-spine headline (read from the s06 outputs at run time)
+  before any screen or LHS.
 
 """
 
@@ -59,7 +60,7 @@ from onsset_helpers import (
     build_pv_hybrid_lookup, apply_pv_hybrid_lookup,
     compute_offgrid_min,
     build_tech_objects, build_mg_pv_hybrid_params, build_mg_wind_hybrid_params,
-    load_config,
+    load_config, central_headline,
     TIERS, CONN_COST_PER_HH,
     _PHYSICAL_INPUT_COLS,
 )
@@ -101,6 +102,11 @@ SUBSAMPLE_N          = 50_000
 # sits 15.4 pp low and 15.0 pp would fail for the wrong reason. Widened to 22.0
 # (0.31 x 49.9 = 15.5, plus headroom for sampling noise). If the gate fails at
 # this tolerance the subsample is genuinely unrepresentative, not merely biased.
+#
+# The N-at-analysis-year-population fix of 2026-09-04 moved the full-spine headline again, to
+# +45.4% (bias-correction factor 0.9011). STAGE4_DELTA_LCOE_CENTRAL is read fresh from the s06
+# outputs each run, so this tolerance does not need re-deriving against a fixed headline — but
+# it was chosen against the +49.9% waypoint above, not the current one.
 VALIDATION_TOL_PP    = 22.0     # see note above; scales with STAGE4_DELTA_LCOE_CENTRAL
 MORRIS_R             = 8        # trajectories
 MORRIS_K             = 6        # parameters
@@ -112,9 +118,12 @@ EMUL_RMSE_THRESHOLD  = 5.0      # pp; use emulator only if RMSE ≤ this
 
 ANALYSIS_YEAR = 2030   # primary metric year; 2030 cols used throughout
 
-# ── Stage-4 baseline headline (sanity gate) ──────────────────────────────────
-STAGE4_DELTA_LCOE_CENTRAL = 49.9   # +49.92% at N_mid=20, Tier 3 (full-spine central, s06 2026-08_final)
-                                   # was 36.9 before the index-alignment fix
+# ── Full-dataset headline (sanity gate and bias-correction reference) ────────
+# Read from the s06 outputs at run time (onsset_helpers.central_headline), never hard-coded:
+# the subsample gate and the bias-correction factor refer to the headline the current
+# settlement dataset actually produced. Set in main().
+STAGE4_DELTA_LCOE_CENTRAL = None
+STAGE4_SWITCHES_CENTRAL   = None
 
 # ── Paths ────────────────────────────────────────────────────────────────────
 PE_N20 = REPO / "data" / "processed" / "zambia_grid3_spine_pe_n20.csv"
@@ -835,6 +844,11 @@ def main():
         if f.exists():
             print(f"  Guard OK (not overwriting): {f.name}")
 
+    global STAGE4_DELTA_LCOE_CENTRAL, STAGE4_SWITCHES_CENTRAL
+    STAGE4_DELTA_LCOE_CENTRAL, STAGE4_SWITCHES_CENTRAL = central_headline()
+    print(f"  Full-dataset headline read from s06 outputs: "
+          f"{STAGE4_DELTA_LCOE_CENTRAL:+.4f}%, {STAGE4_SWITCHES_CENTRAL:,} SA_PV->Grid switches")
+
     # ── Load profiles and transmission network ─────────────────────────────
     print("\n[1/8] Loading profiles and transmission network …")
     ghi_profile, temp_profile = load_solar_profile(SOLAR_PROFILE)
@@ -1350,7 +1364,7 @@ Total elapsed: {t_elapsed_total/60:.1f} min.
 | Metric | Subsample ({SUBSAMPLE_N:,}) | Full spine (Stage 4) | Verdict |
 |--------|----------------------------|----------------------|---------|
 | ΔLCOE% at N_mid=20, Tier 3, 2030 | {val_delta:+.2f}% | +{STAGE4_DELTA_LCOE_CENTRAL:.1f}% | {tol_str} |
-| SA_PV→Grid switches at 2030 | {val_switch:,} | 34,461 (2030, full-spine canonical) | — |
+| SA_PV→Grid switches at 2030 | {val_switch:,} | {STAGE4_SWITCHES_CENTRAL:,} (2030, full-spine canonical) | — |
 
 Stratification: 4 log-pop × 3 GHI × 3 MV-dist × 2 urban/rural = 72 strata; proportional allocation (min 1).
 Seed: {SEED_SUBSAMPLE}. Generous tolerance: ±{VALIDATION_TOL_PP}pp (see bias note below).
@@ -1416,7 +1430,7 @@ Raw subsample values (÷{BIAS_CORRECTION_FACTOR:.4f}): {morris_df_delta.to_strin
 
 ΔLCOE% positive at all {MORRIS_R*(MORRIS_K+1)} trajectory evaluations (both raw and bias-corrected):
 **{'YES — all f(θ) > 0' if all_f_delta_positive else 'NO — some negative values'}**
-{'No parameter can flip the sign; the cost increase is robust to joint parameter variation (LHS 5th-95th percentile band, bias-corrected: +23.7% to +77.2%, all 200 samples positive).' if not sign_flip else 'Parameters that produce negative ΔLCOE: ' + ', '.join(sign_flip)}
+{'No parameter can flip the sign; the cost increase is robust to joint parameter variation (LHS 5th-95th percentile band, bias-corrected: {p5_d*BIAS_CORRECTION_FACTOR:+.1f}% to {p95_d*BIAS_CORRECTION_FACTOR:+.1f}%, all ' + str(LHS_N_SAMPLES) + ' samples positive).' if not sign_flip else 'Parameters that produce negative ΔLCOE: ' + ', '.join(sign_flip)}
 
 ---
 

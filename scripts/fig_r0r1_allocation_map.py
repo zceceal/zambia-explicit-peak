@@ -37,9 +37,16 @@ r0 = pd.read_csv(OUTDIR / f"{RUN}_R0.csv", usecols=COLS)
 r1 = pd.read_csv(OUTDIR / f"{RUN}_R1_n20.csv", usecols=COLS)
 assert len(r0) == len(r1) == 270_526
 
+# Expected allocation counts come from the tech split s06 wrote alongside its outputs, so the
+# gate always refers to the solve the map is drawn from rather than to a hard-coded number.
+_split = pd.read_csv(OUTDIR / f"{RUN}_tech_split.csv")
+_split = _split[(_split["year"] == YEAR) & (_split["n_settlements"] > 0)]
+_code = {1: f"Grid{YEAR}", 3: f"SA_PV{YEAR}", 5: f"MG_PVHybrid{YEAR}"}
 EXPECTED = {
-    "R0": {"Grid2030": 32_058, "SA_PV2030": 236_843, "MG_PVHybrid2030": 1_625},
-    "R1": {"Grid2030": 66_519, "SA_PV2030": 202_382, "MG_PVHybrid2030": 1_625},
+    "R0": {_code[int(r.tech_code)]: int(r.n_settlements)
+           for r in _split[_split["arm"] == "R0"].itertuples()},
+    "R1": {_code[int(r.tech_code)]: int(r.n_settlements)
+           for r in _split[(_split["arm"] == "R1") & (pd.to_numeric(_split["n_mid"], errors="coerce") == 20)].itertuples()},
 }
 for name, df in (("R0", r0), ("R1", r1)):
     got = df[COL].value_counts().to_dict()

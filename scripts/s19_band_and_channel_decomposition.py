@@ -76,7 +76,7 @@ def main():
     code1 = r1["FinalElecCode2030"].values
 
     print(f"\nSanity: as-run delta LCOE% = {energy_weighted_delta(l0, l1, energy):.6f}"
-          "   (expected 49.923139)")
+          "   (must equal the s06 central headline)")
 
     # households, on the same basis as the reported median system sizes
     hh = r0["Pop2030"].values / r0["NumPeoplePerHH"].values
@@ -118,7 +118,7 @@ def main():
     }
     for k, v in defs.items():
         print(f"  {k:<62} {v:>9,}")
-    print("\n  Paper currently states 153,262.")
+    print("\n  Paper currently states 148,562.")
 
     print("\n" + "=" * 72)
     print("(2) COST BAND HELD FIXED AT ITS R0 VALUE")
