@@ -25,9 +25,7 @@ Hard rules:
 """
 
 import warnings
-# Scoped to third-party deprecation noise only. RuntimeWarning (divide-by-zero,
-# overflow, invalid value) and every other category stay visible, so a numerical
-# fault surfaces rather than being silently discarded.
+# Third-party deprecation noise only; see onsset_helpers.py for the filter's scope.
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -462,7 +460,7 @@ hydro_pts = np.column_stack([hydro_gdf.geometry.x, hydro_gdf.geometry.y])
 tree_h    = cKDTree(hydro_pts)
 h_dists_m, h_idxs = tree_h.query(sett_xy, workers=-1)
 hydro_dist = h_dists_m / 1000.0
-hydro_cap  = hydro_gdf["capacity_mw"].values[h_idxs] * 1000  # MW → kW
+hydro_cap  = hydro_gdf["capacity_mw"].values[h_idxs] * 1000
 hydro_fid  = h_idxs.astype(int)
 print(f"    Hydro plants: {len(hydro_gdf)}")
 print(f"    HydropowerDist: {hydro_dist.min():.1f}–{hydro_dist.max():.1f} km  "
@@ -510,11 +508,11 @@ df = pd.DataFrame({
     "Elevation":    elev_s,
     "Slope":        slope_s,
     # ── Land cover / penalty ──────────────────────────────────────────────
-    "LandCover":    land_cover,     # 0 — Copernicus not acquired
+    "LandCover":    land_cover,
     "GridPenalty":  grid_penalty,   # 1 — no terrain-penalty layer
     # ── Grid distances ────────────────────────────────────────────────────
     "CurrentHVLineDist":  hv_dist,
-    "PlannedHVLineDist":  planned_hv_dist,  # proxy = CurrentHVLineDist
+    "PlannedHVLineDist":  planned_hv_dist,
     "CurrentMVLineDist":  mv_dist,
     "PlannedMVLineDist":  nep_dist,
     "SubstationDist":     sub_dist,

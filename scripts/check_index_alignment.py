@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Acceptance test for the condition_df index-alignment fix (2026-08-16).
+"""
+Acceptance test for the condition_df index-alignment fix (2026-08-16).
 
 OnSSET sizes a stand-alone PV system as
 
@@ -7,16 +8,9 @@ OnSSET sizes a stand-alone PV system as
                        = [E / (8760 * ATR)] / (GHI / 8760)
                        =  E / (ATR * GHI)
 
-Before the fix, SettlementProcessor.condition_df() sorted the frame by latitude
-and longitude without resetting the index, so inside Technology.get_lcoe() the
-positional peak_load Series was divided by the label-indexed capacity_factor
-column: each settlement's peak load met a different settlement's solar resource.
-
-This script recomputes the closed form and reports the share of stand-alone PV
-settlements it reproduces.
-
-    before the fix:  ~14%
-    after the fix:  ~100%
+This script recomputes that closed form and reports the share of stand-alone PV
+settlements it reproduces. It must report ~100%; REPRODUCING.md §7 explains what
+a lower figure means.
 
 Usage:
     python scripts/check_index_alignment.py data/onsset_outputs/<run>_R0.csv

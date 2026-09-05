@@ -3,11 +3,9 @@
 Everything needed to re-run the experiment, in order. The published figures come from rural Tier 3
 (`config.yaml`'s `demand_tiers.rural_tier_large`/`rural_tier_small`), central `N_mid = 20` and seed 42
 — the latter two hardcoded in `s06_run_arms.py`, not read from any config key. Output files carry the
-label `RUN_LABEL = "2026-08_final_lcoe"`, also hardcoded there. (`config.yaml` does have a `run_label`
-key, but nothing reads it — don't infer anything from its value. The same is true of
-`grid.annual_capacity_limit_mw` and `grid.annual_connections_limit_k`: they record the unconstrained
-build rate, which is actually set in the specs workbook. All three are annotated as such in
-`config.yaml`; no other key in that file is inert.)
+label `RUN_LABEL = "2026-08_final_lcoe"`, also hardcoded there. Three keys in `config.yaml` are
+retained but read by no script; each is annotated as such at its point of definition, and no other
+key in that file is inert.
 
 ## 1. Environment
 
@@ -51,29 +49,10 @@ upstream `c154ece` with no rewriting of upstream history. `patches/onsset-explic
 human-readable record of that same commit, regenerated 2026-08-24 as `git diff c154ece cd64900` so it
 reconstructs the engine byte-for-byte (verified: applying it to a clean `c154ece` checkout and diffing
 the result against the live `onsset.py` returns no difference). **The results do not reproduce without
-it.** It makes six changes, all documented inline at the point of change:
-
-1. `condition_df()` resets the DataFrame index after its sort. Without this, row positions and index
-   labels diverge and `Technology.get_lcoe()` divides each settlement's peak load by a different
-   settlement's capacity factor — silently, because the energy term cancels out of the levelised cost.
-   See §7 and `test/test_index_alignment.py`.
-2. `SettlementProcessor._assert_positional_index()` is added and called at the two points where that
-   invariant matters, so the failure can never again be silent.
-3. `no_of_mv_lines` is computed against the medium-voltage line's own amperage rating rather than a
-   75 kVA distribution-transformer rating, at both call sites. Affects 371 of 270,526 settlements (0.137%, ~0.09% of aggregate investment); not
-   the source of the headline effect. See `patches/README.md`.
-4. Stand-alone PV reads the per-settlement `AverageToPeakLoadRatio` like every other technology,
-   instead of a hard-coded load factor.
-5. `Technology.get_lcoe`'s `cap_cost` accumulator (shared by every technology, not just
-   stand-alone PV) is cast to float so non-integer capital costs are not truncated.
-6. `CORRECTED_CONVENTIONS["full_reinvestment"]` (default `False`) and the reinvestment-schedule
-   refactor it switches: OnSSET books at most one reinvestment regardless of horizon length and
-   compensates with a salvage term; with the switch on, an asset already installed is replaced every
-   `tech_life` years for as long as it generates. Off by default — the central case and every other
-   reported number reproduce unmodified OnSSET's convention.
-   `scripts/s16_run_corrected_conventions.py` sets it `True` for the labelled robustness variant this
-   file quotes below; without this change in the patch, that script raised `AttributeError` on a
-   freshly-patched checkout even though the headline still reproduced.
+it.** It makes six changes, all documented inline at the point of change and set out in
+`patches/README.md`. One of them, `CORRECTED_CONVENTIONS["full_reinvestment"]`, defaults to `False`:
+the central case and every other reported number reproduce unmodified OnSSET's convention, and only
+`scripts/s16_run_corrected_conventions.py` sets it `True`.
 
 Reproducers with access to the vendored copy and its branch can check out `cd64900` directly. Anyone
 else clones upstream and applies the patch, which is verified equivalent:
@@ -111,10 +90,8 @@ python scripts/s06_run_arms.py                 # the headline R0 vs R1 compariso
 ```
 
 `s01`–`s05` together measured **~5.1 min** (95s + 70s + 105s + 20s + 18s) in an independent clean-room
-run 2026-08-28. `s06`'s four arms (R0, R1 at `N_mid` 10/20/50) measured **~9–15 min** in that same run;
-one arm was seen to take 122.7 min against ~2.5 min for its three siblings on a loaded machine with no
-code-path difference between them — treat single-run timings here as upper-ish bounds on contended
-hardware, not clean benchmarks.
+run 2026-08-28. `s06`'s four arms (R0, R1 at `N_mid` 10/20/50) measured **~9–15 min** in that same run.
+Treat single-run timings here as indicative, not as clean benchmarks: they are machine-load dependent.
 
 **Check `s06` before going further.** The acceptance test below must print ~100%; it printed 14.137%
 under the defect described in §7, and every downstream number would be wrong:
@@ -124,7 +101,7 @@ python scripts/check_index_alignment.py data/onsset_outputs/<run>_R0.csv
 python test/test_index_alignment.py
 ```
 
-Robustness and reporting stages. The order matters in three places, marked below:
+Robustness and reporting stages. Three of them must run before `s13`, marked `-> needed by` below:
 
 ```bash
 python scripts/s10_run_sizing_decomposition.py   # post-processing only, no re-solve; fastest first
@@ -155,17 +132,15 @@ python scripts/s13_generate_figures.py           # last: reads s07, s08 and s09 
 python scripts/fig_r0r1_allocation_map.py [run-label]   # paper Figure 2: R0/R1 technology allocation maps
 ```
 
-`fig_r0r1_allocation_map.py` is kept separate from `s13` because it reads the two arm outputs
-directly rather than the summary tables, and because it is drawn at its printed width (0.66x
-textwidth) rather than scaled down by LaTeX.
-
 No advance runtime or memory figure is available for any other stage above or below (`s02`, `s04`,
 `s14`, `fig_r0r1_allocation_map.py`, `s19`, `s20`, the acceptance checks, or the tests) — none is
 recorded anywhere in the repository, so none is stated here rather than estimated. `s01`, `s03`, `s07`,
 `s08`, `s09`, `s10` (6.8s), `s12`/`s12a`/`s12b`/`s12c`, `s13`, `s15`, `s16`, `s17` and `s18` are all
 measured above or below, from an independent clean-room reproduction 2026-08-28/29 — see also §8.
+Those measured stages sum to about two and a half hours, of which `s08` alone is 63.4 min; the
+untimed stages are not in that total.
 
-Two optional analyses, independent of the above:
+Reporting and robustness stages, independent of one another and of the order above:
 
 ```bash
 python scripts/s14_paper_numbers.py <run-label>              # every quoted figure, in one table;
@@ -194,9 +169,6 @@ python scripts/s23_summarise_variants.py                    # Tier-2, 2050, anch
                                                               # single-household summaries from existing outputs, no re-solve
                                                               # -> 2026-09-02_variant_summaries.csv
 python scripts/check_spine_integrity.py                     # 22 hard checks on the spine, no re-run
-python scripts/s25_collect_summaries.py                     # copies the s06/s08/s09/s10/s11 summary CSVs
-                                                              # from data/onsset_outputs/ into results/summary/;
-                                                              # last step of every full run
 ```
 
 `s15 --self-test` (100.000% agreement, instant) then `smooth` and `monotone` measured 4.5 min and 4.3
@@ -204,32 +176,38 @@ min respectively.
 
 `s16` returns +45.93% against the +45.38% headline: repricing the only channel that carries the effect
 by 5.9% moves the result by 0.55 pp. `s17` returns **+44.81%** with **33,645** stand-alone-to-grid
-switches (33,639 shared with the central switch set; re-run 2026-08-27, exact two-point solve, after correcting the Zambian calibration point —
-see below), inside the swept band, and removes the `N_mid` assumption by fitting the curve to the
-metered Tum mini-grid and Zambia's own IRP national residential load-factor assumption instead (the
-IRP states residential load factor as constant at 68.5%; it does not measure a national peak-to-mean
-ratio directly — Table 3.01's 769 MW and 4,618 GWh are both generated from that one assumption, so
-rho = 769 / (4,618,000 / 8,760) = 1.4587 — the table's own peak over its own mean, not 1/0.685 (which
-gives 1.4599; the two differ only because 769 MW is itself rounded in the source table) — is a
-planning parameter, not an independent observation). The point (rho = 1.4587 at
-N ~ 1.0e6, IRP Table 3.01) implies a solved equivalent `N_mid` of 19.49, next to the central case's
-assumed 20, rather than the 10.6 implied by the old, misattributed figure.
+switches (33,639 shared with the central switch set), inside the swept band, and removes the `N_mid`
+assumption by fitting the curve to the metered Tum mini-grid and Zambia's own IRP national
+residential load-factor assumption instead; the second of those is a planning parameter, not a
+measurement, and `docs/03_assumptions.md` §2.3 sets out what it is and is not. The fit implies a
+solved equivalent `N_mid` of 19.49, next to the central case's assumed 20.
 `s18` perturbs the census rural household size (5.0) by ±10% and returns
 **+43.58%** with 32,845 stand-alone-to-grid switches at 4.5 persons, and **+46.95%** with 33,858
 switches at 5.5 — a band narrower than the `N_mid` sweep, so household size is not a material driver
 of the headline.
 
+### s25 — collect the summaries (always run)
+
+The last step of every full run, after every stage above that is being run has finished. It refreshes
+the committed `results/summary/` from the run that produced it (`results/README.md`).
+
+```bash
+python scripts/s25_collect_summaries.py
+```
+
 ## 5. What you should get
 
-`ls data/onsset_outputs/2026-08_final_*` returns far more than the twelve files below, because the
-one-at-a-time grid-cost sensitivity runs (`2026-08_final_oat_*`) share the same `2026-08_final` prefix.
-They are a separate sensitivity, re-solved on the unchanged spine (`s09` reads
-`data/processed/zambia_grid3_spine_pe_n20.csv` directly, without rebuilding it), not additional
-full-spine solves. The twelve full-spine solves behind every headline figure are:
+Twelve full-spine solves sit behind every headline figure:
 
 - `2026-08_final_lcoe_{R0, R0_ruralT2, R1_n10, R1_n20, R1_n50, R1_ruralT2_n10, R1_ruralT2_n20,
   R1_ruralT2_n50}.csv` — the eight primary solves (rural Tier 3 and Tier 2, `N_mid` swept where R1)
 - `2026-08-21_hhsize_*` — the four household-size solves, from `s18` above
+
+`ls data/onsset_outputs/2026-08_final_*` returns more than those twelve, because the one-at-a-time
+grid-cost sensitivity runs (`2026-08_final_oat_*`) share the same `2026-08_final` prefix. They are a
+separate sensitivity, re-solved on the unchanged spine (`s09` reads
+`data/processed/zambia_grid3_spine_pe_n20.csv` directly, without rebuilding it), not additional
+full-spine solves.
 
 Four further solves are the input sensitivities added on 2026-09-02, not part of the twelve:
 
@@ -278,7 +256,7 @@ table already assumes ρ = 2.50 rather than 2.00, and stand-alone settlements ca
 energy rather than 17.5%.
 
 From `s12` `2050only`, at the projected 2050 population: **+34.9%** central with 32,157 switches,
-sweep band **+23.1% to +50.9%** across `N_mid` ∈ {10, 50}. Note that this band overlaps the 2030 band.
+sweep band **+23.1% to +50.9%** across `N_mid` ∈ {10, 50}. This band overlaps the 2030 band.
 
 From `s08`: LHS (200 samples, bias-corrected) 5th–50th–95th **+21.1% / +51.3% / +75.2%**. Morris μ*
 ranking Rural_tier (57.4) > N_mid (15.1) > MaxGridDist_km (9.9) > SA_PV_capex_mult (5.9) >
@@ -298,10 +276,8 @@ all 200 samples were therefore evaluated with the full model — check the `meth
 - Both arms are built from one in-memory spine with only the peak column overwritten, and a pre-run
   assertion fails the run if any shared column differs. The two arms are byte-identical in every
   column except the peak.
-- Read costs on the **2030** columns. The 2035 and 2050 incremental columns carry almost no energy for
-  settlements already connected and produce meaningless levelised costs; `docs/01_pipeline.md`
-  explains this. For a 2050 headline use `s12_run_2050_horizon.py 2050only`, which solves a single
-  analysis year at 2050 demand.
+- Read costs on the **2030** columns (`docs/01_pipeline.md`, "Reading the outputs"). For a 2050
+  headline use `s12_run_2050_horizon.py 2050only`, which solves a single analysis year at 2050 demand.
 - The DataFrame index must equal its row order whenever costs are computed. `condition_df()` enforces
   it and `_assert_positional_index()` raises if it is ever violated. This is not a style rule: §7
   explains what happens without it.
@@ -414,9 +390,8 @@ took 951.5 s in total in the committed run — the `elapsed_s` column of
 
 gen−drought against central: −3.88 pp on ΔLCOE% and +1.93% on switches.
 
-The two capacity-cost rows are identical to central to six decimal places, and necessarily so: OnSSET
-accumulates `grid_capacity_investment` into the reported investment total but not into the discounted
-cost stream from which the LCOE is formed (`onsset.py`, `get_lcoe`), so that parameter cannot move
-either the levelised cost or the allocation made on it. The generation-cost variant, which reaches the
-LCOE through the fuel term, is the informative grid-side test. The paper states this in §3.5 and
+The two capacity-cost rows are identical to central to six decimal places, and necessarily so: grid
+capacity cost cannot reach the levelised cost or the allocation made on it (`docs/01_pipeline.md`,
+"Where explicit peaks reach the levelised cost"). The generation-cost variant, which reaches the LCOE
+through the fuel term, is the informative grid-side test. The paper states this in §3.5 and
 Supplementary S4.

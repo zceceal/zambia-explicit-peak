@@ -137,16 +137,13 @@ def build_pv_hybrid_lookup(onsseter, ghi_profile, temp_profile,
     profiles ourselves instead of relying on read_environmental_data()
     (whose default skiprows=341882 is incompatible with our 8760-row files).
 
-    F5 FIX (2026-06-23): GHI bins now cover the full realised data range.
-    Previous code used round(min/max, -2) = [1800, 2100] for Zambia data
-    (min 1778, max 2133), meaning 8,553 settlements with GHI > 2100 were
-    priced at the top-bin clamp.  Now uses floor/ceil to nearest 100 so no
-    settlement's rounded GHI falls outside the bin range.
+    GHI bins use floor/ceil to the nearest 100, so no settlement's rounded GHI
+    falls outside the bin range.
 
     Returns four dicts keyed by (tier, ghi_bin, diesel_bin):
         lcoe_lut, inv_lut, cap_lut, fuel_lut
     """
-    # F5: floor/ceil so actual min and max are strictly within the bin range
+    # floor/ceil so actual min and max are strictly within the bin range
     _ghi_raw_min = float(onsseter.df[SET_GHI].min())
     _ghi_raw_max = float(onsseter.df[SET_GHI].max())
     ghi_min   = int(np.floor(_ghi_raw_min / 100)) * 100   # e.g. 1700 for min=1778
@@ -160,14 +157,14 @@ def build_pv_hybrid_lookup(onsseter, ghi_profile, temp_profile,
     diesel_range = np.round(np.arange(diesel_min, diesel_max + 0.1, 0.1), 1)
     tiers        = [1, 2, 3, 4, 5]
 
-    # F5 validation: verify no settlement GHI is outside the table range
+    # verify no settlement GHI is outside the table range
     _rounded_ghi = np.round(onsseter.df[SET_GHI].values, -2).astype(int)
     _out_of_range = ((_rounded_ghi < ghi_min) | (_rounded_ghi > ghi_max)).sum()
     if _out_of_range > 0:
-        print(f"    F5 WARNING: {_out_of_range} settlements have rounded GHI outside "
+        print(f"    GHI-BIN WARNING: {_out_of_range} settlements have rounded GHI outside "
               f"[{ghi_min}, {ghi_max}] — they will be clamped.")
     else:
-        print(f"    F5 OK: all settlement GHIs are within bin range "
+        print(f"    GHI bins OK: all settlement GHIs are within bin range "
               f"[{ghi_min}, {ghi_max}] (data range: [{_ghi_raw_min:.0f}, {_ghi_raw_max:.0f}])")
 
     n_entries = len(tiers) * len(ghi_range) * len(diesel_range)
@@ -382,15 +379,15 @@ def compute_offgrid_min(onsseter, year, off_grid_techs):
     onsseter.df[SET_MIN_OFFGRID + str(year)]      = onsseter.df[available].T.idxmin()
 
 
-# ── Per-connection cost reporting (F4 guard) ───────────────────────────────────
+# ── Per-connection cost reporting ─────────────────────────────────────────────
 
 def per_connection_stats(df, year, tech_code, tech_name):
     """
     Compute robust per-connection investment cost: median of the realised
     InvestmentCost/NewConnections distribution, excluding inf and NaN.
-    (F4: 8,276 SA_PV settlements have ~0 capacity/investment but correct
-    technology assignment; their InvestmentPerConnection = inf/0 corrupts any
-    mean.  Median with inf excluded is robust.)
+    Settlements with ~0 capacity/investment but a correct technology assignment
+    give InvestmentPerConnection = inf/0, which corrupts any mean; the median
+    with inf excluded is robust.
     """
     code_col = "FinalElecCode" + str(year)
     inv_col  = "InvestmentCost" + str(year)
@@ -401,7 +398,7 @@ def per_connection_stats(df, year, tech_code, tech_name):
     ratio = df.loc[mask, inv_col] / df.loc[mask, con_col]
     # Exclude inf, -inf, NaN and the near-zero capacity artefacts (inv < $1)
     finite = ratio.replace([np.inf, -np.inf], np.nan).dropna()
-    finite = finite[finite > 1.0]  # exclude the ~0 investment artefacts (F4)
+    finite = finite[finite > 1.0]  # exclude the ~0 investment artefacts
     median = finite.median()
     n = len(finite)
     return median, n
@@ -592,14 +589,14 @@ def run_arm(arm: str, spine_path: Path, cfg: dict,
     Run full LCOE pipeline for one arm.  Returns (processor, summary, hybrid_status).
     hybrid_status: dict with keys 'pv_ok', 'wind_ok'.
 
-    F1 parameter: spine_df — if provided, this pre-loaded DataFrame is used
+    spine_df — if provided, this pre-loaded DataFrame is used
     instead of reading the CSV from spine_path.  Both R0 and R1 arms are built
     from the same R0 spine (loaded once in main()), so physical input columns
     are guaranteed identical.  Only PE_ratio and AverageToPeakLoadRatio differ.
     """
     print(f"\n{'='*65}")
     print(f"  ARM {arm} — spine: {spine_path.name}"
-          + (" [from in-memory DataFrame — F1]" if spine_df is not None else ""))
+          + (" [from in-memory DataFrame]" if spine_df is not None else ""))
     print(f"{'='*65}")
 
     hh_u          = float(cfg["household_size"]["urban"])
@@ -635,7 +632,7 @@ def run_arm(arm: str, spine_path: Path, cfg: dict,
     mg_pv_hybrid_params  = build_mg_pv_hybrid_params(cfg, min_mg_size)
     mg_wind_hybrid_params = build_mg_wind_hybrid_params(cfg, min_mg_size)
 
-    # F1: use in-memory DataFrame if provided, otherwise load from CSV
+    # use the in-memory DataFrame if provided, otherwise load from CSV
     if spine_df is not None:
         onsseter = SettlementProcessor.__new__(SettlementProcessor)
         onsseter.df = spine_df.copy()
@@ -843,8 +840,8 @@ def run_arm(arm: str, spine_path: Path, cfg: dict,
                 n_val   = row.get("n_settlements", 0)
                 print(f"    {int(code):<6} {lbl:<22} {int(n_val):>12,} {pop_val:>14,.0f}")
 
-            # F4: per-connection cost (robust: median, inf excluded)
-            print(f"\n    Per-connection investment cost (median, inf excluded — F4 guard):")
+            # per-connection cost (robust: median, inf excluded)
+            print(f"\n    Per-connection investment cost (median, inf excluded):")
             for tc, tl in [(1, "Grid"), (3, "SA_PV"), (5, "MG_PVHybrid"), (7, "MG_Hydro")]:
                 med, n = per_connection_stats(onsseter.df, year, tc, tl)
                 if not np.isnan(med):
@@ -876,13 +873,13 @@ def compare_arms(proc_r0, proc_r1, years, cfg, out_dir, label, hybrid_status,
     print(f"Wind-hybrid: {'enabled' if hybrid_status.get('wind_ok') else 'DISABLED'}")
     print("=" * 65)
 
-    # F1 post-run assertion: check which columns differ between the two arms
+    # post-run assertion: check which columns differ between the two arms
     common_cols = [c for c in df0.columns if c in df1.columns]
     pe_col_set  = set(pe_cols) | {"AverageToPeakLoadRatio"}
     diff_cols   = [c for c in common_cols if not df0[c].equals(df1[c])]
     phys_differ = [c for c in diff_cols if c in _PHYSICAL_INPUT_COLS]
 
-    print(f"\n  F1 POST-RUN ASSERTION:")
+    print(f"\n  POST-RUN ASSERTION:")
     print(f"    Total columns differing R0 vs R1: {len(diff_cols)}")
     print(f"    PE/demand columns (expected to differ): "
           f"{[c for c in diff_cols if c in pe_col_set]}")

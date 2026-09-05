@@ -41,8 +41,7 @@ demand_tiers:
   # kWh/HH/yr per tier are set by OnSSET from Bhatia & Angelou (2015) ESMAP Multi-Tier Framework.
 
 household_size:
-  # ZamStats 2022 Census of Population and Housing, Section 4.3. The same values derive N in the
-  # peak sub-model below, so demand and connection count stay consistent.
+  # ZamStats 2022 Census of Population and Housing, Section 4.3.
   urban: 4.6
   rural: 5.0
 
@@ -76,17 +75,8 @@ technology_options:
   min_mg_size: 100
   # Minimum settlement size, in HOUSEHOLDS, for any mini-grid option (PV hybrid, wind, hydro)
   # to be costed at all; below it OnSSET sets their LCOE to the 99 sentinel
-  # (onsset.py, calculate_off_grid_lcoes). Previously hard-coded in s06_run_arms.py and
-  # onsset_helpers.py; surfaced here 2026-08-16 because it decides which technologies exist.
-  #
-  # It binds hard on this settlement dataset: the median settlement is 2.7 households and the
-  # 99th percentile is 101.8, so 100 excludes 98.97% of settlements — though those hold only
-  # 37.8% of the 2030 population. Relaxing it is NOT advisable without first extending explicit
-  # peak representation to the mini-grid module: hybrids.py sizes generation from a fixed
-  # per-tier load archetype (calc_load_curve) that does not vary with the settlement's
-  # coincidence factor, so mini-grid LCOE is measurably invariant to the peak treatment
-  # (0.00% change R0 -> R1 at every percentile). Lowering the threshold would therefore move
-  # small, high-rho settlements into the one technology the model holds peak-insensitive.
+  # (onsset.py, calculate_off_grid_lcoes). It binds hard on this settlement dataset, and
+  # relaxing it is not advisable while the mini-grid module remains peak-insensitive.
   # See docs/01_pipeline.md, "Which technologies actually compete".
 
 # ── Scenario ──────────────────────────────────────────────────

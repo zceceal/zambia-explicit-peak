@@ -12,9 +12,7 @@ Run with the project venv:
 """
 
 import warnings
-# Scoped to third-party deprecation noise only. RuntimeWarning (divide-by-zero,
-# overflow, invalid value) and every other category stay visible, so a numerical
-# fault surfaces rather than being silently discarded.
+# Third-party deprecation noise only; see onsset_helpers.py for the filter's scope.
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -85,11 +83,11 @@ cov_mask = rasterio.features.rasterize(
 
 # Residual: pixels with population that fall outside all settlement polygons
 residual_mask = (cov_mask == 0) & (wp_data > 0)
-del cov_mask, gdf_raw   # free memory
+del cov_mask, gdf_raw
 
 res_pop  = wp_data[residual_mask].sum()
 res_npx  = int(residual_mask.sum())
-stage1_pop = wp_total - res_pop   # population inside polygons
+stage1_pop = wp_total - res_pop
 
 print(f"  Residual pixels (outside all polygons, Pop>0): {res_npx:,}")
 print(f"  Residual population:          {res_pop:,.0f}  ({100*res_pop/wp_total:.2f}% of national)")
@@ -104,15 +102,15 @@ rows_idx, cols_idx = np.where(residual_mask)
 del residual_mask
 
 # Pixel centre coordinates (WGS84)
-px_x = wp_tf.c + (cols_idx + 0.5) * wp_tf.a   # longitude
-px_y = wp_tf.f + (rows_idx + 0.5) * wp_tf.e   # latitude (negative step)
+px_x = wp_tf.c + (cols_idx + 0.5) * wp_tf.a
+px_y = wp_tf.f + (rows_idx + 0.5) * wp_tf.e
 px_pop = wp_data[rows_idx, cols_idx]
 del rows_idx, cols_idx
 
 # Coarse cell indices (floor division)
 ci = np.floor(px_x / COARSE_RES).astype(np.int32)
 ri = np.floor(px_y / COARSE_RES).astype(np.int32)
-cell_key = ri.astype(np.int64) * 1_000_000 + ci.astype(np.int64)   # unique cell ID
+cell_key = ri.astype(np.int64) * 1_000_000 + ci.astype(np.int64)
 
 print(f"  Grouping {res_npx:,} pixels → coarse cells...")
 df_px = pd.DataFrame({
@@ -127,7 +125,7 @@ del px_x, px_y, px_pop, cell_key, ci, ri
 grp = df_px.groupby('cell_key')
 
 pop_sum  = grp['pop'].sum()
-px_count = grp['pop'].count()  # number of populated pixels per cell
+px_count = grp['pop'].count()
 
 # Pop-weighted centroid
 w_x = (df_px['px_x'] * df_px['pop']).groupby(df_px['cell_key']).sum() / pop_sum
@@ -136,13 +134,13 @@ del df_px
 
 # Pixel area per cell (sum of 100m pixel areas at each pixel's latitude)
 # Each WorldPop pixel ≈ |Δlon| × cos(lat) × 111.32 × |Δlat| × 111.32 km²
-px_deg_w = abs(wp_tf.a)  # 0.000833°
-px_deg_h = abs(wp_tf.e)  # 0.000833°
+px_deg_w = abs(wp_tf.a)
+px_deg_h = abs(wp_tf.e)
 km_per_deg_lat = 111.32
 # Pixel area at weighted-centroid latitude (approximate; good for Africa)
 px_area_km2 = (px_deg_w * km_per_deg_lat * np.cos(np.radians(w_y))
                * px_deg_h * km_per_deg_lat)
-grid_cell_area_km2 = px_count * px_area_km2   # sum of all populated pixel areas
+grid_cell_area_km2 = px_count * px_area_km2
 
 # Keep cells with Pop ≥ 1 (should all qualify, but guard)
 keep = pop_sum >= 1.0
@@ -203,7 +201,6 @@ print("\n── S6: Combine and re-derive IsUrban ──")
 # Align columns
 COLS = ['id','X_deg','Y_deg','Pop','GridCellArea','IsUrban','IsUrban_type',
         'Admin_1','building_count','building_area','grid3_type','source']
-# pop_density is re-derived below
 df_clusters_sub = df_clusters[COLS].copy()
 df_disp_sub     = df_disp[COLS].copy()
 

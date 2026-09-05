@@ -1,11 +1,11 @@
 # The pipeline
 
 Every script lives in `scripts/`, named `sNN_<what it does>.py`, and runs in numeric order. Each stage
-writes files the next stage reads.
+writes files the next stage reads. Every contested parameter lives in `config/config.yaml`, not in
+code.
 
 The `s` prefix is deliberate: some later stages import functions from earlier ones, and a filename
-beginning with a digit (`06_run_arms.py`) cannot be imported by Python. This is the same reason OnSSET
-itself numbers only its notebooks and leaves its package modules unnumbered.
+beginning with a digit (`06_run_arms.py`) cannot be imported by Python.
 
 ## Run order
 
@@ -76,8 +76,7 @@ place of the single scalar it would otherwise use. **The allocation engine's cos
 unmodified**, but a patch to the OnSSET core is required, and is disclosed in the paper's
 Methodology (§2.2.1): stand-alone PV originally received a hard-coded load factor of 0.9, so it alone
 ignored the per-settlement peak. Every other technology already read the per-settlement column.
-Correcting that one line is what makes the comparison symmetric across technologies — and note the
-direction: the bug was *suppressing* the effect, not creating it. See
+Correcting that one line is what makes the comparison symmetric across technologies. See
 [`patches/README.md`](../patches/README.md).
 
 ## Reading the outputs
@@ -100,8 +99,7 @@ Two reporting cautions.
 
 - **Capital and lifetime cost move together.** Under explicit peaks investment rises 41.2% and
   capacity 1.6%, alongside the 45.4% rise in lifetime cost. This is the physically expected direction:
-  higher peaks require more capacity, which costs more to build. Figures produced before the
-  2026-08-16 index-alignment fix showed capital falling; see REPRODUCING.md section 7.
+  higher peaks require more capacity, which costs more to build.
 - **Per-connection cost is now quotable, with one caveat.** The outlier problem is gone: no settlement
   exceeds $1 bn of investment, and `InvestmentPerConnection2030` has a mean of \$7,170 against a median
   of \$7,120 — a ratio of 1.01, i.e. no skew. The aggregate is \$4,159 per new connection. The remaining
@@ -111,7 +109,7 @@ Two reporting cautions.
 
 ## Which technologies actually compete
 
-Worth knowing before reading any allocation result. Counts below are at 2030 in the R0 output
+Counts below are at 2030 in the R0 output
 (`2026-08_final_lcoe_R0.csv`); the two diesel options are omitted because they are never least-cost.
 Of the five remaining technologies, only three are ever costed, and for most settlements only one is:
 
@@ -151,14 +149,4 @@ directions: opening the grid channel would raise costs, while mini-grid-eligible
 large and therefore flatter under an explicit peak, so opening that channel could make mini-grids
 cheaper and attenuate the measured effect (paper §4.2).
 
-## Reproducibility
-
-- All random draws are seeded: 42 throughout, and 43 for the Latin-hypercube design in `s08`.
-- R0 and R1 are built from one in-memory spine with only the peak column overwritten, so the two arms
-  are verified byte-identical in every shared column.
-- Every contested parameter lives in `config/config.yaml`, not in code. `technology_options.min_mg_size`
-  was moved there on 2026-08-16; it had been a literal in four scripts despite deciding which
-  technologies exist.
-- The DataFrame index must equal its row order wherever costs are computed. `condition_df()` enforces
-  it; `_assert_positional_index()` raises if it is broken; `scripts/check_index_alignment.py` is the
-  acceptance test on any run output and must report ~100%.
+Seeding, arm byte-identity and the index invariant are set out in `REPRODUCING.md` §6.

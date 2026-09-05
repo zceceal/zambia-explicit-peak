@@ -1,35 +1,14 @@
 """
 test_index_alignment.py — regression test for the 2026-08-16 index-alignment defect.
 
-WHAT WENT WRONG
----------------
-`SettlementProcessor.condition_df()` ended with
+`SettlementProcessor.condition_df()` sorted the frame without resetting the index, so inside
+`Technology.get_lcoe()` a positionally-labelled `peak_load` met a label-indexed `capacity_factor`
+and every settlement's peak load was divided by a different settlement's capacity factor.
+REPRODUCING.md §7 sets out the mechanism, why it stayed hidden, and what it cost.
 
-    self.df.sort_values(by=[SET_Y_DEG, SET_X_DEG], inplace=True)
-
-and did not reset the index, so the frame's row POSITIONS and its index LABELS became two
-different orderings of the same settlements. Inside `Technology.get_lcoe()` two kinds of object
-are then combined:
-
-  * `peak_load`, built from a numpy array via `pd.Series(...)`  -> labelled 0..N-1 by POSITION
-  * `capacity_factor`, passed in as `self.df[SET_GHI] / HOURS_PER_YEAR` -> labelled by INDEX
-
-`installed_capacity = peak_load / capacity_factor` aligns those on labels, so every settlement's
-peak load was divided by a DIFFERENT settlement's capacity factor.
-
-WHY IT WAS INVISIBLE
---------------------
-For stand-alone PV the T&D cost is zero, so the levelised cost reduces to
-`cap_cost * (A + om*D) / (ATR * GHI * D)` — the energy term cancels top and bottom. The LCOE
-therefore stayed in a plausible range while capacity and investment were wrong by orders of
-magnitude, and no sanity check fired. The closed form below reproduced the model's own
-`NewCapacity2030` for 14.137% of stand-alone settlements before the fix and 100.000% after.
-
-THE FIX
--------
-`condition_df()` now calls `self.df.reset_index(drop=True, inplace=True)` after the sort, and
-`SettlementProcessor._assert_positional_index()` raises if the invariant is ever broken again.
-Both are recorded in patches/onsset-explicit-peak.patch.
+The three checks below pin, in order: the pandas behaviour that caused it, that `condition_df()`
+now leaves a clean RangeIndex, and that the model's own `NewCapacity2030` satisfies the closed
+form `capacity = E / (ATR * GHI)`.
 
 Run from the project root:
     python test/test_index_alignment.py

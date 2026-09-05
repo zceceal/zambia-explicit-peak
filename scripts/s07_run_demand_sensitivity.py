@@ -24,9 +24,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-# Scoped to third-party deprecation noise only. RuntimeWarning (divide-by-zero,
-# overflow, invalid value) and every other category stay visible, so a numerical
-# fault surfaces rather than being silently discarded.
+# Third-party deprecation noise only; see onsset_helpers.py for the filter's scope.
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -55,9 +53,7 @@ SOLAR_PROFILE = (REPO / "data" / "raw" / "zambia" / "renewables_hourly" /
 WIND_PROFILE  = (REPO / "data" / "raw" / "zambia" / "renewables_hourly" /
                  "wind" / "wind_lusaka.csv")
 
-# Tier-3 reference values, corrected run 2026-08-16 (index-alignment fix).
-# Superseded: 34.6/36.9/38.8, -14.3/-9.8/-3.6, 16999/17787/18260 — those came from the
-# run in which stand-alone PV capacity was misaligned; see patches/onsset-explicit-peak.patch.
+# Tier-3 reference values from the canonical 2026-08_final run.
 T3_LCOE_PCT  = {10: 30.0,  20: 45.4,  50: 66.1}    # ΔLCOE% energy-weighted 2030
 T3_CAPEX_PCT = {10: 26.3,  20: 41.2,  50: 61.3}    # ΔCAPEX% 2030
 T3_SWITCHES  = {10: 32214, 20: 33665, 50: 34342}   # settlements changing technology at 2030
@@ -195,8 +191,8 @@ def main():
         proc_r1.df.to_csv(r1_path, index=False)
         print(f"\n  {label} → {r1_path.name}")
 
-        # F1 byte-identity check (within Tier-2 run)
-        print(f"\n  F1 check (Tier-2 R0 vs Tier-2 R1_n{n_mid}):")
+        # byte-identity check (within Tier-2 run)
+        print(f"\n  Byte-identity check (Tier-2 R0 vs Tier-2 R1_n{n_mid}):")
         compare_arms(proc_r0.df, proc_r1.df, years,
                      "R0_T2", f"R1_T2_n{n_mid}", pe_cols=["PE_ratio"])
 
@@ -279,7 +275,7 @@ sub-model, cost parameters, seeds (np.random.seed(42)).
 | 50    | {m50['lcoe_pct']:+.1f}%         | +{T3_LCOE_PCT[50]:.1f}%          | {m50['capex_pct']:+.1f}%          | {T3_CAPEX_PCT[50]:+.1f}%          | {m50['n_switch']:,}              | {T3_SWITCHES[50]:,}              |
 
 Note: all cost columns use **2030** (not 2035) as required.
-Byte-identity F1 assertion passed for all three Tier-2 arm pairs (physical inputs identical;
+Byte-identity assertion passed for all three Tier-2 arm pairs (physical inputs identical;
 only AverageToPeakLoadRatio and downstream result columns differ).
 
 ## Verdict

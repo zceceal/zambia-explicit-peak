@@ -14,8 +14,7 @@ Household size s enters the model on two channels, and they pull in opposite dir
                  settlement.  Affects the explicit-peak arm ONLY.
 
 Because (a) is common-mode and (b) is treatment-only, s cannot be dismissed as "it just rescales
-demand": it moves the R1-R0 contrast directly.  The supervisor asked whether the August code fixes
-(index alignment, the s05 config read) change that exposure.  This measures it.
+demand": it moves the R1-R0 contrast directly.  This measures that exposure.
 
 DESIGN
 ------

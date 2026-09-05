@@ -15,9 +15,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-# Scoped to third-party deprecation noise only. RuntimeWarning (divide-by-zero,
-# overflow, invalid value) and every other category stay visible, so a numerical
-# fault surfaces rather than being silently discarded.
+# Third-party deprecation noise only; see onsset_helpers.py for the filter's scope.
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -43,18 +41,9 @@ def task2_f_band():
       - SA_PV → Grid switch: R1_f_LCOE = Grid_LCOE (unchanged — grid cost not scaled)
       - All other settlements: R1_f_LCOE = R1_LCOE (unchanged)
 
-    Physical basis:
-    f = fraction of SA_PV capex that scales with PEAK power (battery power rating +
-    inverter + BOS), as opposed to ENERGY (PV panel array area). Under OnSSET's
-    uniform peak-scaling convention, f=1.0 (all capex scales with peak); physically
-    only battery+inverter+BOS scale on peak. Measured African solar-home-system cost
-    structures put the battery-and-charge-controller share near 0.31 (IRENA 2016,
-    "Solar PV in Africa: costs and markets"), so f = 0.4 already sits above the
-    peak-scaled share those structures support; see docs/03_assumptions.md.
-
-    f = {0.4, 0.6, 1.0}: spans that measured share, an intermediate value, and the
-    OnSSET convention (f = 1.0). f = 0.4 is the conservative bound reported in the
-    paper; f = 1.0 reproduces the headline.
+    f is the fraction of SA_PV capex that scales with PEAK power rather than with
+    ENERGY; docs/03_assumptions.md §2.1 gives the physical basis and the source for
+    f = {0.4, 0.6, 1.0}. f = 1.0 reproduces the headline.
 
     CAVEAT (label in all outputs): Fixed-assignment lower bound. In reality, at f < 1,
     some settlements currently switching SA_PV→Grid might stay SA_PV (grid advantage
@@ -86,7 +75,6 @@ def task2_f_band():
     print(f"  Baseline ΔLCOE% (f=1.0, full model) = {delta_full:+.4f}%  "
           f"(the s06 central headline, recomputed from the same outputs)")
 
-    # Identify settlement categories
     stays_sapv = (fc0 == 3) & (fc1 == 3)   # SA_PV in both arms
     switches   = (fc0 == 3) & (fc1 == 1)   # SA_PV → Grid
     stays_grid = (fc0 == 1) & (fc1 == 1)   # Grid in both
@@ -141,37 +129,9 @@ def task5_per_connection():
     WARNING: calling this function writes data/onsset_outputs/2026-08_final_per_connection_analysis.csv
     (a canonical, protected output) as a side effect — do not call it to "just check a number".
 
-    Per-connection cost accounting on the canonical 2026-08_final R0 arm — is
-    InvestmentCost2030/NewConnections2030 quotable as a per-connection cost?
-
-    Findings from code inspection (onsset.py) and the canonical R0 output:
-    1. InvestmentCost2030 = UNDISCOUNTED total capital investment over the FULL project
-       life (2020-2035 = 16 years), NOT just the 2020-2030 time step. For SA_PV with
-       5-year tech life, this includes 2 installations (year 0 and year 5), both at the
-       UNDISCOUNTED capital cost. This is a NPC-complement, not a single-year capex.
-    2. NewConnections2030 = new HOUSEHOLDS added in the 2020-2030 step only (= HH
-       electrified in that step). It does NOT include HH already electrified at 2020.
-    3. Dividing (1) by (2) is therefore a period mismatch, still present: numerator
-       covers the full 2020-2035 horizon (USD 15.58bn / 3,745,418 new HH = $4,159/HH
-       aggregate), denominator covers only 2020-2030 new connections. By technology:
-       SA_PV $9.84bn / 1,363,324 HH = $7,217/HH; Grid $4.33bn / 1,918,219 HH =
-       $2,258/HH; MG_PVHybrid $1.41bn / 463,875 HH = $3,036/HH.
-    4. The outlier problem is RESOLVED post-index-fix. No settlement exceeds $1bn of
-       investment (max is $921.8M); OnSSET's own InvestmentPerConnection2030 has a
-       median of $7,120/HH and a mean of $7,170/HH (P5-P95 $3,491-$11,094/HH) — a
-       mean/median ratio of 1.01, i.e. no skew. The extreme per-settlement values
-       (up to ~$23bn) seen before the 2026-08-16 fix were a symptom of the index
-       misalignment (REPRODUCING.md §7), not of the accounting.
-
-    Absolute per-connection figures are quotable provided the period mismatch in (3)
-    is stated alongside them; the outlier caveat does not apply.
-
-    Defensible per-connection metrics:
-    - OnSSET's own InvestmentPerConnection2030 column: median $7,120/HH.
-    - Or: LCOE x energy / HH / project-life-years as a levelised annual cost per HH
-      — median $56/HH/yr for SA_PV.
-    - Relative comparison (R0 vs R1 cost ratio) is unaffected either way: R0 total
-      NPC $1.73bn, R1 $2.51bn, +45.4%, matching the headline.
+    Per-connection cost accounting on the canonical 2026-08_final R0 arm. The period
+    mismatch that must be stated alongside any absolute per-connection figure is in
+    docs/01_pipeline.md, "Reading the outputs".
     """
     print("\n" + "="*65)
     print("  Per-Connection Cost Accounting")
@@ -248,10 +208,7 @@ def task5_per_connection():
     print(f"    R1 total NPC: ${r1_total_npc/1e9:.2f}B")
     print(f"    ΔNPC: ${(r1_total_npc-r0_total_npc)/1e9:.2f}B  ({(r1_total_npc-r0_total_npc)/r0_total_npc*100:+.1f}%)")
 
-    # Every figure below is computed from the current outputs. The previous version of
-    # this block was a frozen narrative quoting ~$20k/HH aggregate and a mean/median
-    # split of $39k/$7k. Those were symptoms of the index misalignment in
-    # SettlementProcessor.condition_df() diagnosed on 2026-08-16, not of the accounting.
+    # Every figure below is computed from the current outputs.
     _ipc  = ipc.dropna()
     _skew = _ipc.mean() / _ipc.median() if _ipc.median() else float("nan")
     _delta = (r1_total_npc - r0_total_npc) / r0_total_npc * 100
