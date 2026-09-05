@@ -83,32 +83,27 @@ SEED_LHS        = 43
 
 # ── Subsample / design sizes ─────────────────────────────────────────────────
 SUBSAMPLE_N          = 50_000
-# Network-topology note: any spatial subsample of OnSSET breaks grid relay
-# paths, inflating MG_PVHybrid and underestimating SA_PV→Grid switches.
-# That reasoning predicted a DOWNWARD bias, and pre-fix the measurement agreed:
-# a 50k-settlement subsample (18.5% of 270k) returned ~0.69x the full-spine
-# ΔLCOE%. After the 2026-08-16 index-alignment fix the measured ratio was 1.12x
-# (subsample +55.54% against the then full-spine +49.9%; both figures are the
-# 2026-08-16 to 2026-09-04 position, superseded by the run of 2026-09-05) — the
-# bias reversed direction,
-# so the topology argument above no longer explains it and should not be quoted
-# as the mechanism. The validation gate therefore uses a GENEROUS
-# tolerance; the bias is documented and a bias-correction factor
-# (full_spine / subsample) is applied to all results.
+# Subsample bias. The 50,000-settlement stratified subsample (18.5% of 270,526) over-states the
+# full-dataset headline: it returns about +50.4% against the full-spine +45.4%, roughly 5 pp high,
+# a ratio of about 1.11x. Neither figure is hard-coded — the subsample value is measured in this
+# run and the full-spine value is read from the s06 outputs via central_headline(), so the
+# bias-correction factor (full_spine / subsample) below is measured at run time and moves with the
+# data.
 #
-# The bias is MULTIPLICATIVE, so the admissible gap in percentage points scales
-# with the headline. At the pre-2026-08-16 headline of +36.9% a 0.69x subsample sat
-# 11.4 pp low and 15.0 pp was ample; at the 2026-08-16 headline of +49.9% the same
-# 0.69x sat 15.4 pp low and 15.0 pp would have failed for the wrong reason. Widened
-# to 22.0 (0.31 x 49.9 = 15.5, plus headroom for sampling noise). Both headline
-# figures in this paragraph are superseded; see the note below. If the gate fails at
-# this tolerance the subsample is genuinely unrepresentative, not merely biased.
+# The MECHANISM of that bias is not established. A grid-relay-truncation argument (a subsample
+# breaks the intermediate nodes of OnSSET's A→B→C→grid extension, stranding settlements off-grid)
+# predicts a bias in the opposite direction from the one measured, so it does not explain what is
+# observed and is not quoted as the cause. The correction applied to the results is therefore
+# empirical, not modelled.
 #
-# The N-at-analysis-year-population fix of 2026-09-04 moved the full-spine headline again, to
-# +45.4% (bias-correction factor 0.9011). STAGE4_DELTA_LCOE_CENTRAL is read fresh from the s06
-# outputs each run, so this tolerance does not need re-deriving against a fixed headline — but
-# it was chosen against the superseded +49.9% waypoint above, not the current headline.
-VALIDATION_TOL_PP    = 22.0     # see note above; scales with STAGE4_DELTA_LCOE_CENTRAL
+# VALIDATION_TOL_PP is deliberately wide for that reason. Because the mechanism is unknown, there
+# is no principled basis for a tight bound on how far the subsample may legitimately sit from the
+# full spine, and a narrow gate would fail on the bias itself rather than on anything wrong. The
+# gate exists to catch a BROKEN run — a mis-stratified draw, a mis-parameterised arm, a subsample
+# that is not representative at all — not to bound the bias, which is handled by the correction
+# factor instead. At 22 pp it sits far outside the roughly 5 pp gap observed here, so a failure
+# means the subsample is genuinely unrepresentative.
+VALIDATION_TOL_PP    = 22.0     # wide by design; see the note above
 MORRIS_R             = 8        # trajectories
 MORRIS_K             = 6        # parameters
 MORRIS_P             = 4        # levels
@@ -931,9 +926,9 @@ def main():
     t_arm_single = t_val / 2.0
 
     if not tol_ok:
-        print(f"\n  NOTE: subsample bias, mechanism not fully explained (see comment above")
-        print(f"  SUBSAMPLE_N — the network-topology explanation was retracted 2026-08-16;")
-        print(f"  the bias reversed direction post-fix).")
+        print(f"\n  NOTE: subsample bias, mechanism not established (see the comment above")
+        print(f"  SUBSAMPLE_N — the network-topology argument predicts the opposite")
+        print(f"  direction from the one measured, so it is not the explanation).")
         print(f"  Morris RANKING and SIGN-ROBUSTNESS are valid (all evaluations share")
         print(f"  the same systematic bias); magnitudes need bias correction.")
 
@@ -1371,13 +1366,13 @@ Total elapsed: {t_elapsed_total/60:.1f} min.
 Stratification: 4 log-pop × 3 GHI × 3 MV-dist × 2 urban/rural = 72 strata; proportional allocation (min 1).
 Seed: {SEED_SUBSAMPLE}. Generous tolerance: ±{VALIDATION_TOL_PP}pp (see bias note below).
 
-**Bias source — not fully explained.** The "grid relay path truncation" mechanism once proposed here
-(a subsample breaks relay nodes B/C in OnSSET's A→B→C→grid extension algorithm, stranding A as
-off-grid) predicted a downward bias, and pre-fix the measurement agreed (ratio 0.69x). After the
-2026-08-16 index-alignment fix the measured ratio is 1.12x — the bias reversed direction, so that
-mechanism does not explain it and is not quoted as the cause. The correction below is empirical
-(measured ratio, not a modelled mechanism); a bias-correction factor
-(full_spine / subsample) is applied to all results.
+**Bias source — not established.** The subsample over-states the full-dataset headline by roughly
+5 pp ({val_delta:.1f}% against {STAGE4_DELTA_LCOE_CENTRAL:.1f}%). A "grid relay path truncation"
+mechanism (a subsample breaks relay nodes B/C in OnSSET's A→B→C→grid extension algorithm, stranding
+A as off-grid) would predict a bias in the opposite direction from the one measured, so it does not
+explain what is observed and is not quoted as the cause. The correction below is therefore empirical
+— a measured ratio, not a modelled mechanism — and the tolerance on the validation gate is kept wide
+because there is no established mechanism against which to set a tighter one.
 
 **Bias-correction factor: {BIAS_CORRECTION_FACTOR:.4f}** (full-spine {STAGE4_DELTA_LCOE_CENTRAL:.1f}% / subsample {val_delta:.2f}%)
 Applied multiplicatively to all ΔLCOE% μ* and percentile-band values in results below.
