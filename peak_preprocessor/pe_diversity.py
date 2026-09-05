@@ -130,9 +130,7 @@ def pe_from_n(
 
     Notes
     -----
-    Source: Lorenzoni et al. (2020), Table 2, 61 measured isolated mini-grids,
-    developing countries worldwide.
-    beta = -ln((P_step - P_inf) / (P_1 - P_inf)) / ln(N_mid) ≈ 0.9484 / ln(N_mid)
+    Anchors, their source and the beta identity: see the module docstring above.
     """
     N_arr = np.asarray(N, dtype=float)
     scalar = N_arr.ndim == 0

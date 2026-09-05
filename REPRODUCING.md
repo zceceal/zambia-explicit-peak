@@ -121,8 +121,8 @@ python scripts/s12c_summarise_2050.py scripts/outputs/2050only_grid3_lcoe_R0.csv
 
 python scripts/s08_run_global_sensitivity.py     # Morris + LHS; ~64 min       -> needed by s09, s13
                                                   # measured 63.4 min (2026-08-28 clean-room run)
-# s08's bias-correction factor and every gate in s08 and s09 that used to be a hard-coded headline
-# now read it at run time from the s06 outputs via onsset_helpers.central_headline() — no manual step.
+# s08's bias-correction factor and every gate in s08 and s09 read the central headline at run time
+# from the s06 outputs, via onsset_helpers.central_headline() — no manual step.
 python scripts/s09_run_oat_checks.py             # grid-side OAT               -> needed by s13
                                                   # ~2 min per arm; --lhs-only runs the LHS validation block
                                                   # alone. Per-variant times are in the elapsed_s column of
@@ -245,9 +245,9 @@ mini-grid PV hybrid 1,625 in both arms.
 
 `N_mid` sweep: **+30.0% / +45.4% / +66.1%** for `N_mid` 10 / 20 / 50, with 32,214 / 33,665 / 34,342
 settlements changing technology — 32,209 / 33,665 / 34,342 of them stand-alone solar to grid, the
-five others being the only non-`SA_PV`-to-grid transitions anywhere in the sweep. The switch count is stable across the sweep; the
-cost change is not, because `N_mid` governs how many settlements cross the 1 kW per household step in
-OnSSET's stand-alone capital-cost schedule (`s15` quantifies this).
+five others being the only non-`SA_PV`-to-grid transitions anywhere in the sweep. The switch count is
+stable across the sweep; the cost change is not, because `N_mid` governs how many settlements cross
+the 1 kW per household step in OnSSET's stand-alone capital-cost schedule (`s15` quantifies this).
 
 From `s07`, rural Tier 2: **−3.7% / +1.9% / +7.2%** across the same sweep, with 9 / 47 / 298
 switches. The script's verdict is `FRAGILE: direction or sign reversal at Tier 2`. This is a boundary
@@ -262,11 +262,10 @@ From `s08`: LHS (200 samples, bias-corrected) 5th–50th–95th **+21.1% / +51.3
 ranking Rural_tier (57.4) > N_mid (15.1) > MaxGridDist_km (9.9) > SA_PV_capex_mult (5.9) >
 Discount_rate (2.1) > Diesel_price (0.0). ΔLCOE% itself was positive in all 56 underlying model
 evaluations; individual elementary effects are not all positive (15 of 48 are negative, chiefly for
-Discount_rate and MaxGridDist_km, whose higher settings reduce the effect) — the two claims are about
-different quantities. The
-emulator failed its own validation threshold (RMSE 11.61 pp against a 5.0 pp limit, R² = 0.523) and
-all 200 samples were therefore evaluated with the full model — check the `method` column is
-`full_OnSSET` throughout.
+Discount_rate and MaxGridDist_km, whose higher settings reduce the effect) — the two claims are
+about different quantities. The emulator failed its own validation threshold (RMSE 11.61 pp against a
+5.0 pp limit, R² = 0.523) and all 200 samples were therefore evaluated with the full model — check
+the `method` column is `full_OnSSET` throughout.
 
 ## 6. Determinism
 
@@ -339,8 +338,8 @@ from) on all 270,526 settlements: `PE_ratio`, `N_hh`, `TransformerDist`, `Curren
 `ElecPopCalib` and `ElecStart` are identical once the two frames are aligned on `id`, the rebuild
 differing from the published file only in row order. Verified 2026-09-04.
 
-The base year is calibrated on the 2 km transformer gate (`ElecStart = 1` on 7,476 settlements),
-the procedure OnSSET applies when a transformer layer is supplied; `s04 --self-test` and
+The base year is calibrated on the 2 km transformer gate (`ElecStart = 1` on 7,476 settlements;
+`docs/02_variables.md` §5); `s04 --self-test` and
 `s21 --self-test` both check that `s04` reproduces the published `ElecStart` and `ElecPopCalib` on
 every settlement. The wider transformer-or-MV gate, which admits 1,186 further lit settlements
 (8,662) by replacing `TransformerDist` with `min(TransformerDist, CurrentMVLineDist)` on 247,676
