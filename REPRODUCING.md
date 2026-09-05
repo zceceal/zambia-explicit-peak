@@ -129,7 +129,7 @@ Robustness and reporting stages. The order matters in three places, marked below
 ```bash
 python scripts/s10_run_sizing_decomposition.py   # post-processing only, no re-solve; fastest first
 python scripts/s07_run_demand_sensitivity.py     # rural Tier 2                     -> needed by s13; measured 4.8 min
-python scripts/s11_run_drought_oat.py            # drought-price generation cost; 4 variants, 674.6s total
+python scripts/s11_run_drought_oat.py            # drought-price generation cost; 4 variants, 622.6s total
                                                   # (recorded in results/summary/2026-08_final_oat_drought_price.csv's elapsed_s column)
 
 # 2050 endpoint. Use 2050only: the default mode reaches 100% electrification at the
@@ -257,7 +257,7 @@ From `s06`, on the 2030 columns, at rural Tier 3 and `N_mid = 20`, over 270,526 
 | Energy-weighted LCOE | 0.2757 USD/kWh | 0.4008 USD/kWh | **+45.38%** |
 | Aggregate investment to 2030 | USD 15.58 bn | USD 22.00 bn | +41.21% |
 | New capacity to 2030 | 2,664 MW | 2,706 MW | +1.57% |
-| Settlements changing technology | — | — | 33,665 (12.45%) |
+| Settlements changing technology | — | — | 33,665 (12.44%) |
 
 Every one of the 33,665 moves is stand-alone PV to grid; no other transition occurs. They carry
 0.43 M people, 1.8% of the 2030 population.
@@ -396,8 +396,9 @@ does. The switch-count gate is correspondingly tightened to require an exact mat
 sample at its sampled `N_mid` rather than the nearest multiple of ten (both changed 2026-09-02; the
 re-solved values are in `2026-09-02_lhs_fullspine_validation.csv`).
 
-**Cost.** Rebuilding the table adds roughly two minutes per arm, so the OAT block runs in about 35
-minutes rather than 19.
+**Cost.** Rebuilding the table costs roughly two minutes per arm. The four variants, two arms each,
+took 951.5 s in total in the committed run — the `elapsed_s` column of
+`results/summary/2026-08_final_oat_grid_costs.csv`.
 
 **Re-run completed, 2026-09-05**, with N evaluated at the analysis-year population (§2 of
 `docs/01_pipeline.md`). The central variant reproduced `s06` to six decimal places and **exactly
