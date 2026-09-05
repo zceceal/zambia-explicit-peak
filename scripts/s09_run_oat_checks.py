@@ -465,14 +465,10 @@ def task1_grid_oat(spine_n20, cfg_base, x_tx, y_tx,
         cfg_v["grid"]["generation_cost_usd_kwh"]         = gen_cost
 
         t0 = time.time()
-        # pv_lut_cache is deliberately NOT used here. s06_run_arms.py rebuilds the PV-hybrid
-        # differential-evolution lookup table inside each arm, immediately after np.random.seed(42).
-        # Reusing a cache built earlier in this script draws from the random stream at a different
-        # point, giving marginally different mini-grid costs; that was enough to flip one settlement
-        # at the grid-extension margin (index 72830) and return 17,786 switches instead of 17,787.
-        # (Those counts belong to the pre-2026-08-16 series, before the index-alignment fix;
-        #  they are retained here because they document why this cache is rebuilt per arm.)
-        # Rebuilding per arm makes the central variant reproduce s06 exactly. Costs ~2 min per arm.
+        # pv_lut_cache is deliberately NOT used here: reusing a cache built earlier in this script
+        # draws from the random stream at a different point and shifts mini-grid costs enough to move
+        # a settlement at the grid-extension margin. Rebuilding per arm, as s06 does, makes the
+        # central variant reproduce s06 exactly. Costs ~2 min per arm. See REPRODUCING.md §9.
         print(f"    Running R0 on full spine …")
         df_r0 = run_arm_full("OAT_R0", spine_r0, cfg_v, x_tx, y_tx,
                               ghi_profile, temp_profile, wind_profile,

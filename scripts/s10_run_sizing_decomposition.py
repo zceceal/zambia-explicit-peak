@@ -75,9 +75,9 @@ def task2_f_band():
     print(f"  Baseline ΔLCOE% (f=1.0, full model) = {delta_full:+.4f}%  "
           f"(the s06 central headline, recomputed from the same outputs)")
 
-    stays_sapv = (fc0 == 3) & (fc1 == 3)   # SA_PV in both arms
-    switches   = (fc0 == 3) & (fc1 == 1)   # SA_PV → Grid
-    stays_grid = (fc0 == 1) & (fc1 == 1)   # Grid in both
+    stays_sapv = (fc0 == 3) & (fc1 == 3)
+    switches   = (fc0 == 3) & (fc1 == 1)
+    stays_grid = (fc0 == 1) & (fc1 == 1)
     other      = ~(stays_sapv | switches | stays_grid)
 
     n_stays_sapv = stays_sapv.sum()
