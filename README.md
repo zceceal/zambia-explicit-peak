@@ -16,6 +16,10 @@ electrification modelling: evidence from Zambia* (Imperial College London, 2026)
 
 ## Reproducibility: what this clone gives you
 
+The published state is the tag **`paper-2026-09-05`**, which is what the paper's Data availability
+statement cites and what `main` points at. It is the only tag to cite; earlier tags are superseded
+snapshots kept for provenance and should not be used to check a reported number.
+
 Three tiers, stated as a boundary rather than left implicit.
 
 **1. From the clone alone, no input data required.** Every script and its docstring; the OnSSET patch
