@@ -21,7 +21,9 @@ Three tiers, stated as a boundary rather than left implicit.
 **1. From the clone alone, no input data required.** Every script and its docstring; the OnSSET patch
 in `patches/`, verified against upstream `c154ece`; the acceptance and regression tests in `test/`; and
 `results/summary/` — the committed, machine-readable CSVs behind the numbers this README and the paper
-report. In particular, `results/summary/2026-08_final_lcoe_paper_numbers.csv` (from `s14`) carries every
+report. (Throughout, `sNN` is the pipeline script `scripts/sNN_*.py`; `docs/01_pipeline.md` lists all
+of them with their inputs and outputs.) In particular,
+`results/summary/2026-08_final_lcoe_paper_numbers.csv` (from `s14`) carries every
 figure in the paper's Table 2 and §3.1-3.2, `2026-09-02_variant_summaries.csv` (from `s23`) the
 Tier-2, 2050-horizon, anchor-fitted, capital-cost-schedule, replacement-schedule and single-household
 variants, and `2026-08_final_provincial_rho.csv` (from `s20`) §4.4's provincial comparison. This is
@@ -35,8 +37,8 @@ CC BY-NC (non-commercial), and several others carry their own terms. With the da
 end to end. §8 of `REPRODUCING.md` records which stages reproduce byte-for-byte from the published
 spine. The
 per-settlement outputs behind the two allocation/switching maps (`fig_results_switching_map.pdf`,
-`fig_results_r0_r1_allocation_map.pdf`; ~11 GB, gitignored) are not committed either, for size rather
-than licence reasons, and are available from the author on request.
+`fig_results_r0_r1_allocation_map.pdf`; gitignored) are not committed either, for size rather
+than licence reasons, and are available from the author on request: about 11 GB for every variant; the four central solves and the 2050 endpoint that the paper reports are about 3 GB, and are the set the paper's Data availability statement refers to.
 
 **3. The published settlement spine.** It is dated four weeks before this repository's first commit.
 Rebuilding it from raw data with the current `s01`-`s05` reproduces every column that feeds the R0/R1
@@ -78,7 +80,7 @@ number without reproducing the full run.
 
 | Result | Value |
 |---|---|
-| Change in lifetime cost of universal access | **+45.4%** (+30.0% to +66.1% across the `N_mid` sweep) |
+| Change in lifetime cost of universal access | **+45.4%** (+30.0% to +66.1% across the `N_mid` sweep — `N_mid` is the sub-model's one assumed parameter, swept over {10, 20, 50}; see [The experiment](#the-experiment) below) |
 | Change in upfront capital | **+41.2%**; new capacity +1.6% |
 | Settlements changing least-cost technology | **33,665** (12.4%); every one stand-alone solar → grid |
 | Same comparison at lower (Tier-2) demand | −3.7% to +7.2% — a boundary condition, not a confirmation |
@@ -120,7 +122,8 @@ used only by the labelled robustness variant in `scripts/s16_run_corrected_conve
 unpatched code *suppressed* the effect this study measures on both counts, so the patch does not
 create the result. See [`patches/README.md`](patches/README.md) for all six and the paper's
 Methodology (§2.2.1) for the three — the index-alignment fix, the medium-voltage line-count
-correction (371 settlements, 0.14%, 0.24 pp), and the peak-symmetry fix — that it discloses.
+correction (371 settlements, 0.137%, ~0.09% of aggregate investment), and the peak-symmetry fix —
+that it discloses.
 
 The input data is **not** in this repository; it is held under third-party licences. See
 [`docs/04_data_sources.md`](docs/04_data_sources.md) for every source and the expected layout.
@@ -176,7 +179,7 @@ settlement, that the spine's `Pop2030` matches the engine's own projection befor
 ## Tests
 
 ```bash
-pytest test/                                                      # 10 checks; see the note below
+pytest test/                                                      # 11 checks; see the note below
 ```
 
 `conftest.py` puts `peak_preprocessor` on `sys.path` and excludes

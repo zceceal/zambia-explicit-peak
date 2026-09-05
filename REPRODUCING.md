@@ -4,7 +4,10 @@ Everything needed to re-run the experiment, in order. The published figures come
 (`config.yaml`'s `demand_tiers.rural_tier_large`/`rural_tier_small`), central `N_mid = 20` and seed 42
 — the latter two hardcoded in `s06_run_arms.py`, not read from any config key. Output files carry the
 label `RUN_LABEL = "2026-08_final_lcoe"`, also hardcoded there. (`config.yaml` does have a `run_label`
-key, but nothing reads it — don't infer anything from its value.)
+key, but nothing reads it — don't infer anything from its value. The same is true of
+`grid.annual_capacity_limit_mw` and `grid.annual_connections_limit_k`: they record the unconstrained
+build rate, which is actually set in the specs workbook. All three are annotated as such in
+`config.yaml`; no other key in that file is inert.)
 
 ## 1. Environment
 
@@ -263,7 +266,8 @@ Technology split at 2030 — grid 32,058 → 65,723 settlements, stand-alone PV 
 mini-grid PV hybrid 1,625 in both arms.
 
 `N_mid` sweep: **+30.0% / +45.4% / +66.1%** for `N_mid` 10 / 20 / 50, with 32,214 / 33,665 / 34,342
-settlements moving from stand-alone solar to grid. The switch count is stable across the sweep; the
+settlements changing technology — 32,209 / 33,665 / 34,342 of them stand-alone solar to grid, the
+five others being the only non-`SA_PV`-to-grid transitions anywhere in the sweep. The switch count is stable across the sweep; the
 cost change is not, because `N_mid` governs how many settlements cross the 1 kW per household step in
 OnSSET's stand-alone capital-cost schedule (`s15` quantifies this).
 
@@ -276,7 +280,7 @@ energy rather than 17.5%.
 From `s12` `2050only`, at the projected 2050 population: **+34.9%** central with 32,157 switches,
 sweep band **+23.1% to +50.9%** across `N_mid` ∈ {10, 50}. Note that this band overlaps the 2030 band.
 
-From `s08`: LHS (200 samples, bias-corrected) 5th–50th–95th **+21.1% / +50.4% / +75.2%**. Morris μ*
+From `s08`: LHS (200 samples, bias-corrected) 5th–50th–95th **+21.1% / +51.3% / +75.2%**. Morris μ*
 ranking Rural_tier (57.4) > N_mid (15.1) > MaxGridDist_km (9.9) > SA_PV_capex_mult (5.9) >
 Discount_rate (2.1) > Diesel_price (0.0). ΔLCOE% itself was positive in all 56 underlying model
 evaluations; individual elementary effects are not all positive (15 of 48 are negative, chiefly for
@@ -288,7 +292,8 @@ all 200 samples were therefore evaluated with the full model — check the `meth
 
 ## 6. Determinism
 
-- All random draws are seeded (`seed = 42`). The PV-hybrid optimiser varied by 0.2% between unseeded
+- All random draws are seeded: 42 throughout, and 43 for the Latin-hypercube design in `s08`
+  (`SEED_LHS`). The PV-hybrid optimiser varied by 0.2% between unseeded
   runs; seeding removes it.
 - Both arms are built from one in-memory spine with only the peak column overwritten, and a pre-run
   assertion fails the run if any shared column differs. The two arms are byte-identical in every
@@ -365,9 +370,10 @@ every settlement. The wider transformer-or-MV gate, which admits 1,186 further l
 (8,662) by replacing `TransformerDist` with `min(TransformerDist, CurrentMVLineDist)` on 247,676
 rows, is available as `run_variant(mv_or_gate=True)` and solved as a sensitivity by `s21`:
 **+46.2363%, 33,367 switches** against the published **+45.3775%, 33,665**. Its calibration file is
-committed beside the published one as `zambia_grid3_calib_distgate_txORmv_REJECTED.csv`.
+written beside the published one as `zambia_grid3_calib_distgate_txORmv_REJECTED.csv`, under the
+gitignored `data/processed/`; available from the author.
 
-## Reproducibility: the hybrid-LUT cache (fixed 2026-08-12)
+## 9. The hybrid-LUT cache (fixed 2026-08-12)
 
 *The settlement counts in this section predate the index-alignment correction of §7; §5 carries the
 current values. The section documents a fix that is still in force and explains why the OAT block
