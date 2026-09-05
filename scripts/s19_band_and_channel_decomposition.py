@@ -148,7 +148,7 @@ def main():
           f"{energy_weighted_delta(l0, l1, energy):+.4f}%")
     print(f"\n  Share of the effect carried by the discrete step (2a): "
           f"{(1 - d_2a / energy_weighted_delta(l0, l1, energy)) * 100:.1f}%")
-    print("  Paper currently states +23.6%.")
+    print(f"  Band-frozen headline (2a), the figure the paper reports: {d_2a:+.1f}%")
 
     print("\n" + "=" * 72)
     print("(3) STAND-ALONE CHANNEL FROZEN AT R0")
