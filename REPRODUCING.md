@@ -226,7 +226,7 @@ the paper states 62.8%. `s14`'s own technology-split table and `2026-08_final_lc
 use `Pop2030` throughout and reproduce the paper's figures exactly.
 
 All values below are from the run of 2026-09-05, with N evaluated at the analysis-year (2030)
-population throughout (§2 of `docs/01_pipeline.md`).
+population throughout (`docs/01_pipeline.md`, "The intervention, in detail").
 
 From `s06`, on the 2030 columns, at rural Tier 3 and `N_mid = 20`, over 270,526 settlements:
 
@@ -375,8 +375,8 @@ re-solved values are in `2026-09-02_lhs_fullspine_validation.csv`).
 took 951.5 s in total in the committed run — the `elapsed_s` column of
 `results/summary/2026-08_final_oat_grid_costs.csv`.
 
-**Re-run completed, 2026-09-05**, with N evaluated at the analysis-year population (§2 of
-`docs/01_pipeline.md`). The central variant reproduced `s06` to six decimal places and **exactly
+**Re-run completed, 2026-09-05**, with N evaluated at the analysis-year population
+(`docs/01_pipeline.md`, "The intervention, in detail"). The central variant reproduced `s06` to six decimal places and **exactly
 33,665** switches — the switch-count gate passed with zero residual. The values below are read from
 `results/summary/2026-08_final_oat_grid_costs.csv`, the canonical run.
 
