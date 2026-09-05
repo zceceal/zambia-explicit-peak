@@ -32,10 +32,6 @@ import matplotlib.ticker as mticker
 import matplotlib.patches as mpatches
 from matplotlib.lines import Line2D
 
-# Headline switch count of the current canonical run (s06, N_mid=20, 2030).
-# Used as a gate so a figure can never be drawn from a stale arm output.
-EXPECTED_SWITCHES = 34_461   # was 17,787 before the index-alignment fix
-
 HERE    = Path(__file__).resolve().parent
 REPO    = HERE.parent
 FIGDIR  = REPO / "figures"
@@ -43,12 +39,19 @@ OUTDIR  = REPO / "data" / "onsset_outputs"
 PROCDIR = REPO / "data" / "processed"
 RAWDIR  = REPO / "data" / "raw"
 
+sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(REPO / "peak_preprocessor"))
 from pe_diversity import (
     pe_from_n, compute_beta,
     P_1_DEFAULT, P_INF_DEFAULT, P_STEP_DEFAULT,
     SD_P_1, SD_P_INF, SD_P_STEP, N_MID_CENTRAL,
 )
+from onsset_helpers import central_headline
+
+# Headline switch count of the current canonical run (s06, N_mid=20, 2030), read at run time
+# from the s06 outputs (onsset_helpers.central_headline) rather than hard-coded, so a rebuilt
+# spine can never leave a stale headline behind in this gate.
+EXPECTED_SWITCHES = central_headline()[1]
 
 FIGDIR.mkdir(parents=True, exist_ok=True)
 
