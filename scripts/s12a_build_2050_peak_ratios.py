@@ -4,10 +4,10 @@ signal, and what does the central (uniform-growth) 2050 peak ratio look like per
 
 Reads:  data/processed/zambia_grid3_spine_pe_n20.csv (central N_mid=20 spine, PE_ratio at 2030)
         data/processed/zambia_grid3_calib_distgate.csv (for IsUrban, to split urban/rural growth)
-Writes (to the current working directory, not data/processed/):
-  zambia_settlements_PE_2050_uniform.csv — the central-case (uniform growth) 2050 PE_ratio/N_hh,
-    consumed by s12b to build the 2050 spine
-  pe_2050_erosion_summary.csv — median/rural-median/pop-weighted PE_ratio and the "signal excess"
+Writes:
+  zambia_settlements_PE_2050_uniform.csv (current working directory) — the central-case (uniform
+    growth) 2050 PE_ratio/N_hh, kept for inspection; s12b builds the 2050 spine directly
+  results/summary/2026-08_final_pe_2050_erosion_summary.csv — median/rural-median/pop-weighted PE_ratio and the "signal excess"
     (population-weighted mean of max(PE_ratio-2, 0)) under four growth scenarios: the 2035-static
     baseline, uniform 2050 growth, and two urban-share sensitivities (60%/63% of 2050 growth urban)
 
@@ -47,12 +47,12 @@ for name,us in [("2035_static",None),("2050_uniform",-1),("2050_urban60",0.60),(
                      popwtd=np.average(pe_v,weights=w), signal_excess=e))
     # save the R1_2050 spine for the central (uniform) case, ready for OnSSET
     if name=="2050_uniform":
-        out=pe_df.copy(); out['PE_ratio']=pe_v; out['N_hh']=proj(None)[0]
+        out=df.copy(); out['PE_ratio']=pe_v; out['N_hh']=proj(None)[0]
         out.to_csv("zambia_settlements_PE_2050_uniform.csv",index=False)
 res=pd.DataFrame(rows)
 base=res.loc[0,'signal_excess']
 res['erosion_%']=(1-res['signal_excess']/base)*100
-res.to_csv("pe_2050_erosion_summary.csv",index=False)
-print(f"beta={beta:.4f}  POP2050={POP2050/1e6:.1f}M  ratio={POP2050/pop2020:.3f}")
+res.to_csv(REPO / "results" / "summary" / "2026-08_final_pe_2050_erosion_summary.csv", index=False)
+print(f"beta={beta:.4f}  POP2050={POP2050/1e6:.1f}M  ratio={POP2050/df['PopStartYear'].sum():.3f}")
 print(res.round(3).to_string(index=False))
-print("\nsaved: zambia_settlements_PE_2050_uniform.csv  +  pe_2050_erosion_summary.csv")
+print("\nsaved: zambia_settlements_PE_2050_uniform.csv (cwd)  +  results/summary/2026-08_final_pe_2050_erosion_summary.csv")

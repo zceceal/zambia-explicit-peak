@@ -3,7 +3,7 @@ s10_run_sizing_decomposition.py — sizing-convention f-band and per-connection 
 
 Task 2: On EXISTING Stage-4 outputs, recompute energy-weighted ΔLCOE% with only a
 fraction f of SA_PV capex peak-scaled (remainder energy-scaled). f ∈ {0.4, 0.6, 1.0}.
-No OnSSET re-run. Verify f=1.0 reproduces the current headline (+49.9%).
+No OnSSET re-run. Verify f=1.0 reproduces the current s06 headline.
 
 Task 5: Trace InvestmentCost2030 and NewConnections2030 definitions; determine why
 aggregate reads ~$20k/HH; state correct formula for defensible per-connection metric.
@@ -25,7 +25,6 @@ HERE   = Path(__file__).resolve().parent
 REPO   = HERE.parent
 OUTDIR = REPO / "data" / "onsset_outputs"
 
-HEADLINE_DELTA = 49.9   # s06 central case, N_mid=20, Tier 3 (2026-08_final run; was 36.9 pre-fix)
 R0_PATH  = OUTDIR / "2026-08_final_lcoe_R0.csv"
 R1_N20   = OUTDIR / "2026-08_final_lcoe_R1_n20.csv"
 ANALYSIS_YEAR = 2030
@@ -85,7 +84,7 @@ def task2_f_band():
     c1 = (r1_lcoe * energy).sum()
     delta_full = (c1 - c0) / c0 * 100.0
     print(f"  Baseline ΔLCOE% (f=1.0, full model) = {delta_full:+.4f}%  "
-          f"(target: +{HEADLINE_DELTA:.1f}%)")
+          f"(the s06 central headline, recomputed from the same outputs)")
 
     # Identify settlement categories
     stays_sapv = (fc0 == 3) & (fc1 == 3)   # SA_PV in both arms
@@ -173,7 +172,7 @@ def task5_per_connection():
     - Or: LCOE x energy / HH / project-life-years as a levelised annual cost per HH
       — median $56/HH/yr for SA_PV.
     - Relative comparison (R0 vs R1 cost ratio) is unaffected either way: R0 total
-      NPC $1.73bn, R1 $2.59bn, +49.9%, matching the headline.
+      NPC $1.73bn, R1 $2.51bn, +45.4%, matching the headline.
     """
     print("\n" + "="*65)
     print("  TASK 5 — Per-Connection Cost Accounting")

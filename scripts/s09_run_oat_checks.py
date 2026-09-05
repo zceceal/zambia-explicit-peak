@@ -13,7 +13,7 @@ Rules:
 - All new outputs go to data/onsset_outputs/ with new filenames dated 2026-07-03.
 - Seeds: LHS_VAL seed inherited from Stage-5 LHS CSV (seed=43 for LHS design);
          OAT arms use np.random.seed(42).
-- Gate: central OAT variant must reproduce +49.9% / 34,461 before variants are trusted.
+- Gate: central OAT variant must reproduce the s06 central headline before variants are trusted.
 """
 
 import copy
@@ -44,7 +44,7 @@ from onsset_helpers import (
     build_pv_hybrid_lookup, apply_pv_hybrid_lookup,
     compute_offgrid_min,
     build_tech_objects, build_mg_pv_hybrid_params, build_mg_wind_hybrid_params,
-    load_config,
+    load_config, central_headline,
     TIERS, CONN_COST_PER_HH,
     _PHYSICAL_INPUT_COLS,
 )
@@ -64,18 +64,9 @@ from onsset import (
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 ANALYSIS_YEAR   = 2030
-STAGE4_DELTA    = 49.9      # Central case +49.92% (s06, N_mid=20, Tier 3, 2026-08_final run)
-STAGE4_SWITCHES = 34461     # SA_PV→Grid at 2030, N_mid=20 (2026-08-16 fixed run)
-# Full-spine / subsample ratio from s08's validation gate, 2026-08-16 run.
-# NOTE THE SIGN CHANGE. Pre-fix the 50k subsample UNDER-stated the effect (25.6% against a
-# 36.9% full-spine reference, factor 1.4390). Post-fix it OVER-states it (55.54% against
-# 49.9%, factor 0.8985 - matching BIAS_FACTOR below). The documented explanation for the old bias - that a spatial
-# subsample severs grid relay paths and so suppresses SA_PV->Grid switching - predicted an
-# under-estimate, and no longer holds. Treat the factor as an empirical calibration, not as
-# a quantity with a settled mechanism, until that is re-derived.
-BIAS_FACTOR     = 0.8985    # s08 2026-08_final run: full-spine 49.9 / subsample 55.54.
-                            # (0.8966 on the pre-MV-fix run; 1.4390 pre-index-fix - the
-                            #  direction reversal is documented above.)
+# Central headline (dLCOE %, SA_PV->Grid switches) read from the s06 outputs on disk, so the
+# gate below always refers to the headline the current settlement dataset produced.
+STAGE4_DELTA, STAGE4_SWITCHES = central_headline()
 OAT_TOL_PP      = 1.0       # pp tolerance for gate check (allow rounding in re-run)
 OAT_SWITCH_TOL  = 0         # exact: the LUT is rebuilt per arm, matching s06
 
@@ -445,7 +436,7 @@ def task1_grid_oat(spine_n20, cfg_base, x_tx, y_tx,
     (a) Grid capacity cost: ±30% of 1,441.1 USD/kW (Egli 2023 Table S8 cross-country range)
     (b) Grid generation cost: {0.013 central, 0.05 drought/new-build proxy}
 
-    Gate: central variant must reproduce +49.9% / 34,461 (within OAT_TOL_PP pp).
+    Gate: central variant must reproduce the s06 central headline (within OAT_TOL_PP pp).
     Reports ΔLCOE% AND SA_PV→Grid switch count per variant.
     """
     print("\n" + "="*70)
@@ -457,7 +448,7 @@ def task1_grid_oat(spine_n20, cfg_base, x_tx, y_tx,
 
     # OAT variants: (label, grid_cap_cost, grid_gen_cost, note)
     oat_variants = [
-        ("central",   GRID_CAP_COST_CENTRAL,        GRID_GEN_COST_CENTRAL, "Gate check — must reproduce +49.9%/34461"),
+        ("central",   GRID_CAP_COST_CENTRAL,        GRID_GEN_COST_CENTRAL, f"Gate check — must reproduce the s06 central headline (+{STAGE4_DELTA:.1f}%/{STAGE4_SWITCHES:,})"),
         ("cap-30pct", GRID_CAP_COST_CENTRAL * 0.70, GRID_GEN_COST_CENTRAL, "Grid cap cost −30% (lower bound Egli 2023 cross-country range)"),
         ("cap+30pct", GRID_CAP_COST_CENTRAL * 1.30, GRID_GEN_COST_CENTRAL, "Grid cap cost +30% (upper bound Egli 2023 cross-country range)"),
         ("gen-drought",GRID_CAP_COST_CENTRAL,        0.05,                  "Grid gen cost 0.05 USD/kWh (drought / new-build proxy)"),
@@ -502,7 +493,7 @@ def task1_grid_oat(spine_n20, cfg_base, x_tx, y_tx,
         if variant == "central":
             gate_delta = abs(delta - STAGE4_DELTA) <= OAT_TOL_PP
             # Switch count is gated exactly: the hybrid LUT is now rebuilt per arm (as in s06),
-            # so the central variant must reproduce the headline 34,461 with no residual.
+            # so the central variant must reproduce the headline 33,665 with no residual.
             sw_resid  = abs(sw - STAGE4_SWITCHES)
             gate_sw   = sw_resid <= OAT_SWITCH_TOL
             print(f"    GATE dLCOE: |{delta:.2f} - {STAGE4_DELTA}| = {abs(delta-STAGE4_DELTA):.2f}pp <= {OAT_TOL_PP}pp -> {'PASS' if gate_delta else 'FAIL'}")

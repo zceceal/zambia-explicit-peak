@@ -19,8 +19,8 @@ TECHNOLOGY-ASYMMETRIC. Grid has tech_life 30, longer than the horizon, so it rei
 neither convention and is understated by only 1.25% (an off-by-one in `used_life`). Stand-alone PV
 is understated by 7.19%. The relative penalty on stand-alone against grid is therefore about 5.9%,
 and stand-alone PV is the channel through which this study's entire measured effect travels:
-scaling only part of stand-alone capital with peak collapses the headline from +49.9% at f = 1.0
-to +21.0% at f = 0.4 (`s10`).
+scaling only part of stand-alone capital with peak collapses the headline from +45.4% at f = 1.0
+to +19.1% at f = 0.4 (`s10`).
 
 WHAT THIS SCRIPT DOES NOT DO
 ----------------------------
@@ -46,6 +46,7 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parent
 sys.path.insert(0, str(REPO / "data" / "onsset_repo"))
 sys.path.insert(0, str(HERE))
+from onsset_helpers import central_headline
 
 OUTDIR    = REPO / "data" / "onsset_outputs"
 RUN_LABEL = "2026-08-16_reinvest_lcoe"
@@ -140,14 +141,15 @@ def main():
     c0 = (r0[f"MinimumOverallLCOE{YEAR}"].to_numpy() * e).sum()
     c1 = (r1[f"MinimumOverallLCOE{YEAR}"].to_numpy() * e).sum()
     f0, f1 = r0[f"FinalElecCode{YEAR}"].to_numpy(), r1[f"FinalElecCode{YEAR}"].to_numpy()
+    hd, hs = central_headline()
     print("\n" + "=" * 70)
-    print(f"  DeltaLCOE%              {(c1 - c0) / c0 * 100:+.2f}%      central case +49.92%")
+    print(f"  DeltaLCOE%              {(c1 - c0) / c0 * 100:+.2f}%      central case {hd:+.2f}%")
     print(f"  SA_PV -> grid switches  {int(((f0 == 3) & (f1 == 1)).sum()):,}"
-          f"          central case 34,461")
+          f"          central case {hs:,}")
     print(f"  investment  {r0[f'InvestmentCost{YEAR}'].sum()/1e9:.2f} -> "
-          f"{r1[f'InvestmentCost{YEAR}'].sum()/1e9:.2f} bn      central case 15.63 -> 22.71")
+          f"{r1[f'InvestmentCost{YEAR}'].sum()/1e9:.2f} bn")
     print(f"  R0 grid / SA_PV settlements  {int((f0==1).sum()):,} / {int((f0==3).sum()):,}"
-          f"      central case 32,058 / 236,843")
+          f"")
     print(f"  elapsed {(time.time() - t0)/60:.1f} min")
     print("=" * 70)
     return 0

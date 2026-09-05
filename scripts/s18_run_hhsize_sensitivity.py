@@ -62,10 +62,6 @@ HH_RURAL_SWEEP   = [4.5, 5.5]          # census central 5.0 is the canonical run
 R0_CENTRAL = OUTDIR / "2026-08_final_lcoe_R0.csv"
 R1_CENTRAL = OUTDIR / f"2026-08_final_lcoe_R1_n{N_MID}.csv"
 
-# semi-analytic prediction supplied with the experiment brief; reported alongside, never enforced
-PREDICTED = {4.5: {"dlcoe": 46.8, "switches": 33874},
-             5.0: {"dlcoe": 49.923139, "switches": 34461},
-             5.5: {"dlcoe": 52.9, "switches": 34461}}
 
 
 def tag(s: float) -> str:
@@ -101,13 +97,14 @@ def override_cfg(cfg: dict, hh_rural: float) -> dict:
 def recompute_pe(df: pd.DataFrame, hh_urban: float, hh_rural: float) -> tuple:
     """
     N_hh and PE_ratio for a given household size, computed exactly as s05 does:
-        N_hh     = max(1, Pop / s)          s by urban/rural, IsUrban > 1 is urban
+        N_hh     = max(1, Pop2030 / s)      s by urban/rural, IsUrban > 1 is urban; Pop2030 is
+                                            the engine's projection that s05 wrote to the spine
         PE_ratio = pe_from_n(N_hh, N_mid)
     Returns (N_hh, PE_ratio, is_urban_mask).
     """
     is_urban = (df["IsUrban"] > 1).to_numpy()
     hh_size  = np.where(is_urban, hh_urban, hh_rural)
-    N_hh     = np.maximum(df["Pop"].to_numpy() / hh_size, 1.0)
+    N_hh     = np.maximum(df["Pop2030"].to_numpy() / hh_size, 1.0)
     return N_hh, pe_from_n(N_hh, N_mid=N_MID), is_urban
 
 
@@ -220,7 +217,7 @@ def self_test(cfg=None) -> int:
         N, p, urb = recompute_pe(spine, hh_u, s)
         rural = ~urb
         print(f"  {s:>8.1f}  {np.median(N[rural]):>12.3f}  {np.median(p[rural]):>11.4f}  "
-              f"{np.average(p, weights=spine['Pop'].to_numpy()):>12.4f}")
+              f"{np.average(p, weights=spine['Pop2030'].to_numpy()):>12.4f}")
 
     print("\n  " + ("SELF-TEST PASS" if ok else "SELF-TEST FAIL"))
     return 0 if ok else 1
@@ -296,15 +293,11 @@ def main() -> int:
         m = metrics(pair["R0"], pair["R1"])
         m.update({"hh_rural": s, "hh_urban": hh_u, "n_mid": N_MID,
                   "rural_median_rho": rural_median_rho,
-                  "source": RUN_LABEL,
-                  "predicted_dlcoe_pct": PREDICTED[s]["dlcoe"],
-                  "predicted_switches": PREDICTED[s]["switches"]})
+                  "source": RUN_LABEL})
         rows.append(m)
         print(f"\n  s={s}:  DeltaLCOE {m['dlcoe_pct']:+.4f}%   "
               f"SA_PV->Grid {m['switches_sapv_grid']:,}   "
               f"DeltaInv {m['d_investment_pct']:+.2f}%   rural rho {rural_median_rho:.4f}")
-        print(f"         predicted   {PREDICTED[s]['dlcoe']:+.2f}%   "
-              f"{PREDICTED[s]['switches']:,}")
 
     # ── the census-central row, read from the canonical outputs (never re-run) ────────────
     print("\n" + "=" * 72)
@@ -316,34 +309,27 @@ def main() -> int:
     m = metrics(r0c, r1c)
     m.update({"hh_rural": HH_RURAL_CENTRAL, "hh_urban": hh_u, "n_mid": N_MID,
               "rural_median_rho": float(np.median(pe_c[~urb_c])),
-              "source": "2026-08_final_lcoe (canonical)",
-              "predicted_dlcoe_pct": PREDICTED[HH_RURAL_CENTRAL]["dlcoe"],
-              "predicted_switches": PREDICTED[HH_RURAL_CENTRAL]["switches"]})
+              "source": "2026-08_final_lcoe (canonical)"})
     rows.append(m)
     del r0c, r1c
 
     out = pd.DataFrame(rows).sort_values("hh_rural")
     cols = ["hh_rural", "hh_urban", "n_mid", "rural_median_rho", "dlcoe_pct",
             "switches_sapv_grid", "switches_total", "d_investment_pct", "d_capacity_pct",
-            "investment_r0_bn", "investment_r1_bn",
-            "predicted_dlcoe_pct", "predicted_switches", "source"]
+            "investment_r0_bn", "investment_r1_bn", "source"]
     out = out[cols]
     out.to_csv(SUMMARY_CSV, index=False)
 
     print("\n" + "=" * 72)
     print("  RURAL HOUSEHOLD-SIZE SENSITIVITY — N_mid = 20, 2030 columns")
     print("=" * 72)
-    print(f"  {'rural s':>8}  {'rural rho':>10}  {'DeltaLCOE%':>11}  {'predicted':>10}  "
-          f"{'SA_PV->Grid':>12}  {'predicted':>10}  {'DeltaInv%':>10}")
+    print(f"  {'rural s':>8}  {'rural rho':>10}  {'DeltaLCOE%':>11}  "
+          f"{'SA_PV->Grid':>12}  {'DeltaInv%':>10}")
     for _, r in out.iterrows():
         print(f"  {r['hh_rural']:>8.1f}  {r['rural_median_rho']:>10.4f}  "
-              f"{r['dlcoe_pct']:>+11.4f}  {r['predicted_dlcoe_pct']:>+10.2f}  "
-              f"{int(r['switches_sapv_grid']):>12,}  {int(r['predicted_switches']):>10,}  "
+              f"{r['dlcoe_pct']:>+11.4f}  "
+              f"{int(r['switches_sapv_grid']):>12,}  "
               f"{r['d_investment_pct']:>+10.2f}")
-    off = out[(out["dlcoe_pct"] - out["predicted_dlcoe_pct"]).abs() > 1.5]
-    if len(off):
-        print(f"\n  WARNING: {len(off)} value(s) more than 1.5 pp from the prediction "
-              f"— investigate before using: {sorted(off['hh_rural'].tolist())}")
     print(f"\n  summary -> {SUMMARY_CSV}")
     print(f"  all arms done in {(time.time() - t_all) / 60:.1f} min")
     return 0

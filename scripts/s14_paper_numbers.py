@@ -4,6 +4,8 @@
 Written 2026-08-16 to read the post-index-fix run; PUBLISHED updated 2026-08-23 to the
 canonical 2026-08_final_lcoe values (the 2026-08-16 index-misalignment repair that produced
 them changed the headline from +36.87% to +49.92% and settled the switch count at 34,461).
+Updated again 2026-09-05: N is now evaluated at the analysis-year (2030) population, which
+moves the headline to +45.38% and the switch count to 33,665.
 Compares against the as-published values so the size of every change is visible at a glance.
 
 Writes every number it prints to results/summary/<run_label>_paper_numbers.csv (long format:
@@ -27,10 +29,10 @@ SUM = REPO / "results" / "summary"
 YEAR = 2030
 
 PUBLISHED = {
-    "dlcoe": 49.923139, "switches": 34461, "sw_total": 34461,
+    "dlcoe": 45.377527, "switches": 33665, "sw_total": 33665,
     "r0_grid": 32058, "r0_sapv": 236843, "r0_hyb": 1625,
-    "r1_grid": 66519, "r1_sapv": 202382, "r1_hyb": 1625,
-    "d_inv": 45.591, "d_cap": 2.946,
+    "r1_grid": 65723, "r1_sapv": 203178, "r1_hyb": 1625,
+    "d_inv": 41.210, "d_cap": 1.571,
 }
 LABELS = {1: "Grid", 3: "SA_PV", 5: "MG_PVHybrid", 6: "MG_Wind", 7: "MG_Hydro", 99: "Unelectrified"}
 

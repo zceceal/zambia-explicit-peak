@@ -10,7 +10,7 @@ full-spine OAT at those three prices.
 Rules:
 - DOES NOT overwrite any canonical 2026-08_final_* outputs.
 - All new outputs go to data/onsset_outputs/, named 2026-08_final_oat_*.
-- Seed 42 for OAT arms. Gate: central variant must reproduce +49.9% / 34,461
+- Seed 42 for OAT arms. Gate: central variant must reproduce the s06 central headline
   (±1.0 pp tolerance) before the drought variants are trusted.
 - PV-hybrid lookup cache is built at the central diesel price and reused; grid
   generation cost does not enter the MG_PVHybrid sizing, so reuse is exact here
@@ -40,7 +40,7 @@ import copy
 # (label, grid_gen_cost USD/kWh, note)
 VARIANTS = [
     ("central",    GRID_GEN_COST_CENTRAL,
-     "Gate check — must reproduce +49.9%/34,461"),
+     "Gate check — must reproduce the s06 central headline"),
     ("gen-0.17",   0.17,
      "Eskom drought-year import price 2024 (Moobola 2024)"),
     ("gen-0.22",   0.22,

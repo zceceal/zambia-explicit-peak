@@ -409,6 +409,24 @@ def per_connection_stats(df, year, tech_code, tech_name):
 
 # ── Technology objects ─────────────────────────────────────────────────────────
 
+def central_headline(run_label: str = "2026-08_final_lcoe", year: int = 2030,
+                     outdir=None) -> tuple:
+    """The full-dataset central headline as the s06 outputs on disk actually give it:
+    (energy-weighted dLCOE %, SA_PV->Grid switch count). Every downstream gate, reference
+    print and bias-correction factor reads this rather than a hard-coded number, so a
+    rebuilt spine can never leave a stale headline behind in the pipeline."""
+    import pandas as pd
+    outdir = OUTDIR if outdir is None else outdir
+    cols = [f"MinimumOverallLCOE{year}", f"EnergyPerSettlement{year}", f"FinalElecCode{year}"]
+    r0 = pd.read_csv(outdir / f"{run_label}_R0.csv", usecols=cols)
+    r1 = pd.read_csv(outdir / f"{run_label}_R1_n20.csv", usecols=cols)
+    e = r0[cols[1]].to_numpy()
+    c0 = (r0[cols[0]].to_numpy() * e).sum()
+    c1 = (r1[cols[0]].to_numpy() * e).sum()
+    sw = int(((r0[cols[2]].to_numpy() == 3) & (r1[cols[2]].to_numpy() == 1)).sum())
+    return (c1 - c0) / c0 * 100.0, sw
+
+
 def load_config() -> dict:
     with open(CONFIG) as f:
         return yaml.safe_load(f)

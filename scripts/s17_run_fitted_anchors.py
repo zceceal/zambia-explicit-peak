@@ -74,6 +74,7 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parent
 sys.path.insert(0, str(REPO / "data" / "onsset_repo"))
 sys.path.insert(0, str(HERE))
+from onsset_helpers import central_headline
 
 OUTDIR    = REPO / "data" / "onsset_outputs"
 RUN_LABEL = "2026-08_fittedanchor_lcoe"
@@ -161,7 +162,7 @@ def main():
     assert "N_hh" in base.columns, "spine lacks N_hh; cannot recompute the curve"
     base["PE_ratio"] = rho_fitted(base["N_hh"].to_numpy())
     print(f"\n  PE_ratio recomputed from fitted anchors: "
-          f"median {base['PE_ratio'].median():.3f}  (central-curve spine median 3.38)")
+          f"median {base['PE_ratio'].median():.3f}  (central-curve spine median 3.29)")
     df_r1 = base.drop(columns=["N_hh"], errors="ignore")
 
     t0 = time.time()
@@ -183,8 +184,8 @@ def main():
     print("\n" + "=" * 68)
     print(f"  FITTED-ANCHOR CURVE:  DeltaLCOE% = {(c1 - c0) / c0 * 100:+.2f}%   "
           f"switches = {sw:,}")
-    print(f"  central (N_mid=20):   +49.92%,  34,461")
-    print(f"  sweep band:           +34.1% (n10)  ...  +70.6% (n50)")
+    hd, hs = central_headline()
+    print(f"  central (N_mid=20):   {hd:+.2f}%,  {hs:,}")
     print(f"  elapsed {(time.time() - t0) / 60:.1f} min")
     print("=" * 68)
     return 0
