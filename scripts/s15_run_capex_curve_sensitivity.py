@@ -188,7 +188,12 @@ def main():
           f"SA_PV->grid switches = {sw:,}")
     hd, hs = central_headline()
     print(f"  central case (OnSSET step schedule): {hd:+.2f}%, {hs:,}")
-    print(f"  band frozen at R0 (analytic estimate): +23.63%")
+    band = REPO / "results" / "summary" / "2026-08_final_band_and_channel_decomposition.csv"
+    if band.exists():
+        _b = pd.read_csv(band)
+        _v = _b.loc[_b["quantity"] == "band_frozen_delta_lcoe_pct_R1alloc", "value"]
+        if len(_v):
+            print(f"  band frozen at R0 (s19, measured): {float(_v.iloc[0]):+.2f}%")
     print(f"  elapsed {(time.time() - t0) / 60:.1f} min")
     print("=" * 68)
     return 0
