@@ -445,7 +445,7 @@ def build_tech_objects(cfg: dict, start_year: int, end_year: int) -> dict:
         hv_mv_sub_station_cost=HV_MV_SUB_COST, hv_mv_substation_type=HV_MV_SUB_TYPE,
     )
 
-    # NOTE (V2 / Step 7): The OPERATIVE AverageToPeakLoadRatio for both arms is
+    # NOTE: the OPERATIVE AverageToPeakLoadRatio for both arms is
     # set by OnSSET's tier table in calculate_demand() (onsset.py:2015-2020):
     #   Tier 1→0.3, Tier 2→0.4, Tier 3/4/5→0.5.
     # For Zambia (all rural Tier 3 / urban Tier 5) this means every settlement

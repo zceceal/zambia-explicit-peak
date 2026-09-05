@@ -4,30 +4,40 @@ s12_run_2050_horizon.py — 2050 endpoint, two-arm (R0 / R1) driver.
 Reuses run_arm() from s06_run_arms.py (the harness that produced the published
 2026-08_final outputs) unchanged. Modes:
 
-  python run_2050_arms.py validate2035   # re-runs 2035 R0 + R1_n20 with the untouched config;
+  python scripts/s12_run_2050_horizon.py validate2035
+                                         # re-runs 2035 R0 + R1_n20 with the untouched config;
                                          # headline must reproduce the s06 central headline
-  python run_2050_arms.py 2050           # same harness, only the 2050_RUN_INPUTS.md §A changes:
-                                         #   end_year 2050, PopEndYear 38,083,385, urban 0.672,
+  python scripts/s12_run_2050_horizon.py 2050
+                                         # same harness; only the scenario block changes, to
+                                         #   end_year 2050, pop_end_year 38,083,385,
+                                         #   urban_ratio_end_year 0.672,
                                          #   years_of_analysis [2030, 2050],
                                          #   R1 spine = zambia_grid3_spine_pe_2050_n20.csv
-  python run_2050_arms.py 2050only      # single analysis year [2050] — the clean endpoint read:
+                                         # (WPP_2050 below holds these four values)
+  python scripts/s12_run_2050_horizon.py 2050only
+                                         # single analysis year [2050] — the clean endpoint read:
                                          #   everyone connected at 2050 demand, full lifetime LCOEs.
                                          #   (The [2030,2050] run reaches 100% electrification at the
-                                         #   2030 stage, so its 2050 columns are incremental-only:
+                                         #   2030 step, so its 2050 columns are incremental-only:
                                          #   LCOE = marginal generation, median energy 0. The headline
-                                         #   must NOT be read from that run — diagnosed 2026-07-16.)
-  python run_2050_arms.py sweep          # 2050 R1 arms for N_mid=10 and 50 (R0 already run)
-  python run_2050_arms.py ruralT2        # 2050 rural Tier-2 sensitivity: rural_tier_large/small
-                                         # 3 -> 2 (as stage 4b did at 2035); R0 + R1 n10/n20/n50
-  python run_2050_arms.py 2050only_sweep    # N_mid=10/50 sweep in the single-year [2050] convention
-  python run_2050_arms.py 2050only_ruralT2  # rural Tier-2 in the single-year [2050] convention
+                                         #   must NOT be read from that run.)
+  python scripts/s12_run_2050_horizon.py sweep
+                                         # 2050 R1 arms for N_mid=10 and 50 (R0 already run)
+  python scripts/s12_run_2050_horizon.py ruralT2
+                                         # 2050 rural Tier-2 sensitivity: rural_tier_large/small
+                                         # 3 -> 2 (as s07 did at 2035); R0 + R1 n10/n20/n50
+  python scripts/s12_run_2050_horizon.py 2050only_sweep
+                                         # N_mid=10/50 sweep in the single-year [2050] convention
+  python scripts/s12_run_2050_horizon.py 2050only_ruralT2
+                                         # rural Tier-2 in the single-year [2050] convention
 
 Everything else (costs, tiers, discount rates, calibration, seed 42) comes byte-identical from
 config/config.yaml — never edited here.
 
-Outputs go to results/ (2035 originals untouched):
+Outputs go to scripts/outputs/ (the 2035 originals in data/onsset_outputs/ are untouched):
   validate2035: revalidate_2035_R0.csv, revalidate_2035_R1_n20.csv
-  2050:         2050_grid3_lcoe_R0.csv, 2050_grid3_lcoe_R1_n20.csv
+  2050only:     2050only_grid3_lcoe_R0.csv, 2050only_grid3_lcoe_R1_n20.csv
+Summarise a pair with s12c_summarise_2050.py.
 """
 
 import sys
@@ -89,7 +99,7 @@ def main():
     elif mode == "2050only_sweep":
         runs = [(f"R1_n{n}", PE_2050[n], n, OUTDIR / f"2050only_grid3_lcoe_R1_n{n}.csv")
                 for n in (10, 50)]
-    else:  # ruralT2 variants — one change, exactly as stage 4b did at 2035
+    else:  # ruralT2 variants — one change, exactly as s07 did at 2035
         cfg["demand_tiers"]["rural_tier_large"] = 2
         cfg["demand_tiers"]["rural_tier_small"] = 2
         prefix = "2050only" if mode.startswith("2050only") else "2050"
@@ -147,8 +157,9 @@ def main():
 
     print(f"\n  All {len(runs)} arm(s) done in {(time.time()-t0)/60:.1f} min")
     if mode == "2050only":
-        print("  Headline: python headline_from_outputs.py "
-              "outputs/2050only_grid3_lcoe_R0.csv outputs/2050only_grid3_lcoe_R1_n20.csv 2050")
+        print("  Headline: python scripts/s12c_summarise_2050.py "
+              "scripts/outputs/2050only_grid3_lcoe_R0.csv "
+              "scripts/outputs/2050only_grid3_lcoe_R1_n20.csv 2050")
 
 
 if __name__ == "__main__":

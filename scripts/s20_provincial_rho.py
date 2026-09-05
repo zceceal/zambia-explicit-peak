@@ -10,11 +10,11 @@ WHY
 Section 4.4 makes a provincial argument against Zambia's Rural Electrification Master Plan (REMP):
 the Plan assigns essentially the same peak per connection to every province, whereas this model's
 per-settlement coincidence curve separates them sharply. Three numbers carry that argument — the
-modelled provincial range, its spread, and the Plan's own spread — and no committed script produced
-any of them before this one. The REMP figures below (§ "REMP TABLE 9") are transcribed by hand from
-`papers/Rural-Electrification-Master-Plan-for-Zambia-2025-–-2030.pdf`, Table 9 (page 33) and Table 1
-(page 9-10), not machine-read from the PDF; both tables were checked digit-for-digit against the PDF
-before being embedded here.
+modelled provincial range, its spread, and the Plan's own spread — and this script is where all
+three are computed. The REMP figures below (§ "REMP TABLE 9") are transcribed by hand from the
+Rural Electrification Master Plan for Zambia 2025-2030 (Rural Electrification Authority), Table 9
+(page 33) and Table 1 (pages 9-10), not machine-read from the PDF; both tables were checked
+digit-for-digit against the source before being embedded here.
 
 WHAT THIS COMPUTES
 -------------------

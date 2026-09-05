@@ -1,10 +1,10 @@
 """
 s07_run_demand_sensitivity.py — demand sensitivity: rural Tier 2 (219 kWh/HH/yr).
 
-ONE change vs Stage 4: rural_tier_large = rural_tier_small = 2 (was 3).
+ONE change vs s06: rural_tier_large = rural_tier_small = 2 (was 3).
 Everything else — spine, PE sub-model, cost params, seeds — is identical.
 
-This is a sensitivity run, NOT a replacement.  Stage-4 (Tier 3) outputs
+This is a sensitivity run, NOT a replacement.  s06 (Tier 3) outputs
 are NOT overwritten.
 
 Outputs:
@@ -60,7 +60,9 @@ WIND_PROFILE  = (REPO / "data" / "raw" / "zambia" / "renewables_hourly" /
 # run in which stand-alone PV capacity was misaligned; see patches/onsset-explicit-peak.patch.
 T3_LCOE_PCT  = {10: 30.0,  20: 45.4,  50: 66.1}    # ΔLCOE% energy-weighted 2030
 T3_CAPEX_PCT = {10: 26.3,  20: 41.2,  50: 61.3}    # ΔCAPEX% 2030
-T3_SWITCHES  = {10: 32214, 20: 33665, 50: 34342}   # SA_PV→Grid at 2030 (from tech split)
+T3_SWITCHES  = {10: 32214, 20: 33665, 50: 34342}   # settlements changing technology at 2030
+#   of which SA_PV->Grid: 32,209 / 33,665 / 34,342. At N_mid=10 five settlements make some
+#   other transition; at 20 and 50 every change is SA_PV->Grid.
 
 np.random.seed(42)
 
@@ -95,9 +97,9 @@ def main():
     t_total = time.time()
 
     print("=" * 65)
-    print("  GRID3 Stage 4b — Demand sensitivity: rural Tier 2")
+    print("  s07 — Demand sensitivity: rural Tier 2")
     print("  ONE CHANGE: rural_tier_large = rural_tier_small = 2")
-    print("  (Tier 3 / Stage-4 outputs NOT overwritten)")
+    print("  (Tier 3 / s06 outputs NOT overwritten)")
     print("=" * 65)
 
     cfg = load_config()
@@ -115,7 +117,7 @@ def main():
 
     OUTDIR.mkdir(parents=True, exist_ok=True)
 
-    # Guard: refuse to overwrite Stage-4 outputs
+    # Guard: refuse to overwrite s06 outputs
     for protected in [
         "2026-08_final_lcoe_R0.csv",
         "2026-08_final_lcoe_R1_n10.csv",
@@ -123,8 +125,8 @@ def main():
         "2026-08_final_lcoe_R1_n50.csv",
     ]:
         assert not (OUTDIR / protected).exists() or True, \
-            f"Stage-4 file present and WOULD be overwritten: {protected}"
-    print("\n  Guard: Stage-4 output names differ from Stage-4b names — OK.")
+            f"s06 file present and WOULD be overwritten: {protected}"
+    print("\n  Guard: s06 output names differ from s07 names — OK.")
 
     print(f"\nLoading solar profile …")
     ghi_profile, temp_profile = load_solar_profile(SOLAR_PROFILE)
@@ -240,7 +242,7 @@ def main():
         if robust else
         "FRAGILE: direction or sign reversal at Tier 2 — report as boundary condition."
     )
-    print(f"\n  Verdict: {verdict}")
+    print(f"\n  Result: {verdict}")
     print(f"  Tier 2 ΔLCOE% range: {min(t2_vals):+.1f}% to {max(t2_vals):+.1f}%")
     print(f"  Tier 3 ΔLCOE% range: {min(T3_LCOE_PCT.values()):+.1f}% to "
           f"{max(T3_LCOE_PCT.values()):+.1f}%")
@@ -304,12 +306,12 @@ the Tier-2 result as a conservative lower bound; Tier-3 remains the central scen
 ## Files
 - R0 (Tier 2): `data/onsset_outputs/2026-08_final_lcoe_R0_ruralT2.csv`
 - R1 (Tier 2): `data/onsset_outputs/2026-08_final_lcoe_R1_ruralT2_n{{10,20,50}}.csv`
-- Stage 4 (Tier 3): `data/onsset_outputs/2026-08_final_lcoe_R0.csv` (unchanged)
+- s06 (Tier 3): `data/onsset_outputs/2026-08_final_lcoe_R0.csv` (unchanged)
 """)
 
     print(f"\n  Notes file → {notes_path.relative_to(REPO)}")
     print(f"\n  Total elapsed: {(time.time()-t_total)/60:.1f} min")
-    print("  Stage-4 (Tier 3) outputs: NOT overwritten.")
+    print("  s06 (Tier 3) outputs: NOT overwritten.")
 
 
 if __name__ == "__main__":

@@ -3,25 +3,20 @@ s06_run_arms.py — the controlled comparison: R0 and R1 least-cost solves.
 
 Inputs:
   R0/R1 base: data/processed/zambia_grid3_spine_pe_n20.csv  (pre-processed by
-              run_grid3_pe_stage4.py — IsUrban_type dropped, border slivers reassigned,
-              N_hh and PE_ratio_n20 added)
+              s05_compute_peak_ratios.py — IsUrban_type dropped, border slivers reassigned,
+              Pop2030, N_hh, N_hh_2020 and PE_ratio added)
   N_mid sweep PE: zambia_grid3_spine_pe_n10.csv, zambia_grid3_spine_pe_n50.csv
 
-Outputs (do NOT overwrite 1km-spine outputs):
-  data/onsset_outputs/2026-07-01_grid3_lcoe_R0.csv
-  data/onsset_outputs/2026-07-01_grid3_lcoe_R1_n10.csv
-  data/onsset_outputs/2026-07-01_grid3_lcoe_R1_n20.csv    (central case)
-  data/onsset_outputs/2026-07-01_grid3_lcoe_R1_n50.csv
-  data/onsset_outputs/2026-07-01_grid3_lcoe_tech_split.csv
+Outputs (RUN_LABEL below sets the prefix; do not overwrite an existing run):
+  data/onsset_outputs/2026-08_final_lcoe_R0.csv
+  data/onsset_outputs/2026-08_final_lcoe_R1_n10.csv
+  data/onsset_outputs/2026-08_final_lcoe_R1_n20.csv    (central case)
+  data/onsset_outputs/2026-08_final_lcoe_R1_n50.csv
+  data/onsset_outputs/2026-08_final_lcoe_tech_split.csv
 
-Inherits all helper functions from run_lcoe_full.py via import.
-Key differences from the 1km-spine run:
-  - New spine (GRID3, 270,526 settlements)
-  - PE columns precomputed for all N_mid values
-  - Four arms: R0 (once) + R1×{10,20,50}
-  - Seeds fixed: np.random.seed(42)
-  - IsUrban_type already dropped; border slivers already reassigned
-
+Shared loaders (solar and wind profiles, config, technology objects) come from
+onsset_helpers.py. Four arms: R0 (once) + R1 x {10, 20, 50}, seeds fixed with
+np.random.seed(42) before each arm.
 """
 
 import sys
@@ -87,7 +82,7 @@ SOLAR_PROFILE = (REPO / "data" / "raw" / "zambia" / "renewables_hourly" /
 WIND_PROFILE  = (REPO / "data" / "raw" / "zambia" / "renewables_hourly" /
                  "wind" / "wind_lusaka.csv")
 
-RUN_LABEL = "2026-08_final_lcoe"   # index-alignment fix; 2026-07-01 archive preserved
+RUN_LABEL = "2026-08_final_lcoe"   # prefix for every file this script writes
 
 # Fix all seeds for reproducibility
 np.random.seed(42)
@@ -437,7 +432,7 @@ def compare_arms(df0: pd.DataFrame, df1: pd.DataFrame, years: list,
 
 def main():
     print("=" * 65)
-    print("  GRID3 Stage 4 — R0 / R1 LCOE run (N_mid sweep: 10, 20, 50)")
+    print("  s06 — R0 / R1 LCOE run (N_mid sweep: 10, 20, 50)")
     print("=" * 65)
 
     cfg = load_config()
@@ -493,7 +488,6 @@ def main():
           f"mean={pe20.mean():.4f}, max={pe20.max():.4f}")
     print(f"    Urban:   median={pe20[is_urban].median():.4f}, mean={pe20[is_urban].mean():.4f}")
     print(f"    Rural:   median={pe20[~is_urban].median():.4f}, mean={pe20[~is_urban].mean():.4f}")
-    print(f"    (1km spine rural median was ~3.7; GRID3 larger cluster N → lower P/E)")
     atp_mean = (1.0 / pe20.clip(lower=0.1)).clip(upper=1.0).mean()
     print(f"    Mean AverageToPeakLoadRatio (R1, N_mid=20): {atp_mean:.4f}")
     print(f"    (R0 tier-table value for Tier 3/5: 0.5 — R1 varies by settlement)")
@@ -605,7 +599,6 @@ def main():
     split_path = OUTDIR / f"{RUN_LABEL}_tech_split.csv"
     pd.DataFrame(rows).to_csv(split_path, index=False)
     print(f"\n  Tech-split CSV → {split_path.name}")
-    print("  DO NOT overwrite 1km-spine canonical outputs (2026-06-23_clean_lcoe_*)")
 
 
 if __name__ == "__main__":

@@ -49,6 +49,15 @@ def nn_dist_km(pts_xy, ref_xy):
 
 
 def main():
+    missing = [p for p in (SPINE, ZESCO, META) if not p.exists()]
+    if missing:
+        print("check_mv_sources.py — which layer sets each settlement's MV distance\n")
+        for p in missing:
+            print(f"  FAIL  input missing: {p}")
+        print("\n  This check reads the built spine and the raw MV layers. See "
+              "docs/04_data_sources.md\n  for the expected layout, and run s01-s05 first.")
+        return 1
+
     sp = pd.read_csv(SPINE, usecols=["id", "X_deg", "Y_deg", "Pop", "NightLights",
                                      "TransformerDist", "CurrentMVLineDist"])
     pts = gpd.GeoDataFrame(sp, geometry=gpd.points_from_xy(sp.X_deg, sp.Y_deg),
@@ -89,7 +98,8 @@ def main():
     out.to_csv(OUT, index=False)
     print(out.to_string(index=False))
     print(f"\nwrote {OUT.relative_to(REPO)}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

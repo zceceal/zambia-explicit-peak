@@ -1,8 +1,6 @@
 """
 s08_run_global_sensitivity.py — Morris screen and Latin-hypercube propagation.
 
-Supersedes the old 1km-spine §3.6.3 analysis; re-runs on the GRID3-calibrated spine.
-
 Two-part computation
 --------------------
 Part A — Morris elementary-effects screen (full OnSSET re-runs on subsample):
@@ -19,7 +17,7 @@ Part B — LHS uncertainty propagation:
 
 Hard rules
 ----------
-• Do NOT overwrite any Stage-4/4b output.
+• Do NOT overwrite any s06 or s07 output.
 • 2030 columns used for all cost metrics (2035 cols are incremental — never used).
 • Seeds fixed: reported in output.
 • SA_PV capex multiplier passed through cfg and Technology object — no monkey-patch.
@@ -89,24 +87,27 @@ SUBSAMPLE_N          = 50_000
 # paths, inflating MG_PVHybrid and underestimating SA_PV→Grid switches.
 # That reasoning predicted a DOWNWARD bias, and pre-fix the measurement agreed:
 # a 50k-settlement subsample (18.5% of 270k) returned ~0.69x the full-spine
-# ΔLCOE%. After the 2026-08-16 index-alignment fix the measured ratio is 1.12x
-# (subsample +55.54% against full-spine +49.9%) — the bias reversed direction,
+# ΔLCOE%. After the 2026-08-16 index-alignment fix the measured ratio was 1.12x
+# (subsample +55.54% against the then full-spine +49.9%; both figures are the
+# 2026-08-16 to 2026-09-04 position, superseded by the run of 2026-09-05) — the
+# bias reversed direction,
 # so the topology argument above no longer explains it and should not be quoted
 # as the mechanism. The validation gate therefore uses a GENEROUS
 # tolerance; the bias is documented and a bias-correction factor
 # (full_spine / subsample) is applied to all results.
 #
 # The bias is MULTIPLICATIVE, so the admissible gap in percentage points scales
-# with the headline. At the pre-fix headline of +36.9% a 0.69x subsample sits
-# 11.4 pp low and 15.0 pp was ample; at the corrected +49.9% the same 0.69x
-# sits 15.4 pp low and 15.0 pp would fail for the wrong reason. Widened to 22.0
-# (0.31 x 49.9 = 15.5, plus headroom for sampling noise). If the gate fails at
+# with the headline. At the pre-2026-08-16 headline of +36.9% a 0.69x subsample sat
+# 11.4 pp low and 15.0 pp was ample; at the 2026-08-16 headline of +49.9% the same
+# 0.69x sat 15.4 pp low and 15.0 pp would have failed for the wrong reason. Widened
+# to 22.0 (0.31 x 49.9 = 15.5, plus headroom for sampling noise). Both headline
+# figures in this paragraph are superseded; see the note below. If the gate fails at
 # this tolerance the subsample is genuinely unrepresentative, not merely biased.
 #
 # The N-at-analysis-year-population fix of 2026-09-04 moved the full-spine headline again, to
 # +45.4% (bias-correction factor 0.9011). STAGE4_DELTA_LCOE_CENTRAL is read fresh from the s06
 # outputs each run, so this tolerance does not need re-deriving against a fixed headline — but
-# it was chosen against the +49.9% waypoint above, not the current one.
+# it was chosen against the superseded +49.9% waypoint above, not the current headline.
 VALIDATION_TOL_PP    = 22.0     # see note above; scales with STAGE4_DELTA_LCOE_CENTRAL
 MORRIS_R             = 8        # trajectories
 MORRIS_K             = 6        # parameters
@@ -745,19 +746,20 @@ def lhs_emulator_predict(
 
     Derivation:
     1. Lorenzoni params → recompute PE_ratio per settlement via pe_from_n().
-    2. New ATR_R1 = clip(1/PE_new, 0, 1); baseline ATR_R1 from Stage-4 R1_n20.
+    2. New ATR_R1 = clip(1/PE_new, 0, 1); baseline ATR_R1 from the s06 R1_n20 output.
     3. SA_PV LCOE ∝ peak power ∝ 1/ATR.  Scale R1 SA_PV LCOE by
        (ATR_baseline / ATR_new) — exact for capital-cost-dominated techs.
        (tech_life=5 yr → CRF >> O&M; O&M contribution < 2% on ΔLCOE ratio.)
     4. Discount rate → scale all LCOEs by CRF(r, life) / CRF(0.08, life).
-    5. N_mid: interpolate R1 LCOE linearly between the two bracketing Stage-4
+    5. N_mid: interpolate R1 LCOE linearly between the two bracketing s06
        outputs (n10/n20 or n20/n50) before applying ATR scaling.
     6. Switch count: scaled proportionally to ATR change relative to baseline.
 
     Documented approximation errors (checked in validation, §B1):
-    - SA_PV LCOE scaling (step 3): O&M ~2%/yr unscaled; error <2pp on ΔLCOE%.
-    - Discount rate (step 4): O&M unscaled; error <1pp over [6%, 14%].
-    - Tech assignment frozen from Stage-4 topology (no re-solve): error <1pp.
+    - SA_PV LCOE scaling (item 3 of the derivation above): O&M ~2%/yr unscaled;
+      error <2pp on ΔLCOE%.
+    - Discount rate (item 4): O&M unscaled; error <1pp over [6%, 14%].
+    - Tech assignment frozen from the s06 topology (no re-solve): error <1pp.
     - MG_PVHybrid diesel sensitivity not captured (0.3% of settlements): <0.5pp.
     Total maximum emulator error: ~4pp (validated against full runs, see §B1).
     """
@@ -790,7 +792,7 @@ def lhs_emulator_predict(
     pe_new  = pe_from_n(N_hh, N_mid=nm, P_1=p1, P_inf=p_inf, P_step=p_step)
     atr_new = np.clip(1.0 / np.clip(pe_new, 0.1, None), 0.0, 1.0)
 
-    # Baseline R1 ATR (Stage-4 central-case N_mid=20 anchors)
+    # Baseline R1 ATR (s06 central-case N_mid=20 anchors)
     pe_base  = pe_from_n(N_hh, N_mid=N_MID_CENTRAL)
     atr_base = np.clip(1.0 / np.clip(pe_base, 0.1, None), 0.0, 1.0)
 
@@ -831,7 +833,7 @@ def lhs_emulator_predict(
 def main():
     t_total = time.time()
     print("=" * 72)
-    print("  GRID3 Stage 5 — Morris GSA + LHS Uncertainty Propagation")
+    print("  s08 — Morris GSA + LHS Uncertainty Propagation")
     print(f"  Seeds: subsample={SEED_SUBSAMPLE}, Morris={SEED_MORRIS}, LHS={SEED_LHS}")
     print(f"  Subsample N={SUBSAMPLE_N:,}; Morris r={MORRIS_R} k={MORRIS_K} p={MORRIS_P} "
           f"Δ={MORRIS_DELTA:.4f}")
@@ -839,7 +841,7 @@ def main():
           f"RMSE threshold={EMUL_RMSE_THRESHOLD}pp")
     print("=" * 72)
 
-    # Guard: must not overwrite Stage-4 outputs
+    # Guard: must not overwrite s06 outputs
     for f in [R0_STAGE4, R1_N20_STAGE4]:
         if f.exists():
             print(f"  Guard OK (not overwriting): {f.name}")
@@ -1080,8 +1082,8 @@ def main():
     # ── [7/8] LHS — validate emulator, then use or fall back ─────────────
     print(f"\n[7/8] LHS uncertainty propagation …")
 
-    # Load full-spine Stage-4 outputs for emulator
-    print("  Loading full-spine Stage-4 outputs for emulator …")
+    # Load full-spine s06 outputs for emulator
+    print("  Loading full-spine s06 outputs for emulator …")
     r0_full = r1_n10_full = r1_n20_full = r1_n50_full = None
     emulator_available = False
     try:
@@ -1100,7 +1102,7 @@ def main():
               f"R1_n20: {len(r1_n20_full):,}  R1_n50: {len(r1_n50_full):,}")
         emulator_available = True
     except FileNotFoundError as exc:
-        print(f"  Stage-4 output not found: {exc}")
+        print(f"  s06 output not found: {exc}")
         print("  Emulator unavailable; falling back to full OnSSET for LHS.")
 
     # LHS design matrix
@@ -1324,7 +1326,7 @@ def main():
         for i in range(len(LHS_PARAM_NAMES))
     )
 
-    notes = f"""# GRID3 Stage 5 — Morris GSA + LHS Uncertainty Propagation
+    notes = f"""# s08 — Morris GSA + LHS Uncertainty Propagation
 
 **Date:** {date.today().isoformat()}
 **Primary metric:** ΔLCOE% = energy-weighted (`MinimumOverallLCOE2030 × EnergyPerSettlement2030`) R1−R0 lifetime-cost change at **2030** (2035 columns NOT used)
@@ -1361,7 +1363,7 @@ Total elapsed: {t_elapsed_total/60:.1f} min.
 
 ## Subsample validation and bias correction
 
-| Metric | Subsample ({SUBSAMPLE_N:,}) | Full spine (Stage 4) | Verdict |
+| Metric | Subsample ({SUBSAMPLE_N:,}) | Full spine (s06) | Verdict |
 |--------|----------------------------|----------------------|---------|
 | ΔLCOE% at N_mid=20, Tier 3, 2030 | {val_delta:+.2f}% | +{STAGE4_DELTA_LCOE_CENTRAL:.1f}% | {tol_str} |
 | SA_PV→Grid switches at 2030 | {val_switch:,} | {STAGE4_SWITCHES_CENTRAL:,} (2030, full-spine canonical) | — |

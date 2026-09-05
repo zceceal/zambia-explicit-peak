@@ -1,11 +1,10 @@
 """
 s11_run_drought_oat.py — grid generation cost at 2024 drought import prices.
 
-Closes the extrapolation gap flagged in methodology §3.5/§3.8: the 2026-07-03 OAT
-tested the grid generation cost only up to 0.05 USD/kWh, while the draft cites
-Moobola (2024) drought-year prices of 0.17 (Eskom import), 0.22 (EDM Mozambique
-import) and 0.26 USD/kWh (local emergency diesel). This script re-runs the same
-full-spine OAT at those three prices.
+Extends the grid-generation-cost OAT beyond the 0.05 USD/kWh upper bound tested in
+s09 to the Moobola (2024) drought-year prices of 0.17 (Eskom import), 0.22 (EDM
+Mozambique import) and 0.26 USD/kWh (local emergency diesel), reported in the paper
+§3.5. Same full-spine OAT, same harness, three additional prices.
 
 Rules:
 - DOES NOT overwrite any canonical 2026-08_final_* outputs.
@@ -14,7 +13,7 @@ Rules:
   (±1.0 pp tolerance) before the drought variants are trusted.
 - PV-hybrid lookup cache is built at the central diesel price and reused; grid
   generation cost does not enter the MG_PVHybrid sizing, so reuse is exact here
-  (unlike the diesel-price case documented in the Stage-5 GSA).
+  (unlike the diesel-price case documented in the the s08 global sensitivity analysis).
 """
 
 import time

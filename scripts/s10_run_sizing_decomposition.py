@@ -1,12 +1,12 @@
 """
 s10_run_sizing_decomposition.py — sizing-convention f-band and per-connection accounting.
 
-Task 2: On EXISTING Stage-4 outputs, recompute energy-weighted ΔLCOE% with only a
+On the existing s06 outputs, recompute energy-weighted ΔLCOE% with only a
 fraction f of SA_PV capex peak-scaled (remainder energy-scaled). f ∈ {0.4, 0.6, 1.0}.
 No OnSSET re-run. Verify f=1.0 reproduces the current s06 headline.
 
-Task 5: Trace InvestmentCost2030 and NewConnections2030 definitions; determine why
-aggregate reads ~$20k/HH; state correct formula for defensible per-connection metric.
+Per-connection accounting: traces what InvestmentCost2030 and NewConnections2030 each measure,
+and states the formula and the caveat under which a per-connection figure is quotable.
 """
 
 import warnings
@@ -62,7 +62,7 @@ def task2_f_band():
     assignment approach is a conservative lower bound (ΔLCOE% is over-stated at f<1).
     """
     print("\n" + "="*65)
-    print("  TASK 2 — Sizing-Convention f-Band (Post-Processing Only)")
+    print("  Sizing-Convention f-Band (Post-Processing Only)")
     print("="*65)
 
     r0 = pd.read_csv(R0_PATH)
@@ -160,14 +160,13 @@ def task5_per_connection():
        investment (max is $921.8M); OnSSET's own InvestmentPerConnection2030 has a
        median of $7,120/HH and a mean of $7,170/HH (P5-P95 $3,491-$11,094/HH) — a
        mean/median ratio of 1.01, i.e. no skew. The extreme per-settlement values
-       (up to ~$23bn) that motivated this task were a symptom of the pre-fix index
+       (up to ~$23bn) seen before the 2026-08-16 fix were a symptom of the index
        misalignment (REPRODUCING.md §7), not of the accounting.
 
-    Verdict: absolute per-connection figures ARE now quotable, provided the period
-    mismatch in (3) is stated alongside them. The outlier caveat that used to apply
-    no longer does.
+    Absolute per-connection figures are quotable provided the period mismatch in (3)
+    is stated alongside them; the outlier caveat does not apply.
 
-    Defensible per-connection metrics (for the Discussion):
+    Defensible per-connection metrics:
     - OnSSET's own InvestmentPerConnection2030 column: median $7,120/HH.
     - Or: LCOE x energy / HH / project-life-years as a levelised annual cost per HH
       — median $56/HH/yr for SA_PV.
@@ -175,7 +174,7 @@ def task5_per_connection():
       NPC $1.73bn, R1 $2.51bn, +45.4%, matching the headline.
     """
     print("\n" + "="*65)
-    print("  TASK 5 — Per-Connection Cost Accounting")
+    print("  Per-Connection Cost Accounting")
     print("="*65)
 
     r0 = pd.read_csv(R0_PATH)
@@ -239,7 +238,7 @@ def task5_per_connection():
     )
     print(f"\n  R0 SA_PV LCOE-based annual cost per HH (NPC / HH / 15 yr):")
     print(f"    Median: ${r0_sapv['annual_lcoe_per_hh'].dropna().median():,.0f}/HH/yr")
-    print(f"    This is a defensible per-connection metric for the Discussion.")
+    print(f"    This is a defensible per-connection metric.")
 
     # R0 vs R1 relative comparison (unaffected by accounting issue)
     r0_total_npc = (r0[f"MinimumOverallLCOE{yr}"] * r0[f"EnergyPerSettlement{yr}"]).sum()
@@ -266,7 +265,7 @@ def task5_per_connection():
     ).format(len(extreme), _skew)
 
     verdict = f"""
-VERDICT (Task 5):
+PER-CONNECTION ACCOUNTING:
   R0 aggregate InvestmentCost{yr} / NewConnections{yr} = ${agg_per_conn:,.0f}/HH.
   Per settlement, OnSSET's InvestmentPerConnection{yr}: median ${_ipc.median():,.0f}/HH,
   mean ${_ipc.mean():,.0f}/HH, P5-P95 ${_ipc.quantile(0.05):,.0f}-${_ipc.quantile(0.95):,.0f}/HH.
@@ -279,7 +278,7 @@ VERDICT (Task 5):
 
   (b) OUTLIERS — {_outliers_resolved}
 
-  Absolute per-connection figures are therefore quotable, with (a) stated. The
+  Absolute per-connection figures are quotable with (a) stated. The
   distribution is tight and physically plausible.
 
   The RELATIVE R0-R1 cost change (dLCOE% = {_delta:+.1f}%) is computed from
@@ -293,6 +292,7 @@ VERDICT (Task 5):
         "r0_agg_inv_per_hh": agg_per_conn,
         "r0_sapv_inv_median_per_hh": sapv["inv_per_hh"].median(),
         "r0_ipc_col_median": ipc.dropna().median(),
+        "r0_ipc_col_mean": ipc.dropna().mean(),
         "r0_total_npc_B": r0_total_npc / 1e9,
         "r1_total_npc_B": r1_total_npc / 1e9,
         "delta_npc_pct": (r1_total_npc - r0_total_npc) / r0_total_npc * 100,

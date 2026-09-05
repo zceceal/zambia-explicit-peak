@@ -39,7 +39,13 @@ Both variants share the same urban/population calibration step:
     base_year_population_realised.
   UrbanRatioStartYear = 0.437 (UN WPP 2024)
 
-Do NOT run LCOE. Do NOT modify stage2 spine.
+Do NOT run LCOE. Do NOT modify the s03 spine.
+
+    python scripts/s04_calibrate_base_year.py               # runs both variants, writes both outputs
+    python scripts/s04_calibrate_base_year.py --self-test   # writes nothing; re-runs Variant A to a
+                                                            # scratch file and checks it reproduces
+                                                            # the published ElecStart and ElecPopCalib
+                                                            # on every settlement
 """
 
 import sys
@@ -57,6 +63,7 @@ SPECS_IN   = REPO / "data" / "onsset_inputs" / "specs_zambia.xlsx"
 SPINE_IN   = REPO / "data" / "processed" / "zambia_grid3_spine_stage2.csv"
 OUT_A      = REPO / "data" / "processed" / "zambia_grid3_calib_distgate.csv"
 OUT_B      = REPO / "data" / "processed" / "zambia_grid3_calib_wb2020.csv"
+SELFTEST_OUT = REPO / "data" / "processed" / "zambia_grid3_calib_distgate_selftest.csv"
 
 # ── Calibration parameters ────────────────────────────────────────────────────
 
@@ -158,12 +165,12 @@ def run_variant(label, spine_path, national, urban_r, rural_r,
     onsseter.df[SET_GRID_PENALTY] = 1
     onsseter.df[SET_WINDCF] = onsseter.calc_wind_cfs(onsseter.df[SET_WINDVEL])
 
-    print("  Step 1: population + urban calibration ...")
+    print("  [1/3] population + urban calibration ...")
     pop_mod, urban_mod = onsseter.calibrate_current_pop_and_urban(POP_ACTUAL, URBAN_RATIO)
     print(f"    Pop modelled:         {pop_mod:,.0f}  (target {POP_ACTUAL:,})")
     print(f"    Urban ratio modelled: {urban_mod:.4f}  (target {URBAN_RATIO})")
 
-    print("  Step 2: electrification calibration ...")
+    print("  [2/3] electrification calibration ...")
     elec_results = onsseter.calibrate_grid_elec_current(
         national, urban_r, rural_r,
         2020,
@@ -182,7 +189,7 @@ def run_variant(label, spine_path, national, urban_r, rural_r,
     print(f"    ElecPopCalib total: {onsseter.df['ElecPopCalib'].sum():,.0f}")
     print(f"    Grid dist column:   {grid_dist_used}")
 
-    print("  Step 3: mini-grid calibration ...")
+    print("  [3/3] mini-grid calibration ...")
     mg_pop = onsseter.mg_elec_current(2020)
 
     # ── Realised rates ────────────────────────────────────────────────────────
@@ -236,7 +243,68 @@ def run_variant(label, spine_path, national, urban_r, rural_r,
     }
 
 
+def self_test() -> int:
+    """
+    Writes nothing to either published output. Re-runs Variant A with the published gate to a
+    scratch file, compares ElecStart and ElecPopCalib against the committed calibration on
+    every settlement, and deletes the scratch file. Exit 0 on match, 1 on mismatch.
+    """
+    print("=" * 68)
+    print("  s04 self-test — Variant A reproduces the published calibration (nothing is written)")
+    print("=" * 68)
+
+    missing = [p for p in (SPINE_IN, SPECS_IN, OUT_A) if not p.exists()]
+    if missing:
+        for p in missing:
+            print(f"\n  FAIL  input missing: {p}")
+        print("\n  The self-test compares a fresh Variant A run against the published")
+        print("  calibration. Build the spine (s01-s03) and run s04 once first.")
+        return 1
+
+    if SELFTEST_OUT.exists():
+        SELFTEST_OUT.unlink()
+    try:
+        run_variant(
+            label="self-test: VARIANT A — NEAS-2023 targets, 2 km transformer gate",
+            spine_path=SPINE_IN,
+            national=A_NATIONAL, urban_r=A_URBAN, rural_r=A_RURAL,
+            max_trans=A_MAX_TRANS, max_mv=A_MAX_MV, max_hv=A_MAX_HV,
+            min_ntl=A_MIN_NTL, min_pop=A_MIN_POP,
+            out_path=SELFTEST_OUT,
+            mv_or_gate=False,
+        )
+        cols = ["id", "ElecStart", "ElecPopCalib"]
+        pub = pd.read_csv(OUT_A, usecols=cols).sort_values("id")
+        new = pd.read_csv(SELFTEST_OUT, usecols=cols).sort_values("id")
+        same_rows = len(pub) == len(new) and np.array_equal(pub["id"].to_numpy(),
+                                                            new["id"].to_numpy())
+        es = same_rows and bool(np.array_equal(pub["ElecStart"].to_numpy(),
+                                               new["ElecStart"].to_numpy()))
+        ep = same_rows and bool(np.allclose(pub["ElecPopCalib"].to_numpy(),
+                                            new["ElecPopCalib"].to_numpy(), rtol=1e-9))
+        n_es_diff = 0 if es else int((pub["ElecStart"].to_numpy()
+                                      != new["ElecStart"].to_numpy()).sum())
+        n_ep_diff = 0 if ep else int((~np.isclose(pub["ElecPopCalib"].to_numpy(),
+                                                  new["ElecPopCalib"].to_numpy(),
+                                                  rtol=1e-9)).sum())
+    finally:
+        if SELFTEST_OUT.exists():
+            SELFTEST_OUT.unlink()
+
+    print(f"\n  Settlements compared: {len(pub):,}")
+    print(f"  ElecStart=1: published {int(pub['ElecStart'].sum()):,}   "
+          f"re-run {int(new['ElecStart'].sum()):,}")
+    print(f"  ElecStart identical:    {es}" + ("" if es else f"  ({n_es_diff:,} settlements differ)"))
+    print(f"  ElecPopCalib identical: {ep}" + ("" if ep else f"  ({n_ep_diff:,} settlements differ)"))
+    ok = es and ep
+    print("\n  " + ("SELF-TEST PASS" if ok else "SELF-TEST FAIL"))
+    return 0 if ok else 1
+
+
 def main():
+    if "--self-test" in sys.argv:
+        return self_test()
+
     print("=" * 68)
     print("  GRID3 SPINE — BASE-YEAR CALIBRATION")
     print("  Variant A: 2 km transformer gate (NEAS-2023)")
@@ -249,7 +317,7 @@ def main():
     df_head = pd.read_csv(SPINE_IN, nrows=1)
     pop_total = pd.read_csv(SPINE_IN, usecols=["Pop"])["Pop"].sum()
     print(f"\n  Input: {SPINE_IN.name}")
-    print(f"  Settlements: 270,526  (from stage 2)")
+    print(f"  Settlements: 270,526  (from s03)")
     print(f"  Pop sum (raw): {pop_total:,.0f}  (expect ~18.38M)")
 
     # ── Run Variant A ─────────────────────────────────────────────────────────
@@ -307,7 +375,8 @@ def main():
     print(f"\n  Output files:")
     print(f"    {OUT_A.name}")
     print(f"    {OUT_B.name}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

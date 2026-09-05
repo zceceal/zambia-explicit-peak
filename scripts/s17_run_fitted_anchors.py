@@ -50,8 +50,9 @@ beta, which pulls the solved floor down a little to fit both points exactly.
 
 The fitted curve reproduces both points to solver tolerance (<1e-9): 1.800 at 450, 1.4587 at 1.0e6.
 The central curve gives 1.816 and 1.482 at those same two N. The fitted curve is essentially on the
-central curve at the rural median (rho 3.39 vs 3.39 at N=2.3 households) and slightly below it at the
-urban median (1.66 vs 1.68 at N=1925).
+central curve at the rural median (rho 3.295 vs 3.297 at N=2.7 households) and slightly below it at
+the urban median (1.633 vs 1.652 at N=2,947). Both medians are evaluated at the analysis-year (2030)
+population, as N_hh is throughout.
 
 This is an exactly-determined alternative calibration, not a statistical fit: two reference points,
 two parameters, zero residual by construction. Its value is that it is independent of the Lorenzoni
@@ -132,8 +133,8 @@ def self_test():
               f"  {'PASS' if good else 'FAIL'}")
     n_mid_eq = math.exp(-math.log((2.43 - RHO_INF) / (RHO_1 - RHO_INF)) / BETA)
     print(f"\n  equivalent N_mid = {n_mid_eq:.2f}  (central assumption: 20; swept 10-50)")
-    print(f"  rho at rural median N=2.3 : {float(rho_fitted(2.3)):.3f}  (central curve: 3.394)")
-    print(f"  rho at urban median N=1925: {float(rho_fitted(1925)):.3f}  (central curve: 1.681)")
+    print(f"  rho at rural median N=2.7  : {float(rho_fitted(2.7)):.3f}  (central curve: 3.297)")
+    print(f"  rho at urban median N=2,947: {float(rho_fitted(2947)):.3f}  (central curve: 1.652)")
     print("  PASS" if ok else "  FAIL")
     return 0 if ok else 1
 

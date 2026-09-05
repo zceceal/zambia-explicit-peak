@@ -1,13 +1,13 @@
 """
 s01_build_spine_clusters.py — settlement spine, stage 1 of 3.
-Stage 1 of the GRID3 settlement spine rebuild:
+s01 of the GRID3 settlement spine rebuild:
   - Geometry (centroid, area)
   - Population (WorldPop zonal sum per polygon)
   - Urban/rural classification
   - Admin-1 assignment
   - Verification gate
 
-Does NOT touch distances, LCOE, or calibration (Stage 2+).
+Does NOT touch distances, LCOE, or calibration (s03 onward).
 Run with the project venv:
   python scripts/s01_build_spine_clusters.py
 """
@@ -255,7 +255,7 @@ print(f"  GPKG: {OUT_GPKG.name}")
 
 # ── Verification gate ────────────────────────────────────────────────────────
 print("\n══════════════════════════════════════════════════════")
-print("  VERIFICATION GATE — Stage 1")
+print("  VERIFICATION GATE — s01")
 print("══════════════════════════════════════════════════════")
 
 wp_national   = wp_total
@@ -283,7 +283,6 @@ print(f"    (Type-based share:      {urban_share_type:.4f}  → {'diverges' if t
 print(f"\n[D] Size distributions")
 print(f"    Pop — median: {gdf.Pop.median():.1f}  mean: {gdf.Pop.mean():.1f}  max: {gdf.Pop.max():.0f}")
 print(f"    GridCellArea (km²) — median: {gdf.GridCellArea.median():.5f}  mean: {gdf.GridCellArea.mean():.4f}  max: {gdf.GridCellArea.max():.3f}")
-print(f"    (1 km spine reference: uniform 1.000 km²)")
 
 print(f"\n[E] Missing / nulls")
 for col in ['X_deg', 'Y_deg', 'Pop', 'GridCellArea', 'Admin_1', 'building_count']:
@@ -298,7 +297,7 @@ print(f"\n── Done in {elapsed:.0f} s ──")
 notes_dir = ROOT / "notes"
 notes_dir.mkdir(parents=True, exist_ok=True)
 
-notes = f"""# GRID3 Spine Stage 1 — Run Notes
+notes = f"""# GRID3 Spine, cluster pass (s01) — Run Notes
 
 **Date:** 2026-06-28
 **Script:** `scripts/s01_build_spine_clusters.py`
@@ -316,7 +315,7 @@ notes = f"""# GRID3 Spine Stage 1 — Run Notes
 | Residual outside polygons | {residual_pop:,.0f} ({100*residual_pop/wp_national:.2f}%) |
 | % difference (spine vs raster) | {pct_diff:+.3f}% |
 
-The residual represents WorldPop population in pixels that do not overlap any GRID3 settlement polygon (dispersed rural population not captured by settlement extents). This is expected and structurally different from the 1 km spine which captures *all* populated pixels by definition.
+The residual represents WorldPop population in pixels that do not overlap any GRID3 settlement polygon (dispersed rural population not captured by settlement extents). It is recovered by `s02_build_spine_dispersed.py`, which aggregates those pixels into dispersed-rural cells so the combined spine reconciles to the national total.
 
 ### B. Cluster counts
 | Stage | Count |
@@ -349,23 +348,25 @@ Threshold ≥ {best_thresh:.1f} persons/km² → urban share = {urban_share_fina
 | Pop per cluster | {gdf.Pop.median():.1f} | {gdf.Pop.mean():.1f} | {gdf.Pop.max():.0f} |
 | GridCellArea (km²) | {gdf.GridCellArea.median():.5f} | {gdf.GridCellArea.mean():.4f} | {gdf.GridCellArea.max():.3f} |
 
-The 1 km spine had uniform GridCellArea = 1.000 km². The GRID3 spine has highly variable areas reflecting actual settlement footprints — this is the key realism gain.
+GridCellArea varies by two orders of magnitude across the spine because it is each settlement's own polygon footprint, not a fixed raster cell.
 
 ---
 
-- Confirm the density threshold ({best_thresh:.1f} p/km²) is reasonable for Zambia vs the literature (typically 300–1500 p/km² for SSA).
-- Cross-check residual population ({100*residual_pop/wp_national:.2f}% of national total) against Zambia's dispersed rural population literature.
-- The constrained WorldPop total ({wp_national:,.0f}) differs from the 2020 census-based 18.38 M used in the 1 km spine calibration — reconcile the difference before Stage 3 calibration.
+## Resolved conventions
 
----
-
-## What s02 needs
-1. The Stage-1 CSV/GPKG with centroid coordinates (`X_deg`, `Y_deg`) for spatial distance queries.
-2. `GridCellArea` per cluster (needed for demand calculations).
-3. `IsUrban` (density-threshold method) as the urbanisation flag for OnSSET tiers.
-4. All Stage-2 distance columns to be computed from the centroids:
-   `CurrentHVLineDist`, `CurrentMVLineDist`, `SubstationDist`, `TransformerDist`, `RoadDist`, `HydropowerDist`, plus raster samples (`GHI`, `WindVel`, `NightLights`, `TravelHours`, `Elevation`, `Slope`).
-5. Electrification order and demand columns remain 0 until Stage 3 (calibration).
+- **The cluster-only density threshold is provisional.** The {best_thresh:.1f} p/km² solved here
+  applies to the cluster spine alone. `s02_build_spine_dispersed.py` recalibrates it downward on the
+  combined spine, because the dispersed rows it adds are all rural and dilute the urban share, and
+  that recalibrated threshold is the one every later stage sees. Nothing downstream reads the value
+  above.
+- **The residual population is recovered, not discarded.** The {100*residual_pop/wp_national:.2f}%
+  of national population outside any GRID3 polygon is aggregated into dispersed-rural cells by
+  `s02_build_spine_dispersed.py`, which reconciles the combined spine to the WorldPop national total
+  to within 0.5%.
+- **Which population total the calibration uses.** The constrained WorldPop 2020 UN-adjusted raster
+  total ({wp_national:,.0f}) is the figure the spine reconciles against and the one
+  `check_spine_integrity.py` gates on; `s04_calibrate_base_year.py` calibrates the base year against
+  it, not against any other 2020 estimate.
 """
 
 with open(NOTES_PATH, 'w') as f:
