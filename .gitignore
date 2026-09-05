@@ -48,9 +48,8 @@ htmlcov/
 *~
 .spyproject/
 
-# session backups and paper tooling (not part of the reproducible pipeline)
+# local backup copies kept outside the pipeline
 *.bak-preindexfix
-scripts/fill_values.py
 /_prechange_backup_2026-08-21/
 
 # ── Run artefacts written outside results/ (regenerated; not distributed) ─────

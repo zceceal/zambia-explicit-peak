@@ -1,9 +1,10 @@
 # ============================================================
 # Zambia explicit-peak experiment — run configuration
 #
-# Every contested value is a dial here rather than in code, so a run can be
-# reconfigured without editing the pipeline. Sources are given inline.
-# These are the values behind the published results.
+# Every value that a script reads is a dial here rather than in code, so a run can
+# be reconfigured without editing the pipeline. Sources are given inline. These are
+# the values behind the published results. Three keys are retained but read by no
+# script; each is annotated as such at the point of definition.
 # ============================================================
 
 # ── Input / output paths ──────────────────────────────────────
@@ -12,11 +13,8 @@ paths:
   spine_r1: "data/processed/zambia_grid3_spine_pe_n20.csv"   # explicit-peak case: adds PE_ratio, which
                                                              # overrides the scalar base-to-peak ratio
   specs_calib: "data/onsset_inputs/specs_zambia_calibrated_distgate_2026-06-20.xlsx"
-  mv_lines_geojson: "data/raw/zambia/grid/mv/zambia_mv_lines.geojson"
-  pv_hybrid_path: "data/raw/zambia/resource/pv_hybrid_lut"
-  wind_hybrid_path: "data/raw/zambia/resource/wind_hybrid_lut"
-  results_dir: "results"
-  run_label: "grid3_central"
+  run_label: "grid3_central"   # not read by any script: every run script sets its own RUN_LABEL
+                               # (s06 sets "2026-08_final_lcoe"). Do not infer a run label from it.
 
 # ── Finance ───────────────────────────────────────────────────
 discount_rates:
@@ -63,10 +61,11 @@ grid:
   losses: 0.15                             # Egli et al. 2023, Table S8 (Zambia)
   capacity_investment_cost_usd_kw: 1441.1  # Egli et al. 2023, Table S8 (Zambia)
   generation_cost_usd_kwh: 0.013           # Egli et al. 2023, Table S8 (Zambia)
-  existing_ratio: 0.1
   max_extension_dist_km: 10.0              # OnSSET/GEP convention. Swept [5, 20].
-  annual_capacity_limit_mw: 9999           # unconstrained build rate (see docs/03_assumptions.md)
-  annual_connections_limit_k: 9999         # unconstrained build rate
+  annual_capacity_limit_mw: 9999           # not read by any script: the unconstrained build rate is
+                                           # set in the specs workbook (see docs/03_assumptions.md)
+  annual_connections_limit_k: 9999         # not read by any script: the unconstrained build rate is
+                                           # set in the specs workbook (see docs/03_assumptions.md)
   base_to_peak_r0: 0.8
   # Inert for the cost calculation: OnSSET's tier table assigns 0.5 for Tiers 3-5 in
   # calculate_demand(), and the per-settlement column overrides both before any cost function

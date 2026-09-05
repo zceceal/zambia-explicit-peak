@@ -9,9 +9,10 @@ second changes the size of the answer; the third does not affect the comparison 
 
 ## Group 1 — Assumptions that could threaten the finding
 
-**None were found.** No combination of tested
-assumptions makes explicit peaks *cheaper*, or leaves the technology allocation untouched at
-aspirational service levels. The direction of the result follows from a physical fact — small
+**None were found at the aspirational (Tier 3+) service levels the study is framed on.** No
+combination of tested assumptions there makes explicit peaks *cheaper*, or leaves the technology
+allocation untouched. At Tier 2 the sign is not fixed — see Section 2.4, which is a boundary
+condition on the finding rather than a threat to it. The direction of the result follows from a physical fact — small
 settlements do not diversify their peaks — rather than from any parameter choice.
 
 ---
@@ -132,7 +133,7 @@ in the comparison that carries the contribution.
 
 | Assumption | Note |
 |---|---|
-| Grid build rate unconstrained | Overstates the absolute grid share versus a rate-limited plan. Common to both runs |
+| Grid build rate unconstrained | Overstates the absolute grid share versus a rate-limited plan. Common to both runs. Set in the specs workbook; `config.yaml`'s two `annual_*_limit` keys record the intent but are read by no script |
 | 100% electrification by 2030 | A scenario choice, not a model error — it is the universal-access frame |
 | Grid reliability at OnSSET default (0.963) | No cost of non-served energy |
 | Residential demand only | Productive and institutional loads not separately modelled |
@@ -157,6 +158,7 @@ measured erosion of the cost penalty — roughly a quarter — is therefore a **
 
 ## One-line summary
 
-The model's direction rests on physics and survives every test applied. Its magnitude rests on a
-sizing convention inherited from the standard tool, and is reported as a range for that reason. Its
+The model's direction rests on physics and survives every test applied at Tier 3; at Tier 2 it
+reverses sign at `N_mid` = 10 (Section 2.4), which is where the finding stops. Its magnitude rests on
+a sizing convention inherited from the standard tool, and is reported as a range for that reason. Its
 one unmeasured parameter is swept across a full decade and ranks second of the six screened.

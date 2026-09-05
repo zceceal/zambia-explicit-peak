@@ -21,6 +21,7 @@ None of the input data is stored in this repository, and every dataset carries i
 | OpenStreetMap roads (Zambia extract) | Road network / distance (stage 03) | OpenStreetMap contributors, via Geofabrik (download.geofabrik.de); extract obtained 2026-06-16 | ODbL 1.0 — share-alike |
 | Global accessibility-to-cities map, 30 arc-sec | Travel time to market (stage 03) | Weiss et al. (2018), *Nature* 553:333–336, doi:10.1038/nature25181 (Malaria Atlas Project / Oxford) — confirmed against the raster's own 0.0083333° (30 arc-sec) pixel grid | CC BY 4.0 (Google Earth Engine catalogue, `Oxford/MAP/accessibility_to_cities_2015_v1_0`) |
 | renewables.ninja hourly solar | PV-hybrid mini-grid lookup tables | renewables.ninja (MERRA-2, 5 points, 2025) | **CC BY-NC 4.0 — non-commercial only** |
+| geoBoundaries ADM0 (national outline) | National boundary drawn on the switching map (stage 13) | geoBoundaries (geoboundaries.org) | CC BY 4.0 |
 | UN World Population Prospects 2024 | Population projections to 2035 and 2050 | population.un.org | CC BY 3.0 IGO |
 | ZamStats 2022 Census | Household sizes (urban 4.6, rural 5.0) | Zambia Statistics Agency | official publication |
 | NEAS 2023 | Base-year access targets (34% / 70% / 7.6%) | Ministry of Energy | official publication |
@@ -45,9 +46,9 @@ report mini-grid hydro as near-absent from the allocation: only settlements with
 these five named stations are ever costed on that technology.
 
 `admin/geoboundaries/geoBoundaries-ZMB-ADM1.geojson` is not a Required input, even though `s01`, `s02`
-and `s05` all read it. Traced its use: it is spatially joined onto each settlement to populate the
-`Admin_1` column (province name), which `s05` also uses to relabel 135 border-sliver settlements to
-their nearest province. Downstream, `onsset.py`'s own `conditioning()` step only null-checks `Admin_1`
+and `s03` all read it. Traced its use: it is spatially joined onto each settlement to populate the
+`Admin_1` column (province name), which `s05` then uses to relabel 135 border-sliver settlements to
+their nearest province (by centroid distance; `s05` does not open the layer itself). Downstream, `onsset.py`'s own `conditioning()` step only null-checks `Admin_1`
 and prints a warning if it finds one — no cost or allocation formula anywhere in the pipeline reads it.
 It is a labelling/QA field, not a model input, so it carries no publisher, version or licence row here;
 its version and licence remain unconfirmed regardless.
@@ -74,7 +75,8 @@ data/
         zambia_travel_time_to_cities.tif            travel time surface          s03
     transport/roads/zambia-latest.osm.pbf           road network                 s03
     admin/geoboundaries/
-        geoBoundaries-ZMB-ADM1.geojson              admin-1 boundaries           s03
+        geoBoundaries-ZMB-ADM1.geojson              admin-1 boundaries           s01, s02, s03
+        geoBoundaries-ZMB-ADM0.geojson              national outline             s13
     grid/
       mv_distribution_2023/distribution_medium_voltage_overhead_line_network/
         Distribution_Medium_Voltage_Overhead_Line_Network.shp   ZESCO MV lines   s03
@@ -93,8 +95,9 @@ data/
   onsset_outputs/                                   written by s06-s12
 ```
 
-`figures/` and `notes/` are created at the repository root by s13 and by s01/s02 respectively. All
-four generated directories are gitignored.
+`figures/` and `notes/` are created at the repository root by s13 and by s01/s02 respectively. Those
+two, together with `data/processed/` and `data/onsset_outputs/` above, are all generated and all
+gitignored.
 
 Two of these are derived rather than downloaded: `terrain/dem/unzipped/` holds the raw SRTM tiles,
 which s03 merges into `data/processed/zmb_srtm_merged.tif` and `zmb_slope_degrees.tif`; and
@@ -108,5 +111,7 @@ specifically, because it is exactly what would let `N_mid` be measured rather th
 substantial commercial dataset is proprietary.
 
 This is not a gap left by omission — it is the reason the peak sub-model is calibrated on transferred
-archetypes and then externally validated against two independently metered systems, rather than
-fitted directly to Zambian data. It is stated in the paper as the primary future-work item.
+archetypes and then compared against two independently metered systems and one national planning
+parameter, rather than fitted directly to Zambian data. The limits of that comparison — one of the two
+metered systems sits well above the curve, and the national point is an assumption rather than a
+measurement — are set out in `docs/03_assumptions.md` §2.3. It is stated in the paper as the primary future-work item.

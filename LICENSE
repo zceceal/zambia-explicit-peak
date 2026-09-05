@@ -24,6 +24,9 @@ SOFTWARE.
 NOTE ON DATA LICENCES — the code above is MIT, but the input datasets are not.
 Each carries its own terms and is NOT redistributed in this repository:
   - GRID3 settlement footprints          CC BY-SA 4.0 — SHARE-ALIKE
+  - OpenStreetMap roads (Geofabrik)      ODbL 1.0 — SHARE-ALIKE
+  - CIAT-CSI SRTM elevation (V4.1)       CIAT custom terms — citation required; commercial or
+                                           non-free redistribution needs CIAT's permission
   - WorldPop population rasters          CC BY 4.0
   - World Bank / EnergyData.info grid    varies by layer; check each
   - renewables.ninja solar profiles      CC BY-NC 4.0 — NON-COMMERCIAL USE ONLY
