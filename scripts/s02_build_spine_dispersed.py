@@ -1,8 +1,8 @@
 """
 s02_build_spine_dispersed.py — settlement spine, stage 2 of 3.
-Stage 1b — population conservation: add dispersed-rural settlements.
+s02 — population conservation: add dispersed-rural settlements.
 
-Stage-1 cluster spine captures 81.83% of WorldPop (settlement-polygon pixels).
+The s01 cluster spine captures 81.83% of WorldPop (settlement-polygon pixels).
 This script recovers the 18.17% residual (pixels outside all GRID3 polygons)
 by aggregating them to 0.025° coarse cells (~2.8 km), producing a combined
 spine that reconciles to the national WorldPop total.
@@ -94,7 +94,7 @@ stage1_pop = wp_total - res_pop   # population inside polygons
 print(f"  Residual pixels (outside all polygons, Pop>0): {res_npx:,}")
 print(f"  Residual population:          {res_pop:,.0f}  ({100*res_pop/wp_total:.2f}% of national)")
 print(f"  Polygon-covered population:   {stage1_pop:,.0f}  ({100*stage1_pop/wp_total:.2f}% of national)")
-print(f"  Stage-1 gate check — matches 3.34 M?: {'YES' if abs(res_pop-3_340_098)<5000 else 'WARN — check'}")
+print(f"  s01 gate check — matches 3.34 M?: {'YES' if abs(res_pop-3_340_098)<5000 else 'WARN — check'}")
 
 # ── Aggregate residual pixels to coarse cells ────────────────────────────────
 print(f"\n── S3: Aggregate residual to {COARSE_RES}° coarse cells ──")
@@ -191,8 +191,8 @@ print(f"  Admin_1 distribution (dispersed):")
 for prov, cnt in df_disp['Admin_1'].value_counts().items():
     print(f"    {prov}: {cnt:,}")
 
-# ── Load Stage-1 cluster spine and tag source ────────────────────────────────
-print("\n── S5: Load Stage-1 cluster spine ──")
+# ── Load the s01 cluster spine and tag source ────────────────────────────────
+print("\n── S5: Load the s01 cluster spine ──")
 df_clusters = pd.read_csv(STAGE1_CSV)
 df_clusters['source'] = 'cluster'
 print(f"  Cluster rows: {len(df_clusters):,}  Pop: {df_clusters['Pop'].sum():,.0f}")
@@ -252,7 +252,7 @@ else:
 # ── Output ───────────────────────────────────────────────────────────────────
 print("\n── S7: Writing outputs ──")
 
-# Final column order (matches Stage-1 plus source)
+# Final column order (matches s01 plus source)
 FINAL_COLS = ['id','X_deg','Y_deg','Pop','GridCellArea','IsUrban','IsUrban_type',
               'Admin_1','building_count','building_area','grid3_type','pop_density','source']
 df_out = df_combined[FINAL_COLS].copy()
@@ -270,7 +270,7 @@ print(f"  GPKG: {OUT_GPKG.name}")
 
 # ── Verification gate ────────────────────────────────────────────────────────
 print("\n══════════════════════════════════════════════════════")
-print("  VERIFICATION GATE — Stage 1b")
+print("  VERIFICATION GATE — s02")
 print("══════════════════════════════════════════════════════")
 
 combined_pop   = df_out['Pop'].sum()
@@ -286,8 +286,8 @@ print(f"    Within 0.5% target:                 {'PASS ✓' if abs(pct_vs_raster
 print(f"    Residual (raster − spine):          {wp_total-combined_pop:>15,.0f}")
 
 print(f"\n[B] Settlement counts")
-print(f"    Cluster rows (Stage 1):             {(df_out['source']=='cluster').sum():,}")
-print(f"    Dispersed rows (Stage 1b):          {(df_out['source']=='dispersed').sum():,}")
+print(f"    Cluster rows (from s01):             {(df_out['source']=='cluster').sum():,}")
+print(f"    Dispersed rows (from s02):          {(df_out['source']=='dispersed').sum():,}")
 print(f"    Combined total:                     {len(df_out):,}")
 print(f"    Dispersed grid resolution:          {COARSE_RES}° ≈ {COARSE_RES*111.32:.1f} km")
 
@@ -323,7 +323,7 @@ print(f"\n── Done in {elapsed:.0f} s ──")
 notes_dir = ROOT / "notes"
 notes_dir.mkdir(parents=True, exist_ok=True)
 
-notes = f"""# GRID3 Spine Stage 1b — Run Notes
+notes = f"""# GRID3 Spine, dispersed-rural pass (s02) — Run Notes
 
 **Date:** 2026-06-28
 **Script:** `scripts/s02_build_spine_dispersed.py`
@@ -334,7 +334,7 @@ notes = f"""# GRID3 Spine Stage 1b — Run Notes
 ---
 
 ## Motivation
-The Stage-1 cluster spine captured only 81.83% of WorldPop because the GRID3 settlement-extent polygons do not cover every populated WorldPop pixel. The 18.17% residual represents dispersed rural population (hamlet-scale settlement below GRID3 detection thresholds, or population in the interstices between polygons). This population is the hardest-to-reach, stand-alone-PV-dominant group; dropping it would bias the national technology split and cost estimates.
+The s01 cluster spine captured only 81.83% of WorldPop because the GRID3 settlement-extent polygons do not cover every populated WorldPop pixel. The 18.17% residual represents dispersed rural population (hamlet-scale settlement below GRID3 detection thresholds, or population in the interstices between polygons). This population is the hardest-to-reach, stand-alone-PV-dominant group; dropping it would bias the national technology split and cost estimates.
 
 ## Dispersed-settlement aggregation method
 - **Resolution:** {COARSE_RES}° ≈ {COARSE_RES*111.32:.1f} km (chosen to give combined spine ≈ 270k, within the 250–300k target).
@@ -358,19 +358,19 @@ The Stage-1 cluster spine captured only 81.83% of WorldPop because the GRID3 set
 | Within 0.5% target | {'PASS' if abs(pct_vs_raster)<0.5 else 'FAIL'} |
 | Residual (raster − spine) | {wp_total-combined_pop:,.0f} |
 
-The remaining sub-0.5% gap is attributable to WorldPop pixels with Pop < 1 person (dropped by the Stage-1 zero-pop filter applied implicitly through the rasterize–residual pipeline).
+The remaining sub-0.5% gap is attributable to WorldPop pixels with Pop < 1 person (dropped by the s01 zero-pop filter applied implicitly through the rasterize–residual pipeline).
 
 ### B. Settlement counts
 | Source | Count | Population | % of total |
 |---|---|---|---|
-| Cluster (Stage 1) | {(df_out['source']=='cluster').sum():,} | {cluster_pop:,.0f} | {100*cluster_pop/combined_pop:.2f}% |
-| Dispersed (Stage 1b) | {(df_out['source']=='dispersed').sum():,} | {disp_pop_check:,.0f} | {100*disp_pop_check/combined_pop:.2f}% |
+| Cluster (s01) | {(df_out['source']=='cluster').sum():,} | {cluster_pop:,.0f} | {100*cluster_pop/combined_pop:.2f}% |
+| Dispersed (s02) | {(df_out['source']=='dispersed').sum():,} | {disp_pop_check:,.0f} | {100*disp_pop_check/combined_pop:.2f}% |
 | **Combined** | **{len(df_out):,}** | **{combined_pop:,.0f}** | 100% |
 
 ### C. Urban/rural split
 | Method | Threshold | Urban share |
 |---|---|---|
-| Stage-1 cluster-only | ≥ 2073.2 p/km² | 0.4362 |
+| s01 cluster-only | ≥ 2073.2 p/km² | 0.4362 |
 | Combined spine recalibrated | ≥ {best_thresh:.1f} p/km² | {urban_share_final:.4f} |
 | Target (2020 WB national) | — | {URBAN_SHARE_TARGET} |
 
@@ -385,29 +385,24 @@ All {(df_out['source']=='dispersed').sum():,} dispersed rows are IsUrban=0 ✓
 
 ---
 
-- Recalibrated density threshold ({best_thresh:.1f} p/km²) vs Stage-1 value (2073.2 p/km²) — confirm which is used in Stage 3 calibration.
-- Dispersed GridCellArea uses populated-pixel footprint, not full coarse-cell area. Confirm this is appropriate for OnSSET demand calculations (or switch to full cell area).
-- 91 dispersed cells with Admin_1 = "Zambia" (fell outside ADM1 boundaries). Check if these are border-adjacent cells.
+## Resolved conventions
 
----
-
-## Stage-2 checklist
-The combined spine is now ready for Stage 2. For every row in `zambia_grid3_spine_combined.csv`, Stage 2 must compute:
-
-1. `GHI` — from GHI raster, sampled at (X_deg, Y_deg)
-2. `WindVel` — from wind raster
-3. `NightLights` — from VIIRS NTL raster
-4. `TravelHours` — from travel-time raster (minutes ÷ 60)
-5. `Elevation` — from SRTM DEM
-6. `Slope` — from slope raster
-7. `CurrentHVLineDist`, `CurrentMVLineDist` — NN to OSM power lines (km)
-8. `SubstationDist`, `TransformerDist` — NN to OSM nodes
-9. `RoadDist` — NN to OSM roads
-10. `HydropowerDist`, `Hydropower`, `HydropowerFID` — NN to hydro CSV
-11. `PlannedHVLineDist`, `PlannedMVLineDist`, `MGDist` — sentinel 9999
-12. `ElecPop`, `IsUrban`, `PerCapitaDemand`, demand-tier columns — carry forward from combined spine / set to 0 pending Stage 3 calibration
-
-Output: a 40-column OnSSET-ready CSV at `data/processed/zambia_grid3_spine_stage2.csv`.
+- **Which density threshold is carried forward.** The recalibrated threshold computed above
+  ({best_thresh:.1f} p/km²) is the one that sets `IsUrban` on the combined spine, and it is the only
+  one any later stage sees: `s03_build_spine_attributes.py` copies the `IsUrban` column through
+  unchanged and `s04_calibrate_base_year.py` reads that column for its urban/rural split. The
+  cluster-only threshold from `s01_build_spine_clusters.py` (2073.2 p/km²) applies to the cluster
+  spine alone and is superseded here, because adding the all-rural dispersed rows dilutes the urban
+  share and the threshold has to move down to restore the {URBAN_SHARE_TARGET} target.
+- **Why `GridCellArea` is the populated-pixel footprint.** Dispersed rows carry the summed area of
+  the WorldPop pixels that actually hold population, not the full coarse-cell area, so that the
+  column means the same thing for a dispersed cell as it does for a GRID3 polygon — the settlement's
+  own footprint. This is the convention `docs/01_pipeline.md` documents for the combined spine, and
+  it is what OnSSET's demand and density calculations expect.
+- **The dispersed cells with `Admin_1` = "Zambia".** These fell outside the ADM1 boundary polygons
+  and are border-adjacent by construction. They are not left unlabelled:
+  `s05_compute_peak_ratios.py` reassigns every `Admin_1` = "Zambia" row to the nearest province by
+  centroid distance before any provincial figure is computed.
 """
 
 with open(NOTES_PATH, 'w') as f:

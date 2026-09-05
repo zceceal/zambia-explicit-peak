@@ -1,17 +1,17 @@
 """
 s09_run_oat_checks.py — grid-side one-at-a-time checks and full-spine validation.
 
-Task 0 addendum §3: Re-run 3 LHS samples on the FULL spine (270,526 settlements) and
+LHS full-spine validation: re-run 3 LHS samples on the FULL spine (270,526 settlements) and
 compare against their bias-corrected subsample values. This validates whether the
 bias-correction factor transfers across the parameter space.
 
-Task 1 (option 1b): OAT at central case — grid capacity cost ±30% and generation cost
+Grid-side OAT at the central case — grid capacity cost ±30% and generation cost
 drought proxy. Reports ΔLCOE% AND SA_PV→Grid switch count per variant.
 
 Rules:
-- DOES NOT overwrite any Stage-4/4b or Stage-5 GSA outputs.
-- All new outputs go to data/onsset_outputs/ with new filenames dated 2026-07-03.
-- Seeds: LHS_VAL seed inherited from Stage-5 LHS CSV (seed=43 for LHS design);
+- DOES NOT overwrite any s06, s07 or s08 outputs.
+- All new outputs go to data/onsset_outputs/, named 2026-08_final_oat_*.
+- Seeds: LHS_VAL seed inherited from the s08 LHS CSV (seed=43 for LHS design);
          OAT arms use np.random.seed(42).
 - Gate: central OAT variant must reproduce the s06 central headline before variants are trusted.
 """
@@ -87,7 +87,7 @@ WIND_PROFILE  = (REPO / "data" / "raw" / "zambia" / "renewables_hourly" /
                  "wind" / "wind_lusaka.csv")
 LHS_CSV = OUTDIR / "2026-08_final_lhs_uncertainty.csv"
 
-# ── Stage-4 output guard ──────────────────────────────────────────────────────
+# ── s06 output guard ──────────────────────────────────────────────────────
 PROTECTED = [
     OUTDIR / "2026-08_final_lcoe_R0.csv",
     OUTDIR / "2026-08_final_lcoe_R1_n20.csv",
@@ -96,7 +96,7 @@ PROTECTED = [
 ]
 
 
-# ── §1  FULL-SPINE ARM RUNNER  (adapted from run_grid3_gsa_stage5.py run_arm_subsample) ───
+# ── §1  FULL-SPINE ARM RUNNER  (the full-spine counterpart of s08's subsample runner) ───
 def run_arm_full(
     arm_label: str,
     spine_df: pd.DataFrame,
@@ -334,16 +334,16 @@ def make_full_pair(spine_n20: pd.DataFrame, n_mid: int,
     return spine_r0, spine_r1
 
 
-# ── §2  TASK 0 ADDENDUM — LHS VALIDATION ON FULL SPINE ───────────────────────
+# ── §2  LHS VALIDATION ON THE FULL SPINE ─────────────────────────────────────
 def task0_lhs_validation(spine_n20, cfg_base, x_tx, y_tx,
                           ghi_profile, temp_profile, wind_profile, pv_lut_cache):
     """
     Pick 3 LHS samples (P5, P50, P95 of corrected ΔLCOE% distribution) from the
-    Stage-5 LHS CSV and re-run on the FULL spine, at each sample's own N_mid. Compare against the
+    the s08 LHS CSV and re-run on the FULL spine, at each sample's own N_mid. Compare against the
     bias-corrected subsample values.
     """
     print("\n" + "="*70)
-    print("  TASK 0 ADDENDUM — LHS Full-Spine Validation (3 samples)")
+    print("  LHS Full-Spine Validation (3 samples)")
     print("="*70)
 
     lhs_df = pd.read_csv(LHS_CSV)
@@ -428,7 +428,7 @@ def task0_lhs_validation(spine_n20, cfg_base, x_tx, y_tx,
     return df_out
 
 
-# ── §3  TASK 1 — GRID-SIDE OAT (option 1b) ───────────────────────────────────
+# ── §3  GRID-SIDE OAT ────────────────────────────────────────────────────────
 def task1_grid_oat(spine_n20, cfg_base, x_tx, y_tx,
                     ghi_profile, temp_profile, wind_profile, pv_lut_cache):
     """
@@ -440,7 +440,7 @@ def task1_grid_oat(spine_n20, cfg_base, x_tx, y_tx,
     Reports ΔLCOE% AND SA_PV→Grid switch count per variant.
     """
     print("\n" + "="*70)
-    print("  TASK 1 — Grid-Side OAT Sensitivity (option 1b)")
+    print("  Grid-Side OAT Sensitivity")
     print("="*70)
 
     # Load the standard R1_n20 PE spine
@@ -544,7 +544,7 @@ def main():
     t_total = time.time()
     print("="*70)
     print("  Post-GSA Tasks 0-addendum + 1 — Full-Spine Computations")
-    print(f"  Seed: 42 (OAT arms); LHS samples from Stage-5 CSV (seed=43)")
+    print(f"  Seed: 42 (OAT arms); LHS samples from the s08 CSV (seed=43)")
     print("="*70)
 
     # Guard: verify protected files exist and will not be overwritten
@@ -586,8 +586,8 @@ def main():
     print("\n[3/5] PV-hybrid lookup table rebuilt per arm.")
     pv_lut_cache = None
 
-    # Task 0 addendum: LHS full-spine validation
-    print("\n[4/5] Task 0 addendum — LHS full-spine validation …")
+    # LHS full-spine validation
+    print("\n[4/5] LHS full-spine validation …")
     lhs_val_df = task0_lhs_validation(
         spine_n20, cfg_base, x_tx, y_tx,
         ghi_profile, temp_profile, wind_profile, pv_lut_cache
@@ -600,8 +600,8 @@ def main():
         print(f"\nOutputs in: {OUTDIR}")
         return
 
-    # Task 1: Grid-side OAT
-    print("\n[5/5] Task 1 — Grid-side OAT …")
+    # Grid-side OAT
+    print("\n[5/5] Grid-side OAT …")
     oat_df, gate_ok = task1_grid_oat(
         spine_n20, cfg_base, x_tx, y_tx,
         ghi_profile, temp_profile, wind_profile, pv_lut_cache
@@ -612,10 +612,10 @@ def main():
     print("\n" + "="*70)
     print(f"  COMPLETE — Total elapsed: {elapsed_total/60:.1f} min")
     print("="*70)
-    print("\n  Task 0 addendum — LHS full-spine validation:")
+    print("\n  LHS full-spine validation:")
     print(lhs_val_df[["label","fullspine_delta","subsample_corrected",
                        "diff_corrected_pp","fullspine_switch","subsample_switch"]].to_string(index=False))
-    print("\n  Task 1 — Grid-side OAT:")
+    print("\n  Grid-side OAT:")
     print(oat_df[["variant","grid_cap_cost","grid_gen_cost","delta_lcoe_pct","switch_count"]].to_string(index=False))
     print(f"\n  Gate (central reproduces +{STAGE4_DELTA:.1f}%): {'PASSED ✓' if gate_ok else 'FAILED ✗'}")
     print(f"\nOutputs in: {OUTDIR}")

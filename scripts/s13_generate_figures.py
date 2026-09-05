@@ -9,9 +9,9 @@ Figures generated:
   1. fig_methods_pe_realised_distribution.png  — GRID3 spine P/E distribution
   2. fig_methods_pe_empirical_validation.png   — model envelope + Wassie (corrected N)
   3. fig_methods_pe_coincidence_curve.png      — PE diversity curve (spine-independent)
-  4. fig_methods_pe_nmid_sweep.png             — N_mid sweep ΔLCOE% from Stage-4
+  4. fig_methods_pe_nmid_sweep.png             — N_mid sweep ΔLCOE% from s06
   5. fig_results_tech_split_R0_R1.png          — R0/R1 technology split (pop-weighted)
-  6. fig_sensitivity_morris.png                — Morris μ*/σ chart (Stage-5 corrected)
+  6. fig_sensitivity_morris.png                — Morris μ*/σ chart (s08, corrected)
   7. fig_headline_uncertainty.png             — LHS 5-95 band + full-spine anchors
   8. fig_results_switching_map.png            — SA_PV→Grid switching settlements vs MV network (Figure 4.5)
   8b. fig_results_switching_map_bw.png        — greyscale-safe variant

@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 """Extract every headline number the paper quotes, from a pair of arm outputs.
 
-Written 2026-08-16 to read the post-index-fix run; PUBLISHED updated 2026-08-23 to the
-canonical 2026-08_final_lcoe values (the 2026-08-16 index-misalignment repair that produced
-them changed the headline from +36.87% to +49.92% and settled the switch count at 34,461).
-Updated again 2026-09-05: N is now evaluated at the analysis-year (2030) population, which
-moves the headline to +45.38% and the switch count to 33,665.
-Compares against the as-published values so the size of every change is visible at a glance.
+PUBLISHED below holds the values of the run of 2026-09-05, with N evaluated at the
+analysis-year (2030) population: +45.38% and 33,665 stand-alone-PV-to-grid switches.
+Every quantity this script computes is printed beside its published value, so any
+divergence from the committed run is visible at a glance.
 
 Writes every number it prints to results/summary/<run_label>_paper_numbers.csv (long format:
 n_mid, quantity, value), so an assessor checking a number in the paper against results/summary/
@@ -175,6 +173,32 @@ def main(run_label):
         rows.append({"n_mid": n_mid, "quantity": "median_sa_pv_lcoe_r1", "value": med_sapv1})
         rows.append({"n_mid": n_mid, "quantity": "median_grid_lcoe_r0", "value": med_grid0})
         rows.append({"n_mid": n_mid, "quantity": "median_grid_lcoe_r1", "value": med_grid1})
+
+        # ── The coincidence ratio and connection count the paper quotes directly ──
+        # rho is the PE_ratio column the pre-processor wrote; N is the household count it
+        # was evaluated on, Pop2030 / NumPeoplePerHH, with urban = IsUrban > 1 (the OnSSET
+        # convention: IsUrban is in {0, 2} after calibrate_current_pop_and_urban).
+        if central and "PE_ratio" in r1.columns:
+            rho = r1["PE_ratio"].to_numpy()
+            n_hh = r1["Pop2030"].to_numpy() / r1["NumPeoplePerHH"].to_numpy()
+            is_urban = r1["IsUrban"].to_numpy() > 1
+            n_floor = int((n_hh <= 1.0).sum())
+            print(f"\n  rho (PE_ratio, N_mid=20): min {rho.min():.2f}  median {np.median(rho):.2f}"
+                  f"  mean {rho.mean():.2f}  max {rho.max():.2f}")
+            print(f"  median N_hh at {YEAR}: rural {np.median(n_hh[~is_urban]):.1f}  "
+                  f"urban {np.median(n_hh[is_urban]):,.0f}")
+            print(f"  settlements at the N = 1 floor: {n_floor:,}")
+            rows += [
+                {"n_mid": n_mid, "quantity": "rho_min", "value": float(rho.min())},
+                {"n_mid": n_mid, "quantity": "rho_median", "value": float(np.median(rho))},
+                {"n_mid": n_mid, "quantity": "rho_mean", "value": float(rho.mean())},
+                {"n_mid": n_mid, "quantity": "rho_max", "value": float(rho.max())},
+                {"n_mid": n_mid, "quantity": f"rural_median_N_hh_{YEAR}",
+                 "value": float(np.median(n_hh[~is_urban]))},
+                {"n_mid": n_mid, "quantity": f"urban_median_N_hh_{YEAR}",
+                 "value": float(np.median(n_hh[is_urban]))},
+                {"n_mid": n_mid, "quantity": "n_settlements_at_floor", "value": n_floor},
+            ]
 
     SUM.mkdir(parents=True, exist_ok=True)
     out_path = SUM / f"{run_label}_paper_numbers.csv"

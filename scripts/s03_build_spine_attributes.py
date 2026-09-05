@@ -1,15 +1,15 @@
 """
 s03_build_spine_attributes.py — settlement spine, stage 3 of 3.
-Stage 2: compute all OnSSET spatial columns on the 270,526-row GRID3 combined spine.
+s03: compute all OnSSET spatial columns on the 270,526-row GRID3 combined spine.
 
-Inputs (from Stage 1b):
+Inputs (from s02):
   data/processed/zambia_grid3_spine_combined.csv   — 270,526 settlements
 
 New grid inputs:
   ZESCO MV distribution lines (Arc 1950 / UTM 35S → datum-transform to EPSG:32735)
   NEP planned MV extensions (EPSG:4326)
 
-Reused layers (same paths as build_zambia_settlements.py):
+Reused layers (paths as listed in docs/04_data_sources.md):
   GHI, WindVel, NightLights, TravelHours, SRTM/Slope, HV transmission,
   transformers, substations, FB predictive MV, OSM roads, hydro
 
@@ -21,7 +21,7 @@ Hard rules:
   - All distance computations in EPSG:32735 (UTM 35S)
   - ZESCO MV must be reprojected with proper datum transform (Arc 1950 → WGS84)
   - No calibration or LCOE computations
-  - Do NOT overwrite Stage 1/1b outputs
+  - Do NOT overwrite the s01 or s02 outputs
 """
 
 import warnings
@@ -157,7 +157,7 @@ def dist_stats(arr, name):
     return stats
 
 # ── Load the combined spine from s02 ──────────────────────────────────────────────────────
-print("\n── S0: Load Stage 1b combined spine ──")
+print("\n── S0: Load the s02 combined spine ──")
 spine = pd.read_csv(SPINE_IN)
 print(f"  Rows: {len(spine):,}   Columns: {list(spine.columns)}")
 assert len(spine) == 270526, f"Expected 270,526 rows, got {len(spine)}"
@@ -419,7 +419,7 @@ print(f"    MV transformers: {len(tx_mv_gdf):,}   MVLV transformers: {len(tx_mvl
       f"→ combined: {len(tx_xy):,}")
 tx_dist  = nn_dist_km(sett_xy, tx_xy)
 tx_stats = dist_stats(tx_dist, "TransformerDist")
-print(f"    Reference: 1 km spine had 30,766 settlements <2 km of transformer")
+print(f"    Settlements within 2 km of a transformer: {(tx_dist < 2.0).sum():,}")
 
 # ── S3.6: SubstationDist — Distribution + HVMV + MVLV substations ────────
 print("\n  [3.6] SubstationDist — all ZESCO substation tiers")
@@ -470,7 +470,7 @@ print(f"    HydropowerDist: {hydro_dist.min():.1f}–{hydro_dist.max():.1f} km  
 print(f"    Hydropower: {hydro_cap.min():.0f}–{hydro_cap.max():.0f} kW")
 
 # ── Assemble the output CSV (OnSSET schema + spine columns) ───────────
-print("\n── S5: Assembling Stage 2 CSV ──")
+print("\n── S5: Assembling the s03 CSV ──")
 
 n = len(spine)
 ZERO = np.zeros(n)
@@ -483,7 +483,7 @@ df = pd.DataFrame({
     "GridCellArea": spine["GridCellArea"].values,
     "Country":      "Zambia",
     "id":           spine["id"].values,
-    # ── Stage-1b extra columns ─────────────────────────────────────────────
+    # ── s02 extra columns ─────────────────────────────────────────────
     "IsUrban":      spine["IsUrban"].values,
     "IsUrban_type": spine["IsUrban_type"].values,
     "Admin_1":      spine["Admin_1"].values,
@@ -543,7 +543,7 @@ df = pd.DataFrame({
     "ResidentialDemandTier5":     ZERO,
 })
 
-# Column order: OnSSET core schema first, then Stage-1b extras
+# Column order: OnSSET core schema first, then s02 extras
 COL_ORDER = [
     "X_deg", "Y_deg", "Pop", "GridCellArea", "Country",
     "ElecPop", "WindVel", "WindCF", "GHI", "TravelHours",
@@ -560,7 +560,7 @@ COL_ORDER = [
     "id", "Conflict", "Admin_1", "MGDist",
     "ElecPopCalib", "ElecStart", "GridDistCalibElec",
     "FinalElecCode2020", "ElecPop2020", "PopStartYear",
-    # Stage-1b extras
+    # s02 extras
     "IsUrban_type", "building_count", "building_area",
     "grid3_type", "pop_density", "source",
 ]
@@ -581,19 +581,9 @@ print(f"  Written: {OUT_GPKG.name}")
 # ── Verification gate ────────────────────────────────────────────────────────
 print("\n── S6: Verification gate ──")
 
-# Optional cross-check against the earlier 1 km spine, if one is present.
-REF_1KM_PATH = ROOT / "data/processed/zambia_settlements.csv"
-
 print(f"\n(a) Row count: {len(df):,}   (expected 270,526)")
 
-if REF_1KM_PATH.exists():
-    ref_cols    = set(pd.read_csv(REF_1KM_PATH, nrows=0).columns)
-    stage2_cols = set(df.columns)
-    print(f"\n(b) Column set vs 1 km spine:")
-    print(f"    In 1km spine but not Stage 2: {sorted(ref_cols - stage2_cols) or 'none'}")
-    print(f"    In Stage 2 but not 1km spine: {sorted(stage2_cols - ref_cols) or 'none'}")
-else:
-    print(f"\n(b) Column set vs 1 km spine: skipped (no 1 km spine present)")
+print(f"\n(b) Column set: {len(df.columns)} columns written")
 
 print(f"\n(c) NaN / inf check in spatial columns:")
 crit = ["GHI", "WindVel", "TravelHours", "Elevation", "Slope",
@@ -626,17 +616,15 @@ print(f"    Pop total:     {df.Pop.sum():,.0f}   (expected ~18.4 M)")
 print(f"    X_deg range:   {df.X_deg.min():.3f}–{df.X_deg.max():.3f}   (Zambia: 21.9–33.8)")
 print(f"    Y_deg range:   {df.Y_deg.min():.3f}–{df.Y_deg.max():.3f}   (Zambia: -18.1–-8.1)")
 
-print(f"\n(e) CurrentMVLineDist — realism check vs 1 km spine:")
+print(f"\n(e) CurrentMVLineDist — realism check:")
 n_mv_2km   = (df.CurrentMVLineDist < 2.0).sum()
 n_mv_2km_pct = 100 * n_mv_2km / len(df)
 print(f"    Settlements within 2 km of MV: {n_mv_2km:,}  ({n_mv_2km_pct:.1f}%)")
 print(f"    ZESCO-only contribution <2 km: {(zesco_dist < 2.0).sum():,}")
-print(f"    (Reference 1 km spine: check compute_grid_distances.py run logs)")
 
 print(f"\n(f) TransformerDist check:")
 n_tx_2km = (df.TransformerDist < 2.0).sum()
 print(f"    Settlements within 2 km of transformer: {n_tx_2km:,}")
-print(f"    (Reference 1 km spine: 30,766 after dense transformer addition)")
 
 print(f"\n(g) PlannedMVLineDist — NEP plan:")
 n_plan_2km = (df.PlannedMVLineDist < 2.0).sum()
@@ -649,6 +637,6 @@ print(f"\n(h) PlannedHVLineDist: proxy = CurrentHVLineDist — no new HV planned
       f"[confirm with ZESCO expansion plans]")
 
 elapsed = time.time() - t0
-print(f"\n── Stage 2 complete in {elapsed:.0f} s ──")
+print(f"\n── s03 complete in {elapsed:.0f} s ──")
 print(f"   Output: {OUT_CSV}")
 print(f"   Output: {OUT_GPKG}")

@@ -11,7 +11,7 @@ settlements. This solves both arms on the wider gate so its effect on the headli
 
 DESIGN
 ------
-  * s04 Variant A re-run with mv_or_gate=True on the stage-2 spine; targets and thresholds
+  * s04 Variant A re-run with mv_or_gate=True on the s03 spine; targets and thresholds
     unchanged.
   * N_hh and PE_ratio recomputed as s05 does (they depend on population only).
   * Both arms at N_mid = 20, config.yaml untouched. The published row is read from the canonical

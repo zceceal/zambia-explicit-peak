@@ -47,8 +47,16 @@ REPO        = os.path.join(PROJECT_ROOT, "data", "onsset_repo")
 # Same fallback as test_index_alignment.py: works whether onsset was `pip install -e`'d
 # (patches/README.md) or the patched source is merely present at data/onsset_repo.
 sys.path.insert(0, REPO)
-from onsset import SettlementProcessor
-from onsset.runner import calibration
+try:
+    from onsset import SettlementProcessor
+    from onsset.runner import calibration
+except ImportError as exc:
+    print("test_onsset_install.py — end-to-end check of the patched OnSSET install\n")
+    print(f"  FAIL  onsset is not importable: {exc}")
+    print(f"\n  This check needs the patched engine. Clone upstream c154ece into")
+    print(f"  {os.path.relpath(REPO, PROJECT_ROOT)}, apply patches/onsset-explicit-peak.patch")
+    print(f"  and pip install -e it — see REPRODUCING.md section 2.")
+    raise SystemExit(1)
 
 SPECS       = os.path.join(REPO, "test", "test_data", "dj-specs-test.xlsx")
 CSV_IN      = os.path.join(REPO, "test", "test_data", "dj-test.csv")
@@ -75,7 +83,7 @@ def main():
     os.makedirs(FIGURES_DIR, exist_ok=True)
 
     # ── Run calibration ──────────────────────────────────────────────────────
-    print("Step 1: Running calibration ...")
+    print("[1/3] Running calibration ...")
     with tempfile.TemporaryDirectory() as tmpdir:
         specs_calib = os.path.join(tmpdir, "dj-specs-calib.xlsx")
         csv_calib   = os.path.join(tmpdir, "dj-calibrated.csv")
@@ -91,7 +99,7 @@ def main():
             sys.exit(1)
 
         # ── Row-count and calibrated-column checks ───────────────────────────
-        print("\nStep 2: Structural checks on calibrated output ...")
+        print("\n[2/3] Structural checks on calibrated output ...")
         df = pd.read_csv(csv_calib)
         n_in = len(pd.read_csv(CSV_IN))
 
@@ -118,7 +126,7 @@ def main():
             check(f"No NaN in '{elec_pop_col}'", n_nan == 0, f"{n_nan} NaN found")
 
         # ── Settlement map (GHI choropleth + electrification status) ─────────
-        print("\nStep 3: Producing settlement map ...")
+        print("\n[3/3] Producing settlement map ...")
         try:
             fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 
