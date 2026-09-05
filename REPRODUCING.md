@@ -141,7 +141,8 @@ python scripts/s12c_summarise_2050.py scripts/outputs/2050only_grid3_lcoe_R0.csv
 
 python scripts/s08_run_global_sensitivity.py     # Morris + LHS; ~64 min       -> needed by s09, s13
                                                   # measured 63.4 min (2026-08-28 clean-room run)
-# s08 prints the bias-correction factor. Set BIAS_FACTOR in s09 from it before running s09.
+# s08's bias-correction factor and every gate in s08 and s09 that used to be a hard-coded headline
+# now read it at run time from the s06 outputs via onsset_helpers.central_headline() — no manual step.
 python scripts/s09_run_oat_checks.py             # grid-side OAT               -> needed by s13
                                                   # ~2 min per arm; --lhs-only runs the LHS validation block
                                                   # alone. Per-variant times are in the elapsed_s column of
@@ -189,15 +190,18 @@ python scripts/s24_switcher_profile.py                      # switcher profile: 
 python scripts/s23_summarise_variants.py                    # Tier-2, 2050, anchor-fitted, schedule, reinvestment and
                                                               # single-household summaries from existing outputs, no re-solve
                                                               # -> 2026-09-02_variant_summaries.csv
-python scripts/check_spine_integrity.py                     # 21 hard checks on the spine, no re-run
+python scripts/check_spine_integrity.py                     # 22 hard checks on the spine, no re-run
+python scripts/s25_collect_summaries.py                     # copies the s06/s08/s09/s10/s11 summary CSVs
+                                                              # from data/onsset_outputs/ into results/summary/;
+                                                              # last step of every full run
 ```
 
 `s15 --self-test` (100.000% agreement, instant) then `smooth` and `monotone` measured 4.5 min and 4.3
 min respectively.
 
-`s16` returns +50.56% against the +49.92% headline: repricing the only channel that carries the effect
-by 5.9% moves the result by 0.64 pp. `s17` returns **+49.37%** with **34,461** stand-alone-to-grid
-switches (re-run 2026-08-27, exact two-point solve, after correcting the Zambian calibration point —
+`s16` returns +45.93% against the +45.38% headline: repricing the only channel that carries the effect
+by 5.9% moves the result by 0.55 pp. `s17` returns **+44.81%** with **33,645** stand-alone-to-grid
+switches (33,639 shared with the central switch set; re-run 2026-08-27, exact two-point solve, after correcting the Zambian calibration point —
 see below), inside the swept band, and removes the `N_mid` assumption by fitting the curve to the
 metered Tum mini-grid and Zambia's own IRP national residential load-factor assumption instead (the
 IRP states residential load factor as constant at 68.5%; it does not measure a national peak-to-mean
@@ -208,7 +212,7 @@ planning parameter, not an independent observation). The point (rho = 1.4587 at
 N ~ 1.0e6, IRP Table 3.01) implies a solved equivalent `N_mid` of 19.49, next to the central case's
 assumed 20, rather than the 10.6 implied by the old, misattributed figure.
 `s18` perturbs the census rural household size (5.0) by ±10% and returns
-**+48.10%** with 33,605 stand-alone-to-grid switches at 4.5 persons, and **+51.62%** with 34,694
+**+43.58%** with 32,845 stand-alone-to-grid switches at 4.5 persons, and **+46.95%** with 33,858
 switches at 5.5 — a band narrower than the `N_mid` sweep, so household size is not a material driver
 of the headline.
 
@@ -240,30 +244,30 @@ every number in this section and in the paper's Table 2, §3.1 and §3.2. **Do n
 the paper states 62.8%. `s14`'s own technology-split table and `2026-08_final_lcoe_paper_numbers.csv`
 use `Pop2030` throughout and reproduce the paper's figures exactly.
 
-All values below are from the run of 2026-08-16, the first with the index-alignment defect of §7
-corrected.
+All values below are from the run of 2026-09-05, with N evaluated at the analysis-year (2030)
+population throughout (§2 of `docs/01_pipeline.md`).
 
 From `s06`, on the 2030 columns, at rural Tier 3 and `N_mid = 20`, over 270,526 settlements:
 
 | Quantity | R0 (energy-only) | R1 (explicit peak) | Change |
 |---|---|---|---|
-| Energy-weighted LCOE | 0.2757 USD/kWh | 0.4133 USD/kWh | **+49.92%** |
-| Aggregate investment to 2030 | USD 15.58 bn | USD 22.68 bn | +45.59% |
-| New capacity to 2030 | 2,664 MW | 2,743 MW | +2.95% |
-| Settlements changing technology | — | — | 34,461 (12.74%) |
+| Energy-weighted LCOE | 0.2757 USD/kWh | 0.4008 USD/kWh | **+45.38%** |
+| Aggregate investment to 2030 | USD 15.58 bn | USD 22.00 bn | +41.21% |
+| New capacity to 2030 | 2,664 MW | 2,706 MW | +1.57% |
+| Settlements changing technology | — | — | 33,665 (12.45%) |
 
-Every one of the 34,461 moves is stand-alone PV to grid; no other transition occurs. They carry
-0.44 M people, 1.8% of the 2030 population.
+Every one of the 33,665 moves is stand-alone PV to grid; no other transition occurs. They carry
+0.43 M people, 1.8% of the 2030 population.
 
-Technology split at 2030 — grid 32,058 → 66,519 settlements, stand-alone PV 236,843 → 202,382,
+Technology split at 2030 — grid 32,058 → 65,723 settlements, stand-alone PV 236,843 → 203,178,
 mini-grid PV hybrid 1,625 in both arms.
 
-`N_mid` sweep: **+34.1% / +49.9% / +70.6%** for `N_mid` 10 / 20 / 50, with 33,603 / 34,461 / 34,862
+`N_mid` sweep: **+30.0% / +45.4% / +66.1%** for `N_mid` 10 / 20 / 50, with 32,214 / 33,665 / 34,342
 settlements moving from stand-alone solar to grid. The switch count is stable across the sweep; the
 cost change is not, because `N_mid` governs how many settlements cross the 1 kW per household step in
 OnSSET's stand-alone capital-cost schedule (`s15` quantifies this).
 
-From `s07`, rural Tier 2: **−2.2% / +3.3% / +8.4%** across the same sweep, with 12 / 72 / 436
+From `s07`, rural Tier 2: **−3.7% / +1.9% / +7.2%** across the same sweep, with 9 / 47 / 298
 switches. The script's verdict is `FRAGILE: direction or sign reversal at Tier 2`. This is a boundary
 condition, not a confirmation: at Tier 2 no settlement crosses the capital-cost step, OnSSET's tier
 table already assumes ρ = 2.50 rather than 2.00, and stand-alone settlements carry 7.5% of national
@@ -272,13 +276,13 @@ energy rather than 17.5%.
 From `s12` `2050only`, at the projected 2050 population: **+34.9%** central with 32,157 switches,
 sweep band **+23.1% to +50.9%** across `N_mid` ∈ {10, 50}. Note that this band overlaps the 2030 band.
 
-From `s08`: LHS (200 samples, bias-corrected) 5th–50th–95th **+23.7% / +55.5% / +77.2%**. Morris μ*
-ranking Rural_tier (60.1) > N_mid (14.5) > MaxGridDist_km (10.7) > SA_PV_capex_mult (6.2) >
-Discount_rate (2.2) > Diesel_price (0.0). ΔLCOE% itself was positive in all 56 underlying model
-evaluations; individual elementary effects are not all positive (16 of 48 are negative, chiefly for
+From `s08`: LHS (200 samples, bias-corrected) 5th–50th–95th **+21.1% / +50.4% / +75.2%**. Morris μ*
+ranking Rural_tier (57.4) > N_mid (15.1) > MaxGridDist_km (9.9) > SA_PV_capex_mult (5.9) >
+Discount_rate (2.1) > Diesel_price (0.0). ΔLCOE% itself was positive in all 56 underlying model
+evaluations; individual elementary effects are not all positive (15 of 48 are negative, chiefly for
 Discount_rate and MaxGridDist_km, whose higher settings reduce the effect) — the two claims are about
 different quantities. The
-emulator failed its own validation threshold (RMSE 11.44 pp against a 5.0 pp limit, R² = 0.524) and
+emulator failed its own validation threshold (RMSE 11.61 pp against a 5.0 pp limit, R² = 0.523) and
 all 200 samples were therefore evaluated with the full model — check the `method` column is
 `full_OnSSET` throughout.
 
@@ -324,8 +328,8 @@ investment were wrong by orders of magnitude. Diagnosis and verification:
 | stand-alone settlements satisfying `capacity = E / (ATR x GHI)` | **14.137%** | **100.000%** |
 | total stand-alone capacity, R0 | 5,186 MW | 1,087 MW |
 | total investment, R0 | USD 75.5 bn | USD 15.58 bn |
-| headline ΔLCOE% | +36.87% | +49.92% |
-| stand-alone-to-grid switches | 17,787 | 34,461 |
+| headline ΔLCOE% | +36.87% | +45.38% |
+| stand-alone-to-grid switches | 17,787 | 33,665 |
 
 The defect suppressed the effect being measured rather than creating it, and it produced the
 "capital falls while lifetime cost rises" result; corrected,
@@ -360,7 +364,7 @@ the procedure OnSSET applies when a transformer layer is supplied; `s04 --self-t
 every settlement. The wider transformer-or-MV gate, which admits 1,186 further lit settlements
 (8,662) by replacing `TransformerDist` with `min(TransformerDist, CurrentMVLineDist)` on 247,676
 rows, is available as `run_variant(mv_or_gate=True)` and solved as a sensitivity by `s21`:
-**+50.8709%, 34,153 switches** against the published **+49.9231%, 34,461**. Its calibration file is
+**+46.2363%, 33,367 switches** against the published **+45.3775%, 33,665**. Its calibration file is
 committed beside the published one as `zambia_grid3_calib_distgate_txORmv_REJECTED.csv`.
 
 ## Reproducibility: the hybrid-LUT cache (fixed 2026-08-12)
@@ -389,19 +393,19 @@ re-solved values are in `2026-09-02_lhs_fullspine_validation.csv`).
 **Cost.** Rebuilding the table adds roughly two minutes per arm, so the OAT block runs in about 35
 minutes rather than 19.
 
-**Re-run completed, 2026-08-16**, after the index-alignment fix of §7. The central variant reproduced
-`s06` to six decimal places and **exactly 34,461** switches — the switch-count gate passed with zero
-residual. The values below are read from
+**Re-run completed, 2026-09-05**, with N evaluated at the analysis-year population (§2 of
+`docs/01_pipeline.md`). The central variant reproduced `s06` to six decimal places and **exactly
+33,665** switches — the switch-count gate passed with zero residual. The values below are read from
 `results/summary/2026-08_final_oat_grid_costs.csv`, the canonical run.
 
 | variant | grid_cap_cost | grid_gen_cost | ΔLCOE% | switches |
 |---|---|---|---|---|
-| central | 1441.10 | 0.013 | 49.923139 | 34,461 |
-| cap−30pct | 1008.77 | 0.013 | 49.923139 | 34,461 |
-| cap+30pct | 1873.43 | 0.013 | 49.923139 | 34,461 |
-| gen−drought | 1441.10 | 0.050 | 45.649720 | 35,092 |
+| central | 1441.10 | 0.013 | 45.377527 | 33,665 |
+| cap−30pct | 1008.77 | 0.013 | 45.377527 | 33,665 |
+| cap+30pct | 1873.43 | 0.013 | 45.377527 | 33,665 |
+| gen−drought | 1441.10 | 0.050 | 41.498329 | 34,316 |
 
-gen−drought against central: −4.27 pp on ΔLCOE% and +1.83% on switches.
+gen−drought against central: −3.88 pp on ΔLCOE% and +1.93% on switches.
 
 The two capacity-cost rows are identical to central to six decimal places, and necessarily so: OnSSET
 accumulates `grid_capacity_investment` into the reported investment total but not into the discounted

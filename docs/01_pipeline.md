@@ -20,13 +20,17 @@ itself numbers only its notebooks and leaves its package modules unnumbered.
 | 07 | `s07_run_demand_sensitivity.py` | Repeats the comparison at rural Tier 2 (219 kWh/HH/yr). One changed value; everything else identical | Tier-2 outputs |
 | 08 | `s08_run_global_sensitivity.py` | Morris elementary-effects screen (6 parameters, 8 trajectories, 56 paired evaluations) plus Latin-hypercube uncertainty propagation | sensitivity results |
 | 09 | `s09_run_oat_checks.py` | One-at-a-time checks on the grid side, and full-spine validation of the sensitivity subsample bias correction | OAT results |
-| 10 | `s10_run_sizing_decomposition.py` | Post-processes existing outputs to recompute the headline with only a fraction `f` of stand-alone capital scaled by peak. Produces the +21.0% / +30.6% / +49.9% band | f-band |
+| 10 | `s10_run_sizing_decomposition.py` | Post-processes existing outputs to recompute the headline with only a fraction `f` of stand-alone capital scaled by peak. Produces the +19.1% / +27.9% / +45.4% band | f-band |
 | 11 | `s11_run_drought_oat.py` | Re-runs the grid-cost OAT at 2024 drought import prices (0.17–0.26 USD/kWh) | drought OAT |
 | 12 | `s12_run_2050_horizon.py` | Re-solves both arms at the projected 2050 population. Helpers: `s12a` builds the 2050 peak ratios, `s12b` the 2050 spine, `s12c` summarises | 2050 outputs |
 | 13 | `s13_generate_figures.py` | Regenerates every figure in the paper from current outputs | figures |
+| 14–24 | standalone analyses | Robustness variants and reporting that read existing outputs rather than the run order above (capex-curve, corrected-conventions, fitted-anchors, household-size, band-and-channel, provincial-rho, calibration-gate, MV-layer, variant-summary and switcher-profile scripts) | `results/summary/*.csv` |
+| 25 | `s25_collect_summaries.py` | Copies the summary CSVs `s06`, `s08`, `s09`, `s10` and `s11` write into `data/onsset_outputs/` (git-ignored) into `results/summary/` (committed). Last step of every full run | committed summaries |
 
 One supporting module sits alongside them: `scripts/onsset_helpers.py` holds the shared loaders (solar
-and wind profiles, config) used from stage 06 onward.
+and wind profiles, config) used from stage 06 onward. Every gate that used to compare against a
+hard-coded headline value — in `s08`, `s09` and `fig_r0r1_allocation_map.py` — now reads it at run
+time from the `s06` outputs via `onsset_helpers.central_headline()`.
 
 ## The intervention, in detail (stage 05)
 
@@ -36,6 +40,15 @@ and wind profiles, config) used from stage 06 onward.
   curve's exponent from the measured anchors, and `pe_from_n()` returns the ratio for a given
   connection count.
 Stage 05 applies that curve across the spine and writes the `PE_ratio` column.
+
+`N_hh = max(1, Pop2030 / household_size)`, with `Pop2030` the engine's own projection
+(`SettlementProcessor.project_pop_and_urban`) from `PopStartYear` — not the base-year population.
+`s05` writes `Pop2030`, `N_hh` and a reference column `N_hh_2020` (evaluated at the base-year
+population, kept for comparison only) to the settlement dataset. `s06`, `s12` and every other solve
+assert, on every settlement, that the spine's `Pop2030` equals the engine's own projection before
+solving — a guard against sizing peaks on a different population from the one the energy demand is
+computed on. The 2050 spine (`s12b`) is built the same way, from the 2050 scenario (38,083,385
+people, urban share 0.672).
 
 OnSSET then reads that column as a per-settlement `base_to_peak_load_ratio` (= 1 / `PE_ratio`) in
 place of the single scalar it would otherwise use. **The allocation engine's cost equations are
@@ -64,8 +77,8 @@ uses a single-year endpoint run (`time_step = 30`) instead.
 
 Two reporting cautions.
 
-- **Capital and lifetime cost move together.** Under explicit peaks investment rises 45.6% and
-  capacity 2.9%, alongside the 49.9% rise in lifetime cost. This is the physically expected direction:
+- **Capital and lifetime cost move together.** Under explicit peaks investment rises 41.2% and
+  capacity 1.6%, alongside the 45.4% rise in lifetime cost. This is the physically expected direction:
   higher peaks require more capacity, which costs more to build. Figures produced before the
   2026-08-16 index-alignment fix showed capital falling; see REPRODUCING.md section 7.
 - **Per-connection cost is now quotable, with one caveat.** The outlier problem is gone: no settlement
