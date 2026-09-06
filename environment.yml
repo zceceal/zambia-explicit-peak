@@ -16,6 +16,11 @@ dependencies:
   - pyogrio>=0.7
   - shapely>=2.0
   - geopandas>=0.14
+  - numba>=0.60
+  - setuptools<81
+  - geojson
+  - requests
+  - pytest
   - pip
 
 # OnSSET is not installed from PyPI. Build it from upstream commit c154ece with the

@@ -27,9 +27,9 @@ of the design: only the peak representation differs, so anything shared cancels 
 | Grid T&D losses | 15 | % | Egli et al. 2023, Table S8 (Zambia) |
 | Stand-alone PV capital cost | 4,470–9,620 | USD/kW, size-banded | OnSSET/GEP default set |
 | Battery storage | 300 | USD/kWh | NREL (2025) mid case; not swept directly (`s08` sweeps a stand-alone PV capex multiplier) |
-| Mini-grid PV capital cost | 1,400 | USD/kW | OnSSET default (`onsset_helpers.py:542`), not a repository dial |
+| Mini-grid PV capital cost | 1,400 | USD/kW | OnSSET default (`onsset_helpers.py:539`), not a repository dial |
 | Diesel price | 1.90 | USD/litre | Zambia ERB, May 2026. Swept ±20% |
-| Technology lives | SA-PV 5 yr, mini-grid 20 yr | years | OnSSET default (`onsset_helpers.py:490`, `:498`), not a repository dial |
+| Technology lives | SA-PV 5 yr, mini-grid 20 yr | years | OnSSET default (`onsset_helpers.py:487`, `:495`), not a repository dial |
 
 **Important:** the off-grid cost parameters are **byte-identical to the official OnSSET/GEP defaults**.
 They are not tuned. They are the same values the World Bank's Global Electrification Platform and the
@@ -54,7 +54,7 @@ same source, so the two are consistent.
 | Variable | Value | Source |
 |---|---|---|
 | Maximum grid-extension distance | 10 km | OnSSET/GEP convention. Swept [5, 20] km |
-| Reliability target | 0.963 | OnSSET default (`onsset_helpers.py:713`), not a repository dial; cost of non-served energy = 0 |
+| Reliability target | 0.963 | OnSSET default (`onsset_helpers.py:710`), not a repository dial; cost of non-served energy = 0 |
 | Annual grid build rate | unconstrained | See `03_assumptions.md` |
 | Start year | 2020 | — |
 | Analysis years | 2030, 2035 | **Use the 2030 columns.** See `01_pipeline.md` |
