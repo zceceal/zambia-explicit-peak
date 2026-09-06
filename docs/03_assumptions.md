@@ -150,12 +150,3 @@ present-day values**, changing only the population and its urban/rural split.
 Real 2050 conditions would very likely include further solar and battery cost declines, which would
 push more settlements toward peak-tolerant technologies and **erode the peak penalty further**. The
 measured erosion of the cost penalty — roughly a quarter — is therefore a **lower bound**, not a central estimate.
-
----
-
-## One-line summary
-
-The model's direction rests on physics and survives every test applied at Tier 3; at Tier 2 it
-reverses sign at `N_mid` = 10 (Section 2.4), which is where the finding stops. Its magnitude rests on
-a sizing convention inherited from the standard tool, and is reported as a range for that reason. Its
-one unmeasured parameter is swept across a full decade and ranks second of the six screened.

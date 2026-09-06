@@ -201,8 +201,7 @@ def main(run_label):
             ]
 
         # ── Derived quantities the paper quotes in §3.1–§3.4 ──────────────────────
-        # Each of these was previously computed at run time or by hand; committed here
-        # so results/summary/ carries a machine-readable source for every one.
+        # Committed so results/summary/ carries a machine-readable source for every one.
         # N is Pop/NumPeoplePerHH floored at 1: OnSSET prices a settlement as at least
         # one connection, so the floored count is what the model actually costs.
         if central:

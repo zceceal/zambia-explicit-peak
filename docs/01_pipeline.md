@@ -49,9 +49,9 @@ Three acceptance checks sit outside the run order and re-solve nothing:
 | `check_mv_sources.py` | Which of the three MV layers sets each settlement's distance | the spine plus the raw ZESCO and Meta layers | `results/summary/2026-09-02_mv_distance_sources.csv` |
 
 One supporting module sits alongside them: `scripts/onsset_helpers.py` holds the shared loaders (solar
-and wind profiles, config) used from stage 06 onward. Every gate that used to compare against a
-hard-coded headline value — in `s08`, `s09` and `fig_r0r1_allocation_map.py` — now reads it at run
-time from the `s06` outputs via `onsset_helpers.central_headline()`.
+and wind profiles, config) used from stage 06 onward. The gates in `s08`, `s09` and
+`fig_r0r1_allocation_map.py` read the central headline at run time from the `s06` outputs, via
+`onsset_helpers.central_headline()`, rather than against a hard-coded value.
 
 ## The intervention, in detail (stage 05)
 
@@ -100,12 +100,12 @@ Two reporting cautions.
 - **Capital and lifetime cost move together.** Under explicit peaks investment rises 41.2% and
   capacity 1.6%, alongside the 45.4% rise in lifetime cost. This is the physically expected direction:
   higher peaks require more capacity, which costs more to build.
-- **Per-connection cost is now quotable, with one caveat.** The outlier problem is gone: no settlement
-  exceeds $1 bn of investment, and `InvestmentPerConnection2030` has a mean of \$7,170 against a median
-  of \$7,120 — a ratio of 1.01, i.e. no skew. The aggregate is \$4,159 per new connection. The remaining
-  caveat is a period mismatch, which is real and must be stated whenever an absolute figure is
-  quoted: `InvestmentCost2030` spans the full 2020–2035 horizon, including a second stand-alone
-  installation, while `NewConnections2030` counts households connected in the 2020–2030 step only.
+- **Per-connection cost carries a period mismatch.** `InvestmentPerConnection2030` has a mean of
+  \$7,170 against a median of \$7,120 — a ratio of 1.01, i.e. no skew — and no settlement exceeds
+  \$1 bn of investment; the aggregate is \$4,159 per new connection. The mismatch must be stated
+  whenever an absolute figure is quoted: `InvestmentCost2030` spans the full 2020–2035 horizon,
+  including a second stand-alone installation, while `NewConnections2030` counts households connected
+  in the 2020–2030 step only.
 
 ## Which technologies actually compete
 

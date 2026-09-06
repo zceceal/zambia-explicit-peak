@@ -39,8 +39,6 @@ Both variants share the same urban/population calibration step:
     base_year_population_realised.
   UrbanRatioStartYear = 0.437 (UN WPP 2024)
 
-Do NOT run LCOE. Do NOT modify the s03 spine.
-
     python scripts/s04_calibrate_base_year.py               # runs both variants, writes both outputs
     python scripts/s04_calibrate_base_year.py --self-test   # writes nothing; re-runs Variant A to a
                                                             # scratch file and checks it reproduces

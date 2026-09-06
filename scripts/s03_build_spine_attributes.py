@@ -17,11 +17,10 @@ Outputs:
   data/processed/zambia_grid3_spine_stage2.csv
   data/processed/zambia_grid3_spine_stage2.gpkg
 
-Hard rules:
+Conventions the code enforces:
   - All distance computations in EPSG:32735 (UTM 35S)
-  - ZESCO MV must be reprojected with proper datum transform (Arc 1950 → WGS84)
-  - No calibration or LCOE computations
-  - Do NOT overwrite the s01 or s02 outputs
+  - ZESCO MV is reprojected with a full Helmert datum transform (Arc 1950 → WGS84); step S3.2a
+    raises RuntimeError if the post-transform bounds fall outside Zambia
 """
 
 import warnings

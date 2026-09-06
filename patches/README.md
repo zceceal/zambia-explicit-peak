@@ -13,21 +13,21 @@ at `data/onsset_repo` (local only, not pushed) — verified byte-identical to ap
 
 ## What the patch does
 
-**`onsset.py` line ~909 — the correctness fix (added 2026-08-16).**
+**`onsset.py` line ~909 — the correctness fix.**
 `condition_df()` sorted the settlements without resetting the index, so peak load was divided by a
 different settlement's capacity factor. `REPRODUCING.md` §7 sets out the mechanism, why it stayed
 hidden, and what it cost.
 
 The correction is one line: `self.df.reset_index(drop=True, inplace=True)`.
 
-**`onsset.py` line ~2519 — the guard (added 2026-08-16).**
+**`onsset.py` line ~2519 — the guard.**
 `SettlementProcessor._assert_positional_index()` raises if row positions and index labels ever
 diverge, and is called at the start of `calculate_off_grid_lcoes` and of
 `calculate_investments_and_capacity`. Its purpose is that this class of defect can never again fail
 silently: it becomes a crash with an explanatory message rather than a plausible wrong number.
 `test/test_index_alignment.py` is the matching regression test.
 
-**`onsset.py` lines ~504 and ~1493 — the medium-voltage line-count correction (added 2026-08-16).**
+**`onsset.py` lines ~504 and ~1493 — the medium-voltage line-count correction.**
 `no_of_mv_lines` was computed against `mv_amperage = service_transf_type / mv_line_type`, which
 algebraically reduces to `ceil(peak_load / service_transf_type)` — i.e. it counted parallel
 MEDIUM-VOLTAGE feeders against the rating of a 75 kVA distribution *transformer*, not against the MV

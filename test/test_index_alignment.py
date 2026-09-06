@@ -1,10 +1,9 @@
 """
-test_index_alignment.py — regression test for the 2026-08-16 index-alignment defect.
+test_index_alignment.py — regression test for the index-alignment defect.
 
 `SettlementProcessor.condition_df()` sorted the frame without resetting the index, so inside
-`Technology.get_lcoe()` a positionally-labelled `peak_load` met a label-indexed `capacity_factor`
-and every settlement's peak load was divided by a different settlement's capacity factor.
-REPRODUCING.md §7 sets out the mechanism, why it stayed hidden, and what it cost.
+`Technology.get_lcoe()` a positionally-labelled `peak_load` met a label-indexed `capacity_factor`.
+REPRODUCING.md §7 sets out the mechanism and the guard rails.
 
 The three checks below pin, in order: the pandas behaviour that caused it, that `condition_df()`
 now leaves a clean RangeIndex, and that the model's own `NewCapacity2030` satisfies the closed

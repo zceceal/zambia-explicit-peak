@@ -4,9 +4,6 @@ s07_run_demand_sensitivity.py — demand sensitivity: rural Tier 2 (219 kWh/HH/y
 ONE change vs s06: rural_tier_large = rural_tier_small = 2 (was 3).
 Everything else — spine, PE sub-model, cost params, seeds — is identical.
 
-This is a sensitivity run, NOT a replacement.  s06 (Tier 3) outputs
-are NOT overwritten.
-
 Outputs:
   data/onsset_outputs/2026-08_final_lcoe_R0_ruralT2.csv
   data/onsset_outputs/2026-08_final_lcoe_R1_ruralT2_n10.csv
@@ -18,6 +15,7 @@ Outputs:
 
 import sys
 import time
+from datetime import date
 import warnings
 from pathlib import Path
 
@@ -257,7 +255,7 @@ def main():
     )
 
     notes_path.write_text(f"""\
-# Demand sensitivity: Tier 3 vs Tier 2 (rural Zambia) — 2026-07-02
+# Demand sensitivity: Tier 3 vs Tier 2 (rural Zambia) — {date.today().isoformat()}
 
 
 ## What changed

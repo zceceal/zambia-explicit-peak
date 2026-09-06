@@ -21,10 +21,9 @@ Gate criteria:
   5. No NaN in coordinate or calibrated-population columns
   6. Map saved to figures/data_checks/fig_sanity_dj_settlements.png
 
-NOTE: FinalElecCode / NewCapacity / InvestmentCost / NewConnections are scenario
-output columns.  Full numerical validation of those against real Zambia outputs is
-deferred to the R0 baseline gate (vs Imasiku 2025 + Mentis 2017).  This check
-validates that calibration runs cleanly and the spatial pipeline is intact.
+This check validates that calibration runs cleanly and the spatial pipeline is
+intact; it does not validate the scenario output columns (FinalElecCode,
+NewCapacity, InvestmentCost, NewConnections).
 
 Run from the project root:
     python test/test_onsset_install.py

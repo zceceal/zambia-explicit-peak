@@ -223,7 +223,7 @@ def apply_pv_hybrid_lookup(onsseter, lcoe_lut, inv_lut, cap_lut,
     p_col  = SET_POP + str(year)
     fc_col = SET_ELEC_FINAL_CODE + str(year - time_step)
 
-    # NOTE (2026-08-16): a units mismatch, left in place deliberately. This test is on
+    # NOTE: a units mismatch, left in place deliberately. This test is on
     # POPULATION (p_col), whereas onsset.py's calculate_off_grid_lcoes gates the same
     # technology on HOUSEHOLDS (Pop / NumPeoplePerHH) against the same constant. With
     # min_mg_size = 100 the household test is ~5x stricter and always binds afterwards, so
@@ -333,7 +333,7 @@ def apply_wind_hybrid_lookup(onsseter, lcoe_lut, inv_lut, cap_lut,
     p_col  = SET_POP + str(year)
     fc_col = SET_ELEC_FINAL_CODE + str(year - time_step)
 
-    # NOTE (2026-08-16): same population-vs-household units mismatch as the PV-hybrid path
+    # NOTE: same population-vs-household units mismatch as the PV-hybrid path
     # above; the household gate in onsset.py binds first, so this has no effect on results.
     potential_mg = np.where(
         ((onsseter.df[p_col] > mg_wind_hybrid_params["min_mg_connections"])
@@ -700,7 +700,7 @@ def run_arm(arm: str, spine_path: Path, cfg: dict,
         if arm == "R1" and "PE_ratio" in onsseter.df.columns:
             pe = onsseter.df["PE_ratio"].clip(lower=0.1)
             onsseter.df[SET_AVERAGE_TO_PEAK] = (1.0 / pe).clip(upper=1.0)
-            # GUARD (2026-08-16): must follow calculate_demand, which resets this column
+            # GUARD: must follow calculate_demand, which resets this column
             # to the tier table. See the identical guard in s06_run_arms.py.
             assert onsseter.df[SET_AVERAGE_TO_PEAK].nunique() > 100, (
                 "R1 arm but AverageToPeakLoadRatio is (near-)uniform - override ran "

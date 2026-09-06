@@ -1,13 +1,14 @@
 """
-s02_build_spine_dispersed.py — settlement spine, stage 2 of 3.
-s02 — population conservation: add dispersed-rural settlements.
+s02_build_spine_dispersed.py — settlement spine, stage 2 of 3: dispersed-rural population.
 
 The s01 cluster spine captures 81.83% of WorldPop (settlement-polygon pixels).
 This script recovers the 18.17% residual (pixels outside all GRID3 polygons)
 by aggregating them to 0.025° coarse cells (~2.8 km), producing a combined
 spine that reconciles to the national WorldPop total.
 
-Run with the project venv:
+Reads:  data/processed/zambia_grid3_spine_stage1.csv
+Writes: data/processed/zambia_grid3_spine_combined.csv (+ .gpkg) — 270,526 settlements
+
   python scripts/s02_build_spine_dispersed.py
 """
 
@@ -17,6 +18,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 import time
+from datetime import date
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -322,7 +324,7 @@ notes_dir.mkdir(parents=True, exist_ok=True)
 
 notes = f"""# GRID3 Spine, dispersed-rural pass (s02) — Run Notes
 
-**Date:** 2026-06-28
+**Date:** {date.today().isoformat()}
 **Script:** `scripts/s02_build_spine_dispersed.py`
 **Outputs:**
 - `data/processed/zambia_grid3_spine_combined.csv` — combined spine (clusters + dispersed)

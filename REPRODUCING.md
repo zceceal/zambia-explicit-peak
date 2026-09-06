@@ -40,7 +40,7 @@ no reported number — `MG_Wind` is zero settlements in every technology split, 
 reproduced alike — but it means a reader watching a run for the first time will see a large traceback
 printed for every arm, and on an environment where numba treats this as a hard error rather than a
 caught exception the pipeline would stop. Confirmed independently in a from-scratch clean-room clone
-2026-08-28/29.
+(§8).
 
 ## 2. OnSSET, with the patch
 
@@ -48,13 +48,11 @@ The allocation engine is OnSSET at upstream commit `c154ece`. The exact modifica
 commit `cd64900445feb6a41c03c86cfe3d46c2d30cfee8` on the `explicit-peak-thesis` branch of the vendored
 copy at `data/onsset_repo` — a local branch, not pushed to any remote, built directly on top of
 upstream `c154ece` with no rewriting of upstream history. `patches/onsset-explicit-peak.patch` is the
-human-readable record of that same commit, regenerated 2026-08-24 as `git diff c154ece cd64900` so it
+human-readable record of that same commit, generated as `git diff c154ece cd64900` so it
 reconstructs the engine byte-for-byte (verified: applying it to a clean `c154ece` checkout and diffing
 the result against the live `onsset.py` returns no difference). **The results do not reproduce without
 it.** It makes six changes, all documented inline at the point of change and set out in
-`patches/README.md`. One of them, `CORRECTED_CONVENTIONS["full_reinvestment"]`, defaults to `False`:
-the central case and every other reported number reproduce unmodified OnSSET's convention, and only
-`scripts/s16_run_corrected_conventions.py` sets it `True`.
+`patches/README.md`.
 
 Reproducers with access to the vendored copy and its branch can check out `cd64900` directly. Anyone
 else clones upstream and applies the patch, which is verified equivalent:
@@ -95,8 +93,8 @@ python scripts/s06_run_arms.py                 # the headline R0 vs R1 compariso
 run 2026-08-28. `s06`'s four arms (R0, R1 at `N_mid` 10/20/50) measured **~9–15 min** in that same run.
 Treat single-run timings here as indicative, not as clean benchmarks: they are machine-load dependent.
 
-**Check `s06` before going further.** The acceptance test below must print ~100%; it printed 14.137%
-under the defect described in §7, and every downstream number would be wrong:
+**Check `s06` before going further.** The acceptance test below must print ~100%. A lower figure
+means the index-alignment invariant of §7 has been violated and every downstream number is wrong:
 
 ```bash
 python scripts/check_index_alignment.py data/onsset_outputs/<run>_R0.csv
@@ -119,10 +117,10 @@ python scripts/s12_run_2050_horizon.py 2050only        # R0 + R1_n20
 python scripts/s12_run_2050_horizon.py 2050only_sweep  # R1_n10 and R1_n50; reuses that R0
 python scripts/s12c_summarise_2050.py scripts/outputs/2050only_grid3_lcoe_R0.csv \
     scripts/outputs/2050only_grid3_lcoe_R1_n20.csv 2050
-# s12a+s12b+both s12 horizon runs measured ~8 min total (2026-08-28 clean-room run)
+# s12a+s12b+both s12 horizon runs measured ~8 min total
 
 python scripts/s08_run_global_sensitivity.py     # Morris + LHS; ~64 min       -> needed by s09, s13
-                                                  # measured 63.4 min (2026-08-28 clean-room run)
+                                                  # measured 63.4 min
 # s08's bias-correction factor and every gate in s08 and s09 read the central headline at run time
 # from the s06 outputs, via onsset_helpers.central_headline() — no manual step.
 python scripts/s09_run_oat_checks.py             # grid-side OAT               -> needed by s13
@@ -131,19 +129,16 @@ python scripts/s09_run_oat_checks.py             # grid-side OAT               -
                                                   # block, so without s08 there is no OAT table.
                                                   # ~2 min per arm; --lhs-only runs the LHS validation block
                                                   # alone. Per-variant times are in the elapsed_s column of
-                                                  # each block's results/summary CSV; they are machine-load
-                                                  # dependent and are not upper bounds.
+                                                  # each block's results/summary CSV.
 python scripts/s13_generate_figures.py           # last: reads s07, s08 and s09 outputs; measured 36.4s
 python scripts/fig_r0r1_allocation_map.py [run-label]   # paper Figure 2: R0/R1 technology allocation maps
 ```
 
-No advance runtime or memory figure is available for any other stage above or below (`s02`, `s04`,
-`s14`, `fig_r0r1_allocation_map.py`, `s19`, `s20`, the acceptance checks, or the tests) — none is
-recorded anywhere in the repository, so none is stated here rather than estimated. `s01`, `s03`, `s07`,
-`s08`, `s09`, `s10` (6.8s), `s12`/`s12a`/`s12b`/`s12c`, `s13`, `s15`, `s16`, `s17` and `s18` are all
-measured above or below, from an independent clean-room reproduction 2026-08-28/29 — see also §8.
-Those measured stages sum to about two and a half hours, of which `s08` alone is 63.4 min; the
-untimed stages are not in that total.
+The timings given above and below (`s01`, `s03`, `s07`, `s08`, `s09`, `s10` at 6.8 s,
+`s12`/`s12a`/`s12b`/`s12c`, `s13`, `s15`, `s16`, `s17`, `s18`) come from the clean-room reproduction of
+§8 and sum to about two and a half hours, of which `s08` alone is 63.4 min. No timing is stated for
+the remaining stages (`s02`, `s04`, `s14`, `fig_r0r1_allocation_map.py`, `s19`, `s20`, the acceptance
+checks, the tests), because none was measured.
 
 Reporting and robustness stages, independent of one another and of the order above:
 
@@ -202,7 +197,7 @@ the committed `results/summary/` from the run that produced it (`results/README.
 python scripts/s25_collect_summaries.py
 ```
 
-## 5. What you should get
+## 5. Expected outputs
 
 Twelve full-spine solves sit behind every headline figure:
 
@@ -216,7 +211,7 @@ separate sensitivity, re-solved on the unchanged spine (`s09` reads
 `data/processed/zambia_grid3_spine_pe_n20.csv` directly, without rebuilding it), not additional
 full-spine solves.
 
-Four further solves are the input sensitivities added on 2026-09-02, not part of the twelve:
+Four further solves are the input sensitivities, not part of the twelve:
 
 - `2026-09-02_txormv_*` — the transformer-or-MV base-year gate, from `s21`
 - `2026-09-02_mvzesco_*` — the ZESCO-only MV layer, from `s22`
@@ -297,30 +292,17 @@ resetting the index, so the frame's row positions and its index labels became tw
 Inside `Technology.get_lcoe()`, `peak_load` is built from a numpy array and is therefore labelled by
 position, while `capacity_factor` is passed straight off the frame and is labelled by index. Pandas
 aligns those on labels, so **every settlement's peak load was divided by a different settlement's
-capacity factor**.
+capacity factor**. Upstream this is masked because `condition_df()` is normally followed by a CSV
+write and re-read, which silently repairs the index; this pipeline passes the frame in memory, which
+is faster and otherwise correct, and which exposed the latent fragility.
 
-Upstream this is masked because `condition_df()` is normally followed by a CSV write and re-read,
-which silently repairs the index. This pipeline passes the frame in memory, which is faster and
-otherwise correct, and which exposed the latent fragility.
-
-It stayed hidden because for stand-alone PV the T&D cost is zero, so
+It failed silently because for stand-alone PV the T&D cost is zero, so
 
     LCOE = cap_cost x (A + om x D) / (ATR x GHI x D)
 
-— the energy term cancels top and bottom. Levelised cost stayed plausible while capacity and
-investment were wrong by orders of magnitude. Diagnosis and verification:
-
-| | before the fix | after |
-|---|---|---|
-| stand-alone settlements satisfying `capacity = E / (ATR x GHI)` | **14.137%** | **100.000%** |
-| total stand-alone capacity, R0 | 5,186 MW | 1,087 MW |
-| total investment, R0 | USD 75.5 bn | USD 15.58 bn |
-| headline ΔLCOE% | +36.87% | +45.38% |
-| stand-alone-to-grid switches | 17,787 | 33,665 |
-
-The defect suppressed the effect being measured rather than creating it, and it produced the
-"capital falls while lifetime cost rises" result; corrected,
-capital and capacity both rise.
+— the energy term cancels top and bottom, and levelised cost stayed plausible while capacity and
+investment were wrong by orders of magnitude. That is why the acceptance check tests capacity
+against its closed form rather than testing the levelised cost.
 
 Guard rails now in place: the index reset, `_assert_positional_index()` at the two points where the
 invariant matters, `scripts/check_index_alignment.py` as an acceptance test on any run output, and
@@ -343,7 +325,7 @@ spine.
 (`data/processed/zambia_grid3_spine_pe_n20.csv`, and the `zambia_grid3_calib_distgate.csv` it derives
 from) on all 270,526 settlements: `PE_ratio`, `N_hh`, `TransformerDist`, `CurrentMVLineDist`,
 `ElecPopCalib` and `ElecStart` are identical once the two frames are aligned on `id`, the rebuild
-differing from the published file only in row order. Verified 2026-09-04.
+differing from the published file only in row order.
 
 The base year is calibrated on the 2 km transformer gate (`ElecStart = 1` on 7,476 settlements;
 `docs/02_variables.md` §5); `s04 --self-test` and
@@ -355,37 +337,24 @@ rows, is available as `run_variant(mv_or_gate=True)` and solved as a sensitivity
 written beside the published one as `zambia_grid3_calib_distgate_txORmv_REJECTED.csv`, under the
 gitignored `data/processed/`; available from the author.
 
-## 9. The hybrid-LUT cache (fixed 2026-08-12)
-
-*The settlement counts in this section predate the index-alignment correction of §7; §5 carries the
-current values. The section documents a fix that is still in force and explains why the OAT block
-rebuilds its lookup table per arm.*
+## 9. The hybrid lookup table and the OAT block
 
 `s06_run_arms.py` rebuilds the PV-hybrid differential-evolution lookup table inside each arm,
-immediately after `np.random.seed(42)`. `s09_run_oat_checks.py` originally built the table once at the
-top of the script and reused it (`pv_lut_cache`) across both the LHS full-spine validation and the OAT
-block. Because the OAT therefore drew from the random stream at a different point, its mini-grid costs
-differed marginally, and that was enough to flip one settlement at the grid-extension margin:
-
-- settlement index 72830, 521.8 people, 31.814 E / 13.930 S, 7.4 km from the nearest MV line
-- headline run (`s06`): assigned **Grid**, LCOE 0.1395 USD/kWh (8th percentile of grid assignments)
-- cached-LUT OAT run: assigned **stand-alone PV**, LCOE 4.5113 USD/kWh
-- consequence: OAT reported 17,786 stand-alone-to-grid switches instead of **17,787**
-
-**Fix.** The OAT block now passes `pv_lut_cache=None`, so each arm rebuilds the table exactly as `s06`
-does. The switch-count gate is correspondingly tightened to require an exact match
-(`OAT_SWITCH_TOL = 0`). The LHS validation block rebuilds the table per arm as well, and solves each
-sample at its sampled `N_mid` rather than the nearest multiple of ten (both changed 2026-09-02; the
-re-solved values are in `2026-09-02_lhs_fullspine_validation.csv`).
+immediately after `np.random.seed(42)`. `s09_run_oat_checks.py` does the same: its OAT block passes
+`pv_lut_cache=None`, and its LHS validation block rebuilds the table per arm as well and solves each
+sample at its sampled `N_mid` rather than the nearest multiple of ten. A cache built once at the top
+of `s09` and reused would draw from the random stream at a different point from `s06`, moving
+mini-grid costs marginally — enough to flip a settlement sitting at the grid-extension margin. Because
+each arm now rebuilds the table, the switch-count gate requires an exact match against `s06`
+(`OAT_SWITCH_TOL = 0`); anyone re-running `s09` should expect that gate to pass with zero residual,
+not within a tolerance.
 
 **Cost.** Rebuilding the table costs roughly two minutes per arm. The four variants, two arms each,
 took 951.5 s in total in the committed run — the `elapsed_s` column of
 `results/summary/2026-08_final_oat_grid_costs.csv`.
 
-**Re-run completed, 2026-09-05**, with N evaluated at the analysis-year population
-(`docs/01_pipeline.md`, "The intervention, in detail"). The central variant reproduced `s06` to six decimal places and **exactly
-33,665** switches — the switch-count gate passed with zero residual. The values below are read from
-`results/summary/2026-08_final_oat_grid_costs.csv`, the canonical run.
+The committed run reproduced `s06` to six decimal places on the central variant and **exactly
+33,665** switches. The values below are read from `results/summary/2026-08_final_oat_grid_costs.csv`.
 
 | variant | grid_cap_cost | grid_gen_cost | ΔLCOE% | switches |
 |---|---|---|---|---|

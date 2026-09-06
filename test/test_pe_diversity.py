@@ -1,8 +1,10 @@
 """
 Unit tests for pe_diversity.py.
 
-Run with:  python -m pytest test_pe_diversity.py -v
-Or standalone:  python test_pe_diversity.py
+Run from the repository root:
+    pytest test/test_pe_diversity.py
+Or standalone:
+    PYTHONPATH=peak_preprocessor python test/test_pe_diversity.py
 """
 import sys
 import os

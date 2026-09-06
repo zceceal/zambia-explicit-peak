@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Acceptance test for the condition_df index-alignment fix (2026-08-16).
+Acceptance test for the condition_df index-alignment fix (REPRODUCING.md §7).
 
 OnSSET sizes a stand-alone PV system as
 

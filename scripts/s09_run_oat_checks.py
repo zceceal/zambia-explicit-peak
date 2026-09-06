@@ -8,8 +8,7 @@ bias-correction factor transfers across the parameter space.
 Grid-side OAT at the central case — grid capacity cost ±30% and generation cost
 drought proxy. Reports ΔLCOE% AND SA_PV→Grid switch count per variant.
 
-Rules:
-- DOES NOT overwrite any s06, s07 or s08 outputs.
+Conventions:
 - All new outputs go to data/onsset_outputs/, named 2026-08_final_oat_*.
 - Seeds: LHS_VAL seed inherited from the s08 LHS CSV (seed=43 for LHS design);
          OAT arms use np.random.seed(42).

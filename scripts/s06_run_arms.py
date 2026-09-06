@@ -7,7 +7,7 @@ Inputs:
               Pop2030, N_hh, N_hh_2020 and PE_ratio added)
   N_mid sweep PE: zambia_grid3_spine_pe_n10.csv, zambia_grid3_spine_pe_n50.csv
 
-Outputs (RUN_LABEL below sets the prefix; do not overwrite an existing run):
+Outputs (RUN_LABEL below sets the prefix):
   data/onsset_outputs/2026-08_final_lcoe_R0.csv
   data/onsset_outputs/2026-08_final_lcoe_R1_n10.csv
   data/onsset_outputs/2026-08_final_lcoe_R1_n20.csv    (central case)
@@ -234,7 +234,7 @@ def run_arm(arm_label: str, spine_df: pd.DataFrame, cfg: dict,
             print(f"    R1 AverageToPeakLoadRatio: "
                   f"mean={onsseter.df[SET_AVERAGE_TO_PEAK].mean():.4f}  "
                   f"median={onsseter.df[SET_AVERAGE_TO_PEAK].median():.4f}")
-            # GUARD (2026-08-16): the override above MUST run after calculate_demand,
+            # GUARD: the override above MUST run after calculate_demand,
             # which unconditionally resets AverageToPeakLoadRatio to the tier table.
             # If a refactor ever moves it earlier, R1 silently collapses onto R0 and the
             # experiment measures nothing. Fail loudly instead.

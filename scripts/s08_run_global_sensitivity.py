@@ -15,9 +15,8 @@ Part B — LHS uncertainty propagation:
   same subsample.  R² and RMSE are reported; if RMSE > EMUL_RMSE_THRESHOLD the
   script falls back to full OnSSET for all 200 samples and emits a warning.
 
-Hard rules
-----------
-• Do NOT overwrite any s06 or s07 output.
+Conventions
+-----------
 • 2030 columns used for all cost metrics (2035 cols are incremental — never used).
 • Seeds fixed: reported in output.
 • SA_PV capex multiplier passed through cfg and Technology object — no monkey-patch.

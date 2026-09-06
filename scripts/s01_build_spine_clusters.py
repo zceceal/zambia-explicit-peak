@@ -1,14 +1,14 @@
 """
-s01_build_spine_clusters.py — settlement spine, stage 1 of 3.
-s01 of the GRID3 settlement spine rebuild:
+s01_build_spine_clusters.py — settlement spine, stage 1 of 3: the GRID3 clusters.
+
   - Geometry (centroid, area)
   - Population (WorldPop zonal sum per polygon)
   - Urban/rural classification
   - Admin-1 assignment
   - Verification gate
 
-Does NOT touch distances, LCOE, or calibration (s03 onward).
-Run with the project venv:
+Writes: data/processed/zambia_grid3_spine_stage1.csv (+ .gpkg)
+
   python scripts/s01_build_spine_clusters.py
 """
 
@@ -18,6 +18,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 import time
+from datetime import date
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -294,7 +295,7 @@ notes_dir.mkdir(parents=True, exist_ok=True)
 
 notes = f"""# GRID3 Spine, cluster pass (s01) — Run Notes
 
-**Date:** 2026-06-28
+**Date:** {date.today().isoformat()}
 **Script:** `scripts/s01_build_spine_clusters.py`
 **Outputs:** `data/processed/zambia_grid3_spine_stage1.csv` + `.gpkg`
 

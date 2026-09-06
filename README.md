@@ -181,7 +181,7 @@ file also runs on its own:
 ```bash
 PYTHONPATH=peak_preprocessor python test/test_pe_diversity.py     # 8 tests on the sub-model
 python test/test_onsset_install.py                                # end-to-end OnSSET install check
-python test/test_index_alignment.py                               # regression test for the 2026-08-16 defect
+python test/test_index_alignment.py                               # index-alignment regression test
 ```
 
 After any run of `s06`, before trusting anything downstream, run the two acceptance checks described
