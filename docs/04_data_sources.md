@@ -109,7 +109,7 @@ data/
     specs_zambia.xlsx                               copy from resources/         s04
   onsset_repo/                                      patched OnSSET clone         test/
   processed/                                        written by s01-s05
-  onsset_outputs/                                   written by s06-s12
+  onsset_outputs/                                   written by s06-s11
 ```
 
 `figures/` and `notes/` are created at the repository root by s13 and by s01/s02 respectively. Those
