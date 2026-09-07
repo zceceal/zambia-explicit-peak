@@ -70,6 +70,15 @@ pip install -e . && cd ../..
 Not distributed with this repository, being held under third-party licences. `docs/04_data_sources.md`
 lists every source, its licence, and the directory layout the scripts expect under `data/`.
 
+Two of the directories in that layout are stage outputs rather than raw sources, and a run that only
+regenerates the headline needs both present in the clone before it starts: `data/processed/`, written
+by `s01`–`s05`, and `data/onsset_outputs/`, written by `s06`–`s11`. A reader who already holds them
+copies both directories in — alongside `data/onsset_inputs/`, whose `specs_zambia.xlsx` is copied from
+`resources/` — and goes straight to the reporting and acceptance stages of §4, running neither the
+spine build nor the solves. A reader starting from the raw sources instead builds them by running
+`s01`–`s05` and then `s06` in the order §4 gives; §8 records that a clean-room rebuild of the spine
+reproduces the published one on all 270,526 settlements.
+
 ## 4. Run
 
 Scripts run in numeric order; each writes what the next reads. **`PYTHONPATH` must point at the
@@ -313,8 +322,9 @@ invariant matters, `scripts/check_index_alignment.py` as an acceptance test on a
 A from-scratch reproduction — fresh `git clone` of `origin/main`, fresh `python3.13 -m venv`, fresh
 `pip install -r requirements.txt`, fresh OnSSET clone at `c154ece` with the patch applied — was carried
 out independently of the working copy that produced the published results. Starting from the
-**published spine** (`data/processed/zambia_grid3_spine_pe_n{10,20,50}.csv`, committed nowhere but
-distributed as described in §3), every one of the following reproduced **byte-for-byte (SHA-256)**: the
+**published spine** (`data/processed/zambia_grid3_spine_pe_n{10,20,50}.csv`, committed nowhere; §3's
+second paragraph says which directories a reader must supply, and §4 gives the `s01`–`s05` stages that
+rebuild them from the raw sources), every one of the following reproduced **byte-for-byte (SHA-256)**: the
 four headline solves (R0, R1 at `N_mid` 10/20/50), the rural-Tier-2 family, the 2050 family, `s10`,
 `s15` (both variants), `s16`, `s17`, `s18`, `s19`, and all eight `s08` result files (Morris + LHS,
 including the `method` column and the emulator-validation RMSE). `s09`'s grid-side OAT table matched
