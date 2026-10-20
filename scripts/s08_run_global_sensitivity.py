@@ -78,6 +78,14 @@ SEED_SUBSAMPLE  = 42
 SEED_MORRIS     = 42
 SEED_LHS        = 43
 
+# ── Output label and PV-hybrid lookup cache key ──────────────────────────────
+# RUN_LABEL prefixes every output file (CLI --label). The PV-hybrid lookup cache is keyed on
+# (year, diesel price rounded to 0.1 USD/L) — the table's own diesel-bin resolution — so an arm
+# at a non-central diesel price builds its own table instead of clamping to the central one.
+# --legacy-lut-cache restores the year-only key that produced the committed 2026-08_final outputs.
+RUN_LABEL        = "2026-08_final"
+LUT_CACHE_LEGACY = False
+
 # ── Subsample / design sizes ─────────────────────────────────────────────────
 SUBSAMPLE_N          = 50_000
 # Subsample bias. The 50,000-settlement stratified subsample (18.5% of 270,526) over-states the
@@ -250,12 +258,12 @@ def run_arm_subsample(
     sa_pv_capex_mult is applied DIRECTLY to the Technology object returned by
     build_tech_objects() — no module-level state is altered.
 
-    pv_lut_cache: dict keyed by year (int).  If a year key is absent the lookup is
-    built and inserted; if present it is reused.  The shared cache must be built the
-    first time the arm is run at central-case diesel / battery params (done during
-    the subsample-validation arm).  Subsequent arms at different diesel / battery
-    params will clamp to the cached diesel range — a small approximation for
-    MG_PVHybrid (~0.3% of settlements), documented.
+    pv_lut_cache: dict keyed by (year, round(diesel_price, 1)).  If the key is absent the
+    lookup is built and inserted; if present it is reused, so each 0.1 USD/L diesel bin
+    gets its own table.  With LUT_CACHE_LEGACY the key is year alone, as in the committed
+    2026-08_final run: arms at other diesel prices then clamp to the central-price table.
+    The table also depends on the mini-grid discount rate (build_mg_pv_hybrid_params),
+    which neither key includes.
     """
     np.random.seed(42)
 
@@ -349,9 +357,10 @@ def run_arm_subsample(
         onsseter.calculate_unmet_demand(year, reliability=0.963)
         onsseter.diesel_cost_columns(sa_diesel_cost, mg_diesel_cost, year)
 
-        # ── PV-hybrid lookup: build once, cache by year ───────────────────────
-        if pv_lut_cache is not None and year in pv_lut_cache:
-            lut = pv_lut_cache[year]
+        # ── PV-hybrid lookup: build once per (year, diesel bin), then reuse ────
+        lut_key = year if LUT_CACHE_LEGACY else (year, round(diesel_price, 1))
+        if pv_lut_cache is not None and lut_key in pv_lut_cache:
+            lut = pv_lut_cache[lut_key]
             lcoe_pv_lut = lut["lcoe"]; inv_pv_lut = lut["inv"]; cap_pv_lut = lut["cap"]
             ghi_min     = lut["ghi_min"]; ghi_max     = lut["ghi_max"]
             diesel_min  = lut["diesel_min"]; diesel_max  = lut["diesel_max"]
@@ -365,7 +374,7 @@ def run_arm_subsample(
             )
             _p(f"    PV-hybrid lookup done in {time.time()-t0_lut:.0f}s")
             if pv_lut_cache is not None:
-                pv_lut_cache[year] = {
+                pv_lut_cache[lut_key] = {
                     "lcoe": lcoe_pv_lut, "inv": inv_pv_lut, "cap": cap_pv_lut,
                     "ghi_min": ghi_min, "ghi_max": ghi_max,
                     "diesel_min": diesel_min, "diesel_max": diesel_max,
@@ -1038,8 +1047,8 @@ def main():
           f"{'YES: ' + ', '.join(sign_flip) if sign_flip else 'NO — positive sign robust across all 56 trajectory evaluations.'}")
     print(f"  All f(θ) > 0: {all_f_delta_positive}  (bias-corrected values also all > 0 since correction factor > 0)")
 
-    morris_df_delta.to_csv(OUTDIR / "2026-08_final_morris_delta_lcoe.csv", index=False)
-    morris_df_switch.to_csv(OUTDIR / "2026-08_final_morris_switch_count.csv", index=False)
+    morris_df_delta.to_csv(OUTDIR / f"{RUN_LABEL}_morris_delta_lcoe.csv", index=False)
+    morris_df_switch.to_csv(OUTDIR / f"{RUN_LABEL}_morris_switch_count.csv", index=False)
 
     # Bias-corrected table: the subsample understates effect sizes by a constant
     # factor, so mu*, mu and sigma are scaled uniformly. Ranking is unchanged.
@@ -1047,7 +1056,7 @@ def main():
     for _col in ("mu_star", "mu", "sigma"):
         morris_df_delta_corrected[_col] = morris_df_delta_corrected[_col] * BIAS_CORRECTION_FACTOR
     morris_df_delta_corrected.to_csv(
-        OUTDIR / "2026-08_final_morris_delta_lcoe_corrected.csv", index=False)
+        OUTDIR / f"{RUN_LABEL}_morris_delta_lcoe_corrected.csv", index=False)
     ee_raw_rows = []
     for t_idx in range(MORRIS_R):
         for i, name in enumerate(PARAM_NAMES):
@@ -1059,7 +1068,7 @@ def main():
                 "bias_correction_factor":  BIAS_CORRECTION_FACTOR,
             })
     pd.DataFrame(ee_raw_rows).to_csv(
-        OUTDIR / "2026-08_final_morris_ee_raw.csv", index=False)
+        OUTDIR / f"{RUN_LABEL}_morris_ee_raw.csv", index=False)
 
     # ── [7/8] LHS — validate emulator, then use or fall back ─────────────
     print(f"\n[7/8] LHS uncertainty propagation …")
@@ -1272,7 +1281,7 @@ def main():
         "switch_count":              lhs_sw_full,
         "bias_correction_factor":    BIAS_CORRECTION_FACTOR,
     })
-    lhs_out = OUTDIR / "2026-08_final_lhs_uncertainty.csv"
+    lhs_out = OUTDIR / f"{RUN_LABEL}_lhs_uncertainty.csv"
     lhs_df.to_csv(lhs_out, index=False)
 
     val_df = pd.DataFrame({
@@ -1283,9 +1292,9 @@ def main():
         "full_switch":          full_switch_val,
         "emul_switch":          emul_switch_val,
     })
-    val_df.to_csv(OUTDIR / "2026-08_final_lhs_emulator_validation.csv", index=False)
+    val_df.to_csv(OUTDIR / f"{RUN_LABEL}_lhs_emulator_validation.csv", index=False)
 
-    tookeff_df.to_csv(OUTDIR / "2026-08_final_took_effect_checks.csv", index=False)
+    tookeff_df.to_csv(OUTDIR / f"{RUN_LABEL}_took_effect_checks.csv", index=False)
 
     # ── [8/8] Write notes file ─────────────────────────────────────────────
     t_elapsed_total = time.time() - t_total
@@ -1470,21 +1479,32 @@ by ~+{STAGE4_DELTA_LCOE_CENTRAL:.0f}% at the central case — is **robust**:
 
 | File | Contents |
 |------|----------|
-| `2026-08_final_morris_delta_lcoe.csv` | Morris μ*/σ table, ΔLCOE% metric |
-| `2026-08_final_morris_switch_count.csv` | Morris μ*/σ table, switch-count metric |
-| `2026-08_final_morris_ee_raw.csv` | Raw elementary effects matrix (r×k) |
-| `2026-08_final_lhs_uncertainty.csv` | LHS samples, method flag, ΔLCOE%, switch count |
-| `2026-08_final_lhs_emulator_validation.csv` | Full vs emulator comparison ({LHS_N_VAL} samples) |
-| `2026-08_final_took_effect_checks.csv` | Per-parameter took-effect verification |
+| `{RUN_LABEL}_morris_delta_lcoe.csv` | Morris μ*/σ table, ΔLCOE% metric |
+| `{RUN_LABEL}_morris_switch_count.csv` | Morris μ*/σ table, switch-count metric |
+| `{RUN_LABEL}_morris_ee_raw.csv` | Raw elementary effects matrix (r×k) |
+| `{RUN_LABEL}_lhs_uncertainty.csv` | LHS samples, method flag, ΔLCOE%, switch count |
+| `{RUN_LABEL}_lhs_emulator_validation.csv` | Full vs emulator comparison ({LHS_N_VAL} samples) |
+| `{RUN_LABEL}_took_effect_checks.csv` | Per-parameter took-effect verification |
 
 Total script runtime: {t_elapsed_total/60:.1f} min
 """
 
-    notes_path = NOTEDIR / "2026-08_final_GSA_uncertainty.md"
+    notes_path = NOTEDIR / f"{RUN_LABEL}_GSA_uncertainty.md"
     notes_path.write_text(notes)
     print(f"  Notes → {notes_path.relative_to(REPO)}")
     print(f"\n  DONE. Total elapsed: {t_elapsed_total/60:.1f} min")
 
 
 if __name__ == "__main__":
+    import argparse
+    _ap = argparse.ArgumentParser(description=__doc__.split("\n")[1])
+    _ap.add_argument("--label", default=RUN_LABEL,
+                     help=f"output file prefix (default {RUN_LABEL})")
+    _ap.add_argument("--legacy-lut-cache", action="store_true",
+                     help="key the PV-hybrid lookup cache on year alone, as in the committed run")
+    _args = _ap.parse_args()
+    RUN_LABEL        = _args.label
+    LUT_CACHE_LEGACY = _args.legacy_lut_cache
+    print(f"  Output label: {RUN_LABEL}  |  PV-hybrid cache key: "
+          f"{'year (legacy)' if LUT_CACHE_LEGACY else '(year, diesel bin)'}")
     main()
