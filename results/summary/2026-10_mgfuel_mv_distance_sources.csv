@@ -1,0 +1,14 @@
+metric,value,share_settlements,share_population
+settlements_set_by_zesco,92178.0,0.34073619541190125,0.5930496327861072
+settlements_set_by_meta,175811.0,0.6498857780767837,0.40185555496581754
+settlements_set_by_osm,2537.0,0.009378026511314993,0.005094812248075277
+zesco_only_within_2km_mv,44648.0,,
+zesco_only_within_2km_transformer_or_mv,44710.0,,
+zesco_only_lit_within_2km_mv_not_transformer,422.0,,
+zesco_only_within_10km_mv,128364.0,,
+zesco_only_median_mv_km,11.011124615042476,,
+as_run_within_2km_mv,63974.0,,
+as_run_within_2km_transformer_or_mv,64001.0,,
+as_run_lit_within_2km_mv_not_transformer,1186.0,,
+as_run_within_10km_mv,160583.0,,
+as_run_median_mv_km,7.0766222226610385,,

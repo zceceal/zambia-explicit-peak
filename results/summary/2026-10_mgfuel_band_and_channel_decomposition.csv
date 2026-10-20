@@ -1,0 +1,15 @@
+quantity,value,unit
+"a. stand-alone in BOTH arms, kW/hh <=1 in R0 and >1 in R1",148561.0,settlements
+"b. stand-alone in R0, kW/hh <=1 in R0 and >1 in R1 (as written)",148561.0,settlements
+"c. all settlements, kW/hh <=1 in R0 and >1 in R1",148561.0,settlements
+"d. stand-alone in BOTH arms, any change of cost band",148561.0,settlements
+"e. stand-alone in R1, kW/hh >1 in R1 (level, not crossing)",169480.0,settlements
+"f. stand-alone in R0, kW/hh >1 in R1 incl. switchers (level)",169480.0,settlements
+band_frozen_delta_lcoe_pct_R1alloc,21.500223862317984,%
+band_frozen_delta_lcoe_pct_nonswitchers,21.500223862317984,%
+sa_frozen_delta_lcoe_pct_R1alloc,1.555222143746075,%
+sa_frozen_delta_lcoe_pct_R0alloc,-0.5195214937823813,%
+sa_frozen_delta_lcoe_pct_all_R0sa,-0.5195214937823813,%
+delta_lcoe_pct_as_run,44.665341125507986,%
+median_kw_per_hh_R0_standalone,0.7985099287397128,kW
+median_kw_per_hh_R1_standalone,1.2101023806503832,kW
