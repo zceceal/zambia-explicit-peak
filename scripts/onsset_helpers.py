@@ -55,7 +55,12 @@ from onsset import (
     SET_MIN_OFFGRID_LCOE, SET_MIN_OFFGRID,
     SET_MV_DIST_PLANNED, SET_HV_DIST_PLANNED,
     SET_MV_DIST_CURRENT, SET_HV_DIST_CURRENT,
+    LHV_DIESEL,
 )
+
+# Mini-grid genset efficiency used to build MGDieselFuelCost (USD/kWh = delivered USD/L / LHV /
+# efficiency). Must equal the "efficiency" in every script's mg_diesel_cost dict.
+MG_DIESEL_EFFICIENCY = 0.33
 
 # ── paths ─────────────────────────────────────────────────────────────────────
 CONFIG     = REPO / "config" / "config.yaml"
@@ -186,10 +191,12 @@ def build_pv_hybrid_lookup(onsseter, ghi_profile, temp_profile,
                 # Scale profile so annual sum = g × 1000 Wh/m²/year
                 scaled_ghi = ghi_profile * g * 1000.0 / profile_sum
                 try:
+                    # d is a bin of MGDieselFuelCost (USD/kWh); the optimiser multiplies it by fuel
+                    # use in litres (hybrids.py:284), so it is passed as delivered USD/L.
                     gen_lcoe, inv, cap, fuel = SettlementProcessor.optimize_mini_grid(
                         scaled_ghi, temp_profile,
                         10000,          # reference annual demand kWh
-                        t, d,
+                        t, d * LHV_DIESEL * MG_DIESEL_EFFICIENCY,
                         start_yr_t, end_year,
                         year, time_step,
                         mg_pv_hybrid_params,
