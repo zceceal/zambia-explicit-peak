@@ -1,0 +1,75 @@
+diff --git a/onsset/hybrids.py b/onsset/hybrids.py
+index 1709995..d4b1428 100644
+--- a/onsset/hybrids.py
++++ b/onsset/hybrids.py
+@@ -284,6 +284,12 @@ def calculate_hybrid_lcoe(diesel_price, end_year, start_year, annual_demand,
+         fuel_costs = fuel_usage * diesel_price
+         om_costs = (pv_panel_size * (pv_cost + charge_controller + pv_inverter_cost) * pv_om +
+                     diesel_capacity * diesel_cost * diesel_om + battery_size * battery_cost * battery_om + max(load_curve) * battery_inverter_cost * battery_inverter_om)
++        if year == 0:
++            # PATCH (final-consolidated-fixes): generation[0] = 0 and year 0 is excluded from
++            # sum_el_gen, so no fuel is burnt and no O&M incurred in that year. Upstream charged
++            # both, i.e. 16 years of running costs against 15 of generation.
++            fuel_costs = 0.0
++            om_costs = 0.0
+ 
+         total_fuel_cost += fuel_costs / (1 + discount_rate) ** year
+         total_om_cost += om_costs / (1 + discount_rate) ** year
+@@ -313,7 +319,11 @@ def calculate_hybrid_lcoe(diesel_price, end_year, start_year, annual_demand,
+ 
+             total_battery_investment -= (1 - (project_life % battery_life) / battery_life) * battery_cost * battery_size
+ 
+-        investment += (diesel_investment + pv_investment + battery_investment + inverter_investment + pv_inverter_investment + charge_controller_investment) / ((1 + discount_rate) ** year) # Removed salvage
++        # PATCH (final-consolidated-fixes): undiscounted, like Technology.get_lcoe's investment_cost
++        # for every other technology (sum of outlays incl. in-horizon replacements, no salvage).
++        # Upstream discounted this sum, so InvestmentCost mixed bases for mini-grids. LCOE is
++        # unaffected: it is built from sum_costs below.
++        investment += (diesel_investment + pv_investment + battery_investment + inverter_investment + pv_inverter_investment + charge_controller_investment) # Removed salvage
+         total_battery_investment += battery_investment
+ 
+         sum_costs += (fuel_costs + om_costs + battery_investment + diesel_investment + pv_investment + pv_inverter_investment + charge_controller_investment +
+diff --git a/onsset/onsset.py b/onsset/onsset.py
+index b0296de..603b0e9 100644
+--- a/onsset/onsset.py
++++ b/onsset/onsset.py
+@@ -332,7 +332,11 @@ class Technology:
+         total_investment_cost = td_investment_cost + capital_investment
+ 
+         if self.grid_price > 0:
+-            fuel_cost = self.grid_price
++            # PATCH (final-consolidated-fixes, F-A grid): grid_price is the cost per kWh GENERATED
++            # (docs/otherinputs.rst; Egli et al. 2023 "grid electricity generation cost"), while
++            # el_gen is delivered consumption. Upstream left this division commented out with
++            # "REVIEW" from 2019 and deleted the comment in 2020 without resolving it.
++            fuel_cost = self.grid_price / (1 - self.distribution_losses)
+ 
+         # Perform the time-value LCOE calculation
+         project_life = end_year - start_year + 1
+@@ -429,8 +433,14 @@ class Technology:
+         if get_max_dist:
+             return lcoe, investment_cost, installed_capacity, peak_load
+         elif self.hybrid:
+-            hybrid_capacity = pd.DataFrame(self.hybrid_capacity)
+-            return lcoe + pd.DataFrame(self.hybrid_fuel), pd.DataFrame(investment_cost[0] + self.hybrid_investment), hybrid_capacity
++            # PATCH (final-consolidated-fixes, F-A mini-grid): the hybrid lookup sizes and costs
++            # generation for the settlement's delivered demand, but the mini-grid's own network
++            # loses distribution_losses of it. Generation, its investment and capacity therefore
++            # scale by 1/(1 - losses), as the network's peak already does in distribution_network.
++            gen_scale = 1.0 / (1 - self.distribution_losses)
++            hybrid_capacity = pd.DataFrame(self.hybrid_capacity * gen_scale)
++            return lcoe + pd.DataFrame(self.hybrid_fuel * gen_scale), \
++                pd.DataFrame(investment_cost[0] + self.hybrid_investment * gen_scale), hybrid_capacity
+         else:
+             return lcoe, investment_cost, installed_capacity
+ 
+@@ -1494,8 +1504,9 @@ class SettlementProcessor:
+                                  electrified_capacity, grid_capacity)
+ 
+         self.df[SET_LCOE_GRID + "{}".format(year)] = 99.
++        # PATCH (final-consolidated-fixes, F-A grid): same per-delivered-kWh basis as get_lcoe.
+         self.df.loc[self.df[SET_ELEC_FINAL_CODE + "{}".format(year - time_step)] == 1,
+-                    SET_LCOE_GRID + "{}".format(year)] = grid_price
++                    SET_LCOE_GRID + "{}".format(year)] = grid_price / (1 - grid_calc.distribution_losses)
+ 
+ 
+         # Two restrictions may be imposed on the grid. The new grid generation capacity that can be added and the

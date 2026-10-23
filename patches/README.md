@@ -74,3 +74,20 @@ takes are part of the engine this patch produces; `s16` requires them.
 
 `REPRODUCING.md` §2. Clone into `data/onsset_repo`, where `test/test_onsset_install.py` looks for its
 fixtures.
+
+## `onsset-final-consolidated-fixes.patch` (branch `final-consolidated-fixes` only)
+
+Four further changes applied on top of `cd64900`, recorded as commits `63a88d8`, `42f9cf0`,
+`2611cc0` and `9eed67f` on the vendored copy's `final-consolidated-fixes` branch. The patch is
+`git diff cd64900 9eed67f` and reproduces both files byte-for-byte. Each change was hand-checked
+on a real settlement (`results/summary/2026-10_final_consolidated_report.md`).
+
+| Change | Where | What it does |
+|---|---|---|
+| **F-C** | `hybrids.calculate_hybrid_lcoe` | No fuel or O&M in year 0, which credits no generation. Previously there were 16 years of running costs against 15 of output. |
+| **F-B** | `hybrids.calculate_hybrid_lcoe` | Reports hybrid investment undiscounted, the basis every other technology's `InvestmentCost` uses. LCOE is unchanged. |
+| **F-A grid** | `Technology.get_lcoe`, `pre_electrification` | Grid generation cost is charged per kWh generated: `grid_price / (1 − distribution_losses)`. This is the line upstream left commented out with "REVIEW" since 2019. |
+| **F-A mini-grid** | `Technology.get_lcoe`, hybrid branch | Hybrid generation LCOE, investment and capacity are scaled by `1/(1 − distribution_losses)`. The mini-grid network already sizes its peak this way. |
+
+The committed `2026-08_final` results do **not** use this patch. Reproduce them from `cd64900`
+alone, as §2 of `REPRODUCING.md` describes.
