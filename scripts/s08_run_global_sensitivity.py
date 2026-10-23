@@ -79,11 +79,12 @@ SEED_MORRIS     = 42
 SEED_LHS        = 43
 
 # ── Output label and PV-hybrid lookup cache key ──────────────────────────────
-# RUN_LABEL prefixes every output file (CLI --label). The PV-hybrid lookup cache is keyed on
-# (year, diesel price rounded to 0.1 USD/L) — the table's own diesel-bin resolution — so an arm
-# at a non-central diesel price builds its own table instead of clamping to the central one.
-# --legacy-lut-cache restores the year-only key that produced the committed 2026-08_final outputs.
+# RUN_LABEL prefixes every output file (CLI --label). LUT_CACHE_MODE sets the PV-hybrid lookup
+# cache key (see run_arm_subsample): "full" (default) keys on every input of the table;
+# "diesel" (--diesel-bin-lut-cache) reproduces the 2026-10-19 follow-up; "year"
+# (--legacy-lut-cache, or LUT_CACHE_LEGACY = True) reproduces the committed 2026-08_final outputs.
 RUN_LABEL        = "2026-08_final"
+LUT_CACHE_MODE   = "full"
 LUT_CACHE_LEGACY = False
 
 # ── Subsample / design sizes ─────────────────────────────────────────────────
@@ -258,12 +259,11 @@ def run_arm_subsample(
     sa_pv_capex_mult is applied DIRECTLY to the Technology object returned by
     build_tech_objects() — no module-level state is altered.
 
-    pv_lut_cache: dict keyed by (year, round(diesel_price, 1)).  If the key is absent the
-    lookup is built and inserted; if present it is reused, so each 0.1 USD/L diesel bin
-    gets its own table.  With LUT_CACHE_LEGACY the key is year alone, as in the committed
-    2026-08_final run: arms at other diesel prices then clamp to the central-price table.
-    The table also depends on the mini-grid discount rate (build_mg_pv_hybrid_params),
-    which neither key includes.
+    pv_lut_cache: dict of PV-hybrid lookup tables, built on a miss and reused on a hit. Under
+    the default LUT_CACHE_MODE "full" the key holds every input of the table, so a reused table
+    equals a fresh rebuild in this arm (OnSSET draws no other random numbers before or between
+    the builds). The narrower "diesel" and "year" keys reproduce earlier runs; both omit the
+    mini-grid discount rate, and "year" also the diesel price.
     """
     np.random.seed(42)
 
@@ -357,8 +357,25 @@ def run_arm_subsample(
         onsseter.calculate_unmet_demand(year, reliability=0.963)
         onsseter.diesel_cost_columns(sa_diesel_cost, mg_diesel_cost, year)
 
-        # ── PV-hybrid lookup: build once per (year, diesel bin), then reuse ────
-        lut_key = year if LUT_CACHE_LEGACY else (year, round(diesel_price, 1))
+        # ── PV-hybrid lookup: build once per distinct set of inputs, then reuse ─
+        # The full key holds every input the table depends on: the year, the GHI and
+        # delivered-diesel bin ranges build_pv_hybrid_lookup derives from this frame, and the
+        # whole mini-grid parameter set (discount rate, battery cost, ...). A keyed table is then
+        # identical to a fresh rebuild in this arm. The two narrower keys reproduce earlier runs:
+        # "year" the committed 2026-08_final outputs, "diesel" the 2026-10-19 follow-up, whose
+        # table for a pump-price bin kept the discount rate of the arm that first built it.
+        mode = "year" if LUT_CACHE_LEGACY else LUT_CACHE_MODE
+        if mode == "year":
+            lut_key = year
+        elif mode == "diesel":
+            lut_key = (year, round(diesel_price, 1))
+        else:
+            _d = onsseter.df[SET_MG_DIESEL_FUEL + str(year)]
+            lut_key = (year, time_step, start_yr_t, end_year,
+                       int(np.floor(float(onsseter.df[SET_GHI].min()) / 100)) * 100,
+                       int(np.ceil(float(onsseter.df[SET_GHI].max()) / 100)) * 100,
+                       round(float(_d.min()), 1), round(float(_d.max()), 1),
+                       tuple(sorted(mg_pv_hybrid_params.items())))
         if pv_lut_cache is not None and lut_key in pv_lut_cache:
             lut = pv_lut_cache[lut_key]
             lcoe_pv_lut = lut["lcoe"]; inv_pv_lut = lut["inv"]; cap_pv_lut = lut["cap"]
@@ -1502,9 +1519,11 @@ if __name__ == "__main__":
                      help=f"output file prefix (default {RUN_LABEL})")
     _ap.add_argument("--legacy-lut-cache", action="store_true",
                      help="key the PV-hybrid lookup cache on year alone, as in the committed run")
+    _ap.add_argument("--diesel-bin-lut-cache", action="store_true",
+                     help="key it on (year, pump-price bin), as in the 2026-10-19 follow-up")
     _args = _ap.parse_args()
-    RUN_LABEL        = _args.label
-    LUT_CACHE_LEGACY = _args.legacy_lut_cache
-    print(f"  Output label: {RUN_LABEL}  |  PV-hybrid cache key: "
-          f"{'year (legacy)' if LUT_CACHE_LEGACY else '(year, diesel bin)'}")
+    RUN_LABEL      = _args.label
+    LUT_CACHE_MODE = ("year" if _args.legacy_lut_cache else
+                      "diesel" if _args.diesel_bin_lut_cache else "full")
+    print(f"  Output label: {RUN_LABEL}  |  PV-hybrid cache key: {LUT_CACHE_MODE}")
     main()
