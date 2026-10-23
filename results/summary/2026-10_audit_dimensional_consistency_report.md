@@ -209,3 +209,56 @@ Each finding needs one decision: fix (and re-run), disclose as an upstream conve
 | F-A energy basis | headline about −0.49 pp; capacity unchanged | `distribution_network` / `get_lcoe` energy, or the price inputs ÷ (1 − losses), in vendored OnSSET or at the boundary |
 | F-B investment basis | MG investment about +0.24 bn per arm; LCOE none | hybrid investment summation (vendored `hybrids.py`) or an undiscounted recomputation at the boundary |
 | F-C hybrid horizon | about +0.04 pp | vendored `hybrids.py` year loop |
+
+## Addendum (2026-10-23): what the grid generation cost means, in the source and in OnSSET
+
+**Question.** Is the 0.013 USD/kWh grid cost (Egli et al. 2023, Table S8, Zambia) per kWh generated
+or per kWh delivered? That decides whether F-A is an error or a convention.
+
+**What the sources say.**
+
+- **Egli et al. 2023, Supplementary Table S8** (`papers/Egli_2023_supplementary.pdf`). Zambia:
+  "Grid Losses 0.15", "GridGenerationCost (USD/kWh) 0.013". These are OnSSET input names; the table
+  itself gives no definition.
+- **Egli et al. 2023, Methods** (Nat. Commun. 14:5066, PMC10442407). They use "open-source integrated
+  household geospatial electrification model OnSSET v.1.0 from the Global Electrification Platform",
+  "adding an estimated average grid electricity **generation** cost to the LCOE of transmitting and
+  distributing electricity". The main text does not discuss T&D losses.
+- **OnSSET documentation** (`docs/otherinputs.rst:87,91`). `GridPrice` is "The cost of which the
+  national grid **generates** electricity", in $/kWh, and it is read from `GridGenerationCost`
+  (`runner.py:161`). `GridLosses` is "the country's average technical losses on transmission and
+  distribution".
+
+So the input is a cost **per kWh generated**. Delivering 1 kWh at 15 % losses needs 1/0.85 kWh
+generated.
+
+**What OnSSET's code has always done.** The vendored git history covers 823 upstream commits.
+
+| Version | Date | Fuel cost line |
+|---|---|---|
+| GEP-OnSSET first commit (`1dc8ba3`) | 2019-05-27 | `fuel_cost = self.grid_price  # / (1 - self.distribution_losses) REVIEW` |
+| `v1.0a4` (GEP v1.0 era, the version family Egli used) | 2019-12-11 | same: division commented out, `el_gen` = delivered consumption |
+| `cfd2aba` | 2020-02-27 | comment changed to `# TODO / (1 - self.distribution_losses) REVIEW` |
+| `a42eeaa` | 2020-03-22 | comment **deleted**, code unchanged |
+| `c154ece` (vendored, used here) | 2026 | `fuel_cost = self.grid_price`, charged on delivered consumption |
+
+The division by (1 − losses) **was never active** in any tracked version: the active form never
+appears in the history.
+
+**Verdict on F-A.**
+
+- It is a **genuine inconsistency** between the input's definition (per kWh generated) and its
+  implementation (charged per kWh delivered). OnSSET's developers flagged it for review in 2019
+  and never resolved it.
+- It is **not** a transcription or units error in this repository.
+- **Egli et al.'s published results share it**, since they used the same OnSSET treatment, as does
+  GEP.
+
+**What follows for the two parts of F-A.**
+
+| Part | Effect | Comparability |
+|---|---|---|
+| Grid (about −0.25 pp) | correcting makes the model internally consistent | departs from Egli/GEP comparability |
+| Mini-grid 5 % losses (about −0.24 pp) | internal to OnSSET's hybrid-mini-grid costing | has no Egli counterpart: Egli costs mini-grids with a flat 2,139 USD/kW (Table S2), not the hybrid optimiser |
+
+Both remain unfixed, pending the author's decision.
