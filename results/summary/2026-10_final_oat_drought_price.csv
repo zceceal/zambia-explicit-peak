@@ -1,0 +1,5 @@
+variant,grid_gen_cost,delta_lcoe_pct,switch_count,elapsed_s,note,R0_n_code3,R0_n_code1,R0_n_code5,R1_n_code3,R1_n_code1,R1_n_code5
+central,0.013,44.27572895454015,33701,148.59672284126282,Gate check — must reproduce the s06 central headline,236916,31985,1625,203215,65686,1625
+gen-0.17,0.17,30.639092800953314,36974,98.07301497459412,Eskom drought-year import price 2024 (Moobola 2024),242629,26260,1637,205655,63245,1626
+gen-0.22,0.22,28.01351933726326,38169,102.53936982154846,EDM Mozambique drought-year import price 2024 (Moobola 2024),244738,24115,1673,206569,62322,1635
+gen-0.26,0.26,26.32702040824903,39182,111.77782082557678,Local emergency diesel generation price 2024 (Moobola 2024),246475,21944,2107,207293,61210,2023

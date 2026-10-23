@@ -1,0 +1,119 @@
+new_path,original_run_name,bytes
+5. data/onsset_outputs/2026-10_final_capex-monotone_lcoe_R0.csv,2026-08-16_capex-monotone_lcoe_R0.csv,399332867
+5. data/onsset_outputs/2026-10_final_capex-monotone_lcoe_R1_n20.csv,2026-08-16_capex-monotone_lcoe_R1_n20.csv,407158389
+5. data/onsset_outputs/2026-10_final_capex-smooth_lcoe_R0.csv,2026-08-16_capex-smooth_lcoe_R0.csv,399327865
+5. data/onsset_outputs/2026-10_final_capex-smooth_lcoe_R1_n20.csv,2026-08-16_capex-smooth_lcoe_R1_n20.csv,407307634
+5. data/onsset_outputs/2026-10_final_reinvest_lcoe_R0.csv,2026-08-16_reinvest_lcoe_R0.csv,399502230
+5. data/onsset_outputs/2026-10_final_reinvest_lcoe_R1_n20.csv,2026-08-16_reinvest_lcoe_R1_n20.csv,407426714
+5. data/onsset_outputs/2026-10_final_hhsize_R0_rural4p5.csv,2026-08-21_hhsize_R0_rural4p5.csv,399944269
+5. data/onsset_outputs/2026-10_final_hhsize_R0_rural5p5.csv,2026-08-21_hhsize_R0_rural5p5.csv,398711402
+5. data/onsset_outputs/2026-10_final_hhsize_R1_n20_rural4p5.csv,2026-08-21_hhsize_R1_n20_rural4p5.csv,408673095
+5. data/onsset_outputs/2026-10_final_hhsize_R1_n20_rural5p5.csv,2026-08-21_hhsize_R1_n20_rural5p5.csv,407467737
+5. data/onsset_outputs/2026-10_final_lcoe_R0.csv,2026-08_final_lcoe_R0.csv,399337472
+5. data/onsset_outputs/2026-10_final_lcoe_R0_ruralT2.csv,2026-08_final_lcoe_R0_ruralT2.csv,398619864
+5. data/onsset_outputs/2026-10_final_lcoe_R1_n10.csv,2026-08_final_lcoe_R1_n10.csv,407457532
+5. data/onsset_outputs/2026-10_final_lcoe_R1_n20.csv,2026-08_final_lcoe_R1_n20.csv,407454667
+5. data/onsset_outputs/2026-10_final_lcoe_R1_n50.csv,2026-08_final_lcoe_R1_n50.csv,407629650
+5. data/onsset_outputs/2026-10_final_lcoe_R1_ruralT2_n10.csv,2026-08_final_lcoe_R1_ruralT2_n10.csv,406578322
+5. data/onsset_outputs/2026-10_final_lcoe_R1_ruralT2_n20.csv,2026-08_final_lcoe_R1_ruralT2_n20.csv,406521790
+5. data/onsset_outputs/2026-10_final_lcoe_R1_ruralT2_n50.csv,2026-08_final_lcoe_R1_ruralT2_n50.csv,406553565
+5. data/onsset_outputs/2026-10_final_lcoe_tech_split.csv,2026-08_final_lcoe_tech_split.csv,1980
+5. data/onsset_outputs/2026-10_final_lhs_emulator_validation.csv,2026-08_final_lhs_emulator_validation.csv,1540
+5. data/onsset_outputs/2026-10_final_lhs_uncertainty.csv,2026-08_final_lhs_uncertainty.csv,38205
+5. data/onsset_outputs/2026-10_final_morris_delta_lcoe.csv,2026-08_final_morris_delta_lcoe.csv,463
+5. data/onsset_outputs/2026-10_final_morris_delta_lcoe_corrected.csv,2026-08_final_morris_delta_lcoe_corrected.csv,464
+5. data/onsset_outputs/2026-10_final_morris_ee_raw.csv,2026-08_final_morris_ee_raw.csv,3904
+5. data/onsset_outputs/2026-10_final_morris_switch_count.csv,2026-08_final_morris_switch_count.csv,338
+5. data/onsset_outputs/2026-10_final_oat_capminus30pct_R0.csv,2026-08_final_oat_capminus30pct_R0.csv,399331595
+5. data/onsset_outputs/2026-10_final_oat_capminus30pct_R1_n20.csv,2026-08_final_oat_capminus30pct_R1_n20.csv,407451517
+5. data/onsset_outputs/2026-10_final_oat_capplus30pct_R0.csv,2026-08_final_oat_capplus30pct_R0.csv,399339665
+5. data/onsset_outputs/2026-10_final_oat_capplus30pct_R1_n20.csv,2026-08_final_oat_capplus30pct_R1_n20.csv,407525615
+5. data/onsset_outputs/2026-10_final_oat_drought_price.csv,2026-08_final_oat_drought_price.csv,731
+5. data/onsset_outputs/2026-10_final_oat_gen-017_R0.csv,2026-08_final_oat_gen-017_R0.csv,398585483
+5. data/onsset_outputs/2026-10_final_oat_gen-017_R1_n20.csv,2026-08_final_oat_gen-017_R1_n20.csv,404963159
+5. data/onsset_outputs/2026-10_final_oat_gen-022_R0.csv,2026-08_final_oat_gen-022_R0.csv,398965039
+5. data/onsset_outputs/2026-10_final_oat_gen-022_R1_n20.csv,2026-08_final_oat_gen-022_R1_n20.csv,406872722
+5. data/onsset_outputs/2026-10_final_oat_gen-026_R0.csv,2026-08_final_oat_gen-026_R0.csv,398922374
+5. data/onsset_outputs/2026-10_final_oat_gen-026_R1_n20.csv,2026-08_final_oat_gen-026_R1_n20.csv,406951983
+5. data/onsset_outputs/2026-10_final_oat_genminusdrought_R0.csv,2026-08_final_oat_genminusdrought_R0.csv,399276035
+5. data/onsset_outputs/2026-10_final_oat_genminusdrought_R1_n20.csv,2026-08_final_oat_genminusdrought_R1_n20.csv,407365548
+5. data/onsset_outputs/2026-10_final_oat_grid_costs.csv,2026-08_final_oat_grid_costs.csv,622
+5. data/onsset_outputs/2026-10_final_per_connection_analysis.csv,2026-08_final_per_connection_analysis.csv,343
+5. data/onsset_outputs/2026-10_final_sizing_convention_fband.csv,2026-08_final_sizing_convention_fband.csv,84
+5. data/onsset_outputs/2026-10_final_took_effect_checks.csv,2026-08_final_took_effect_checks.csv,825
+5. data/onsset_outputs/2026-10_final_fittedanchor_lcoe_R1.csv,2026-08_fittedanchor_lcoe_R1.csv,408078432
+5. data/onsset_outputs/2026-10_final_lhs_fullspine_validation.csv,2026-09-02_lhs_fullspine_validation.csv,844
+5. data/onsset_outputs/2026-10_final_mvzesco_R0.csv,2026-09-02_mvzesco_R0.csv,398426876
+5. data/onsset_outputs/2026-10_final_mvzesco_R1_n20.csv,2026-09-02_mvzesco_R1_n20.csv,406434671
+5. data/onsset_outputs/2026-10_final_txormv_R0.csv,2026-09-02_txormv_R0.csv,395195105
+5. data/onsset_outputs/2026-10_final_txormv_R1_n20.csv,2026-09-02_txormv_R1_n20.csv,403956953
+5. data/onsset_outputs/2026-10_final_dsens_movers_diesel-0.10.csv,2026-10_final_dsens_movers_diesel-0.10.csv,2249
+5. data/onsset_outputs/2026-10_final_dsens_movers_diesel-0.38.csv,2026-10_final_dsens_movers_diesel-0.38.csv,1175
+5. data/onsset_outputs/2026-10_final_dsens_movers_diesel-0.95.csv,2026-10_final_dsens_movers_diesel-0.95.csv,31
+5. data/onsset_outputs/2026-10_final_dsens_oat_diesel-0.10_R0.csv,2026-10_final_dsens_oat_diesel-0.10_R0.csv,401033445
+5. data/onsset_outputs/2026-10_final_dsens_oat_diesel-0.10_R1_n20.csv,2026-10_final_dsens_oat_diesel-0.10_R1_n20.csv,409150699
+5. data/onsset_outputs/2026-10_final_dsens_oat_diesel-0.38_R0.csv,2026-10_final_dsens_oat_diesel-0.38_R0.csv,400356487
+5. data/onsset_outputs/2026-10_final_dsens_oat_diesel-0.38_R1_n20.csv,2026-10_final_dsens_oat_diesel-0.38_R1_n20.csv,408473693
+5. data/onsset_outputs/2026-10_final_dsens_oat_diesel-0.95_R0.csv,2026-10_final_dsens_oat_diesel-0.95_R0.csv,399875335
+5. data/onsset_outputs/2026-10_final_dsens_oat_diesel-0.95_R1_n20.csv,2026-10_final_dsens_oat_diesel-0.95_R1_n20.csv,407992516
+5. data/onsset_outputs/2026-10_final_dsens_oat_diesel_price.csv,2026-10_final_dsens_oat_diesel_price.csv,4861
+5. data/onsset_outputs/2026-10_final_dsens_sadiesel_shadow_central.csv,2026-10_final_dsens_sadiesel_shadow_central.csv,78491398
+5. data/onsset_outputs/2026-10_final_dsens_sadiesel_shadow_diesel-0.10.csv,2026-10_final_dsens_sadiesel_shadow_diesel-0.10.csv,73538115
+5. data/onsset_outputs/2026-10_final_dsens_sadiesel_shadow_diesel-0.38.csv,2026-10_final_dsens_sadiesel_shadow_diesel-0.38.csv,80176926
+5. data/onsset_outputs/2026-10_final_dsens_sadiesel_shadow_diesel-0.95.csv,2026-10_final_dsens_sadiesel_shadow_diesel-0.95.csv,79373262
+5. data/onsset_outputs/2026-10_final_2050only_grid3_lcoe_R0.csv,2050only_grid3_lcoe_R0.csv,294008821
+5. data/onsset_outputs/2026-10_final_2050only_grid3_lcoe_R0_ruralT2.csv,2050only_grid3_lcoe_R0_ruralT2.csv,292460385
+5. data/onsset_outputs/2026-10_final_2050only_grid3_lcoe_R1_n10.csv,2050only_grid3_lcoe_R1_n10.csv,303695874
+5. data/onsset_outputs/2026-10_final_2050only_grid3_lcoe_R1_n20.csv,2050only_grid3_lcoe_R1_n20.csv,303792563
+5. data/onsset_outputs/2026-10_final_2050only_grid3_lcoe_R1_n50.csv,2050only_grid3_lcoe_R1_n50.csv,303815745
+5. data/onsset_outputs/2026-10_final_2050only_grid3_lcoe_R1_ruralT2_n10.csv,2050only_grid3_lcoe_R1_ruralT2_n10.csv,301039185
+5. data/onsset_outputs/2026-10_final_2050only_grid3_lcoe_R1_ruralT2_n20.csv,2050only_grid3_lcoe_R1_ruralT2_n20.csv,301040746
+5. data/onsset_outputs/2026-10_final_2050only_grid3_lcoe_R1_ruralT2_n50.csv,2050only_grid3_lcoe_R1_ruralT2_n50.csv,301079879
+zambia-explicit-peak/results/summary/2026-10_final_hhsize_sensitivity.csv,2026-08-21_hhsize_sensitivity.csv,630
+zambia-explicit-peak/results/summary/2026-10_final_band_and_channel_decomposition.csv,2026-08_final_band_and_channel_decomposition.csv,929
+zambia-explicit-peak/results/summary/2026-10_final_lcoe_paper_numbers.csv,2026-08_final_lcoe_paper_numbers.csv,6268
+zambia-explicit-peak/results/summary/2026-10_final_lcoe_tech_split.csv,2026-08_final_lcoe_tech_split.csv,1980
+zambia-explicit-peak/results/summary/2026-10_final_lhs_emulator_validation.csv,2026-08_final_lhs_emulator_validation.csv,1540
+zambia-explicit-peak/results/summary/2026-10_final_lhs_uncertainty.csv,2026-08_final_lhs_uncertainty.csv,38205
+zambia-explicit-peak/results/summary/2026-10_final_morris_delta_lcoe.csv,2026-08_final_morris_delta_lcoe.csv,463
+zambia-explicit-peak/results/summary/2026-10_final_morris_delta_lcoe_corrected.csv,2026-08_final_morris_delta_lcoe_corrected.csv,464
+zambia-explicit-peak/results/summary/2026-10_final_morris_ee_raw.csv,2026-08_final_morris_ee_raw.csv,3904
+zambia-explicit-peak/results/summary/2026-10_final_morris_switch_count.csv,2026-08_final_morris_switch_count.csv,338
+zambia-explicit-peak/results/summary/2026-10_final_oat_drought_price.csv,2026-08_final_oat_drought_price.csv,731
+zambia-explicit-peak/results/summary/2026-10_final_oat_grid_costs.csv,2026-08_final_oat_grid_costs.csv,622
+zambia-explicit-peak/results/summary/2026-10_final_pe_2050_erosion_summary.csv,2026-08_final_pe_2050_erosion_summary.csv,471
+zambia-explicit-peak/results/summary/2026-10_final_per_connection_analysis.csv,2026-08_final_per_connection_analysis.csv,343
+zambia-explicit-peak/results/summary/2026-10_final_provincial_rho.csv,2026-08_final_provincial_rho.csv,960
+zambia-explicit-peak/results/summary/2026-10_final_provincial_rho_summary.csv,2026-08_final_provincial_rho_summary.csv,515
+zambia-explicit-peak/results/summary/2026-10_final_sizing_convention_fband.csv,2026-08_final_sizing_convention_fband.csv,84
+zambia-explicit-peak/results/summary/2026-10_final_took_effect_checks.csv,2026-08_final_took_effect_checks.csv,825
+zambia-explicit-peak/results/summary/2026-10_final_calibration_gate_sensitivity.csv,2026-09-02_calibration_gate_sensitivity.csv,730
+zambia-explicit-peak/results/summary/2026-10_final_lhs_fullspine_validation.csv,2026-09-02_lhs_fullspine_validation.csv,844
+zambia-explicit-peak/results/summary/2026-10_final_mv_distance_sources.csv,2026-09-02_mv_distance_sources.csv,685
+zambia-explicit-peak/results/summary/2026-10_final_mv_layer_sensitivity.csv,2026-09-02_mv_layer_sensitivity.csv,677
+zambia-explicit-peak/results/summary/2026-10_final_variant_summaries.csv,2026-09-02_variant_summaries.csv,1051
+zambia-explicit-peak/results/summary/2026-10_final_switcher_profile.csv,2026-09-03_switcher_profile.csv,406
+zambia-explicit-peak/results/summary/2026-10_final_dsens_oat_diesel_price.csv,2026-10_final_dsens_oat_diesel_price.csv,4861
+zambia-explicit-peak/notes/2026-10_final_GSA_uncertainty.md,2026-08_final_GSA_uncertainty.md,9099
+zambia-explicit-peak/notes/2026-10_final_demand_sensitivity.md,2026-08_final_demand_sensitivity.md,2834
+zambia-explicit-peak/figures/2026-10_final_fig_headline_uncertainty.pdf,fig_headline_uncertainty.pdf,26052
+zambia-explicit-peak/figures/2026-10_final_fig_headline_uncertainty.png,fig_headline_uncertainty.png,158164
+zambia-explicit-peak/figures/2026-10_final_fig_methods_onsset_workflow.pdf,fig_methods_onsset_workflow.pdf,53059
+zambia-explicit-peak/figures/2026-10_final_fig_methods_onsset_workflow.png,fig_methods_onsset_workflow.png,340758
+zambia-explicit-peak/figures/2026-10_final_fig_methods_pe_coincidence_curve.pdf,fig_methods_pe_coincidence_curve.pdf,26895
+zambia-explicit-peak/figures/2026-10_final_fig_methods_pe_coincidence_curve.png,fig_methods_pe_coincidence_curve.png,100593
+zambia-explicit-peak/figures/2026-10_final_fig_methods_pe_empirical_validation.pdf,fig_methods_pe_empirical_validation.pdf,35509
+zambia-explicit-peak/figures/2026-10_final_fig_methods_pe_empirical_validation.png,fig_methods_pe_empirical_validation.png,217590
+zambia-explicit-peak/figures/2026-10_final_fig_methods_pe_nmid_sweep.pdf,fig_methods_pe_nmid_sweep.pdf,27727
+zambia-explicit-peak/figures/2026-10_final_fig_methods_pe_nmid_sweep.png,fig_methods_pe_nmid_sweep.png,159723
+zambia-explicit-peak/figures/2026-10_final_fig_methods_pe_realised_distribution.pdf,fig_methods_pe_realised_distribution.pdf,24016
+zambia-explicit-peak/figures/2026-10_final_fig_methods_pe_realised_distribution.png,fig_methods_pe_realised_distribution.png,107124
+zambia-explicit-peak/figures/2026-10_final_fig_results_r0_r1_allocation_map.pdf,fig_results_r0_r1_allocation_map.pdf,228769
+zambia-explicit-peak/figures/2026-10_final_fig_results_r0_r1_allocation_map.png,fig_results_r0_r1_allocation_map.png,410310
+zambia-explicit-peak/figures/2026-10_final_fig_results_switching_map.pdf,fig_results_switching_map.pdf,265841
+zambia-explicit-peak/figures/2026-10_final_fig_results_switching_map.png,fig_results_switching_map.png,1968642
+zambia-explicit-peak/figures/2026-10_final_fig_results_switching_map_bw.png,fig_results_switching_map_bw.png,1399626
+zambia-explicit-peak/figures/2026-10_final_fig_results_tech_split_R0_R1.pdf,fig_results_tech_split_R0_R1.pdf,19816
+zambia-explicit-peak/figures/2026-10_final_fig_results_tech_split_R0_R1.png,fig_results_tech_split_R0_R1.png,87840
+zambia-explicit-peak/figures/2026-10_final_fig_sensitivity_morris.pdf,fig_sensitivity_morris.pdf,27563
+zambia-explicit-peak/figures/2026-10_final_fig_sensitivity_morris.png,fig_sensitivity_morris.png,109115
